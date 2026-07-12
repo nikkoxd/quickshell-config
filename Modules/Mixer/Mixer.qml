@@ -33,7 +33,7 @@ View {
         anchors.centerIn: parent
         spacing: 10
         model: linkTracker.linkGroups
-        delegate: AudioMixerEntry {
+        delegate: MixerEntry {
             node: modelData.source
             required property PwLinkGroup modelData
         }

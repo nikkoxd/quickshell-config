@@ -3,8 +3,6 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell.Services.Mpris
 import qs.Core
-import qs.Modules
-import qs.Modules.Dashboard
 
 View {
     id: root

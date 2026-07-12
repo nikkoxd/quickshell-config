@@ -1,5 +1,4 @@
 import Quickshell
-import Quickshell.Widgets
 import QtQuick
 import QtQuick.Controls
 import Qt.labs.folderlistmodel
@@ -44,7 +43,7 @@ View {
             genericName: "Quickshell",
             icon: "audio-volume-high",
             execute: function() {
-                root.viewChangeRequested("audioMixer");
+                root.viewChangeRequested("mixer");
             }
         },
         {

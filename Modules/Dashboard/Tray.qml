@@ -6,7 +6,6 @@ import Quickshell.Services.SystemTray
 import QtQuick
 import QtQuick.Effects
 import qs.Core
-import qs.Services
 
 Column {
     id: root

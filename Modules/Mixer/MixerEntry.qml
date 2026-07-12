@@ -37,7 +37,7 @@ Column {
         }
     }
 
-    ControlCenterSlider {
+    MixerSlider {
         id: slider
         value: root.node.audio.volume
         icon: "volume_up"

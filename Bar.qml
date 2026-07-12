@@ -1,14 +1,17 @@
 pragma ComponentBehavior: Bound
 
 import Quickshell.Io
-import Quickshell.Wayland
 import Quickshell.Hyprland
 import Quickshell.Services.Pipewire
 import QtQuick
 import QtQuick.Controls
 import qs.Core
 import qs.Modules
-import qs.Modules.Launcher
+import qs.Modules.Dashboard as DashboardModule
+import qs.Modules.Launcher as LauncherModule
+import qs.Modules.LocalSend as LocalSendModule
+import qs.Modules.Wallpapers as WallpapersModule
+import qs.Modules.Mixer as MixerModule
 import qs.Services
 
 Item {
@@ -23,14 +26,14 @@ Item {
     property Component lyrics: Lyrics {}
     property Component notification: Notification {}
     property Component controlCenter: ControlCenter {}
-    property Component audioMixer: AudioMixer {}
     property Component player: Player {}
-    property Component dashboard: DashboardView {}
-    property Component launcher: Launcher {}
     property Component workspaces: Workspaces {}
     property Component volume: Volume {}
-    property Component wallpapers: Wallpapers {}
-    property Component localsend: LocalSend {}
+    property Component dashboard: DashboardModule.Dashboard {}
+    property Component launcher: LauncherModule.Launcher {}
+    property Component wallpapers: WallpapersModule.Wallpapers {}
+    property Component localsend: LocalSendModule.LocalSend {}
+    property Component mixer: MixerModule.Mixer {}
 
     PropertyAnimation {
         id: blurTransitionAnimation

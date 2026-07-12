@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import qs.Core
 import qs.Services
-import qs.Modules.LocalSend
 
 View {
     id: root

@@ -2,10 +2,8 @@ pragma ComponentBehavior: Bound
 import Quickshell
 import Quickshell.Io
 import QtQuick
-import QtQuick.Layouts
 import Qt.labs.folderlistmodel
 import qs.Core
-import qs.Modules.Wallpapers
 
 View {
     id: root
