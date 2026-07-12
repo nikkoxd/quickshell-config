@@ -11,7 +11,7 @@
 - [x] Add a notification center
 - [x] Add a theme selector
 - [x] Add a wallpaper selector
-- [ ] Add Localsend support
+- [x] Add Localsend support
 - [ ] Move notification center to a separate view
 - [ ] Move main volume controls to audio mixer view
 - [ ] Add a clipboard manager
