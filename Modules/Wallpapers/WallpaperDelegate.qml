@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import Quickshell.Widgets
 import QtQuick
 import QtQuick.Effects
@@ -5,7 +6,8 @@ import qs.Core
 
 Item {
     id: root
-    required property string filePath
+    property string preview: model.preview || ""
+    required property var model
     signal clicked(string wallpaper)
 
     width: 220
@@ -14,11 +16,16 @@ Item {
     scale: PathView.iconScale || 0.6
     z: PathView.iconZ || 0
 
+    readonly property string displaySource: root.preview || model.filePath
+    readonly property bool isAnimated: displaySource.toLowerCase().endsWith(".gif")
+
     ClippingRectangle {
         id: clippingMask
         anchors.fill: parent
         border.width: 2
-        border.color: Config.theme.wallpaper === root.filePath ? Config.colorscheme.accent : hovered ? Config.colorscheme.accentAlt : "transparent"
+        border.color: Config.theme.wallpaper === root.model.filePath
+            ? Config.colorscheme.accent
+            : hovered ? Config.colorscheme.accentAlt : "transparent"
         radius: 8
         color: Config.colorscheme.bgAlt
         property bool hovered: false
@@ -46,16 +53,33 @@ Item {
         TapHandler {
             gesturePolicy: TapHandler.WithinBounds
             onTapped: {
-                // PathView.view.currentIndex = index;
-                root.clicked(root.filePath);
+                root.clicked(root.model.filePath);
             }
         }
 
-        Image {
+        Loader {
             anchors.fill: parent
-            source: root.filePath
-            fillMode: Image.PreserveAspectCrop
-            asynchronous: true
+            sourceComponent: root.isAnimated ? animatedComponent : staticComponent
+        }
+
+        Component {
+            id: staticComponent
+            Image {
+                anchors.fill: parent
+                source: root.displaySource
+                fillMode: Image.PreserveAspectCrop
+                asynchronous: true
+            }
+        }
+
+        Component {
+            id: animatedComponent
+            AnimatedImage {
+                anchors.fill: parent
+                source: root.displaySource
+                fillMode: Image.PreserveAspectCrop
+                playing: true
+            }
         }
     }
 }

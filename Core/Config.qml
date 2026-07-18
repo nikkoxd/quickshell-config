@@ -84,6 +84,7 @@ Singleton {
         }
         adapter: JsonAdapter {
             property string colorscheme: "Moonfly"
+            property string output: "DP-1"
             property string wallpaper
             property string wallpaperFolder: "$HOME/Pictures/Wallpapers/"
             property string fontFamily: "Google Sans"
