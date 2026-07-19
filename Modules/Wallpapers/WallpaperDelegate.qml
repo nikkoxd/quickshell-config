@@ -23,7 +23,7 @@ Item {
         id: clippingMask
         anchors.fill: parent
         border.width: 2
-        border.color: Config.theme.wallpaper === root.model.filePath ? Config.colorscheme.accent : hovered ? Config.colorscheme.accentAlt : "transparent"
+        border.color: Config.wallpaper.current === root.model.filePath ? Config.colorscheme.accent : hovered ? Config.colorscheme.accentAlt : "transparent"
         radius: 8
         color: Config.colorscheme.bgAlt
         property bool hovered: false

@@ -5,6 +5,7 @@ import QtQuick
 import QtQuick.Controls
 import Qt.labs.folderlistmodel
 import qs.Core
+import qs.Services
 
 View {
     id: root
@@ -13,45 +14,9 @@ View {
     focused: true
     dismissable: false
     displayInFullscreen: true
-    property var wallpaperType: Wallpapers.Type.Image
 
-    onWallpaperTypeChanged: {
-        if (wallpaperType === Wallpapers.Type.Mpvpaper && videoWallpapersModel.count === 0) {
-            videoLister.running = true;
-        }
-        carousel.currentIndex = 0;
-    }
-
-    enum Type {
-        Image,
-        Mpvpaper
-    }
-
-    function expandPath(path) {
-        return path.replace(/\$\{?(\w+)\}?/g, function (match, varName) {
-            var value = Quickshell.env(varName);
-            return value !== null ? value : match;
-        });
-    }
-
-    function setWallpaper(wallpaper) {
-        Config.theme.wallpaper = wallpaper;
-        if (wallpaperType === Wallpapers.Type.Image) {
-            Quickshell.execDetached(["awww", "img", wallpaper, "-t", "random", "--transition-fps", "60"]);
-        } else if (wallpaperType === Wallpapers.Type.Mpvpaper) {
-            const output = Config.theme.output;
-            const cmd = "killall mpvpaper 2>/dev/null; sleep 0.3; exec mpvpaper '" + output + "' '" + wallpaper + "' -o 'no-audio loop-file=inf'";
-            Quickshell.execDetached(["sh", "-c", cmd]);
-        }
-    }
-
-    function getCurrentWallpaperPath() {
-        if (wallpaperType === Wallpapers.Type.Image) {
-            return imageWallpapersModel.get(carousel.currentIndex, "filePath");
-        } else {
-            return videoWallpapersModel.get(carousel.currentIndex).filePath;
-        }
-    }
+    property var wallpaperType: WallpaperService.toType(Config.wallpaper.type)
+    onWallpaperTypeChanged: WallpaperService.requestModelUpdate(wallpaperType);
 
     function syncCarouselIndex() {
         console.log("Syncing carousel index");
@@ -62,12 +27,12 @@ View {
             return;
         }
 
-        let target = Config.theme.wallpaper;
+        let target = Config.wallpaper.current;
         console.log("Target wallpaper:", target);
 
         for (let i = 0; i < model.count; i++) {
             let item;
-            if (wallpaperType === Wallpapers.Type.Image) {
+            if (wallpaperType === WallpaperService.Type.Image) {
                 item = model.get(i, "filePath");
             } else {
                 item = model.get(i).filePath;
@@ -80,11 +45,18 @@ View {
         }
     }
 
+    Connections {
+        target: WallpaperService
+        function onModelUpdateDone() {
+            root.syncCarouselIndex();
+        }
+    }
+
     Shortcut {
         sequence: "Return"
         onActivated: {
-            const wallpaper = root.getCurrentWallpaperPath();
-            root.setWallpaper(wallpaper);
+            const wallpaper = WallpaperService.getWallpaperPath(carousel.currentIndex, root.wallpaperType);
+            WallpaperService.setWallpaper(wallpaper, root.wallpaperType);
         }
     }
 
@@ -112,47 +84,6 @@ View {
         id: hoverHandler
     }
 
-    FolderListModel {
-        id: imageWallpapersModel
-        folder: "file://" + root.expandPath(Config.theme.wallpaperFolder)
-        nameFilters: ["*.jpg", "*.png"]
-        showDirs: false
-        showDotAndDotDot: false
-        sortField: FolderListModel.Time
-        onStatusChanged: {
-            if (status === FolderListModel.Ready) {
-                Qt.callLater(root.syncCarouselIndex);
-            }
-        }
-    }
-
-    ListModel {
-        id: videoWallpapersModel
-    }
-
-    Process {
-        id: videoLister
-        command: ["python3", Quickshell.shellPath("Helpers/list_walls.py")]
-        running: false
-        stdout: StdioCollector {
-            onStreamFinished: {
-                try {
-                    const data = JSON.parse(this.text);
-                    videoWallpapersModel.clear();
-                    for (let i = 0; i < data.length; i++) {
-                        videoWallpapersModel.append({
-                            preview: data[i].preview,
-                            filePath: data[i].file
-                        });
-                    }
-                    Qt.callLater(root.syncCarouselIndex);
-                } catch (e) {
-                    console.log("Failed to parse video wallpapers:", e);
-                }
-            }
-        }
-    }
-
     Column {
         id: mainLayout
         y: Config.island.padding
@@ -168,7 +99,7 @@ View {
             PathView {
                 id: carousel
                 anchors.fill: parent
-                model: root.wallpaperType === Wallpapers.Type.Image ? imageWallpapersModel : videoWallpapersModel
+                model: WallpaperService.getModel(root.wallpaperType)
                 pathItemCount: 7
 
                 preferredHighlightBegin: 0.5
@@ -245,7 +176,7 @@ View {
                 }
 
                 delegate: WallpaperDelegate {
-                    onClicked: wallpaper => root.setWallpaper(wallpaper)
+                    onClicked: wallpaper => WallpaperService.setWallpaper(wallpaper, root.wallpaperType)
                 }
             }
 
@@ -276,25 +207,25 @@ View {
 
             ThemedText {
                 text: "Images"
-                color: root.wallpaperType === Wallpapers.Type.Image ? "white" : "#888888"
-                font.bold: root.wallpaperType === Wallpapers.Type.Image
+                color: root.wallpaperType === WallpaperService.Type.Image ? "white" : "#888888"
+                font.bold: root.wallpaperType === WallpaperService.Type.Image
                 anchors.verticalCenter: parent.verticalCenter
             }
 
             Switch {
                 id: typeSwitch
                 anchors.verticalCenter: parent.verticalCenter
-                checked: root.wallpaperType === Wallpapers.Type.Mpvpaper
+                checked: root.wallpaperType === WallpaperService.Type.Mpvpaper
 
                 onCheckedChanged: {
-                    root.wallpaperType = checked ? Wallpapers.Type.Mpvpaper : Wallpapers.Type.Image;
+                    root.wallpaperType = checked ? WallpaperService.Type.Mpvpaper : WallpaperService.Type.Image;
                 }
             }
 
             ThemedText {
                 text: "mpvpaper"
-                color: root.wallpaperType === Wallpapers.Type.Mpvpaper ? "white" : "#888888"
-                font.bold: root.wallpaperType === Wallpapers.Type.Mpvpaper
+                color: root.wallpaperType === WallpaperService.Type.Mpvpaper ? "white" : "#888888"
+                font.bold: root.wallpaperType === WallpaperService.Type.Mpvpaper
                 anchors.verticalCenter: parent.verticalCenter
             }
         }

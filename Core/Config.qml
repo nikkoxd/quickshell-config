@@ -2,12 +2,14 @@ pragma Singleton
 import Quickshell
 import Quickshell.Io
 import QtQuick
+import qs.Services
 
 Singleton {
     property var island: islandLoader.adapter
     property var visualizer: visualizerLoader.adapter
     property var launcher: launcherLoader.adapter
     property var theme: themeLoader.adapter
+    property var wallpaper: wallpaperLoader.adapter
     property var colorscheme: colorschemeLoader.adapter
 
     Connections {
@@ -23,7 +25,7 @@ Singleton {
         watchChanges: true
         onFileChanged: reload()
         onAdapterUpdated: writeAdapter()
-        onLoadFailed: (error) => {
+        onLoadFailed: error => {
             if (error === FileViewError.FileNotFound) {
                 writeAdapter();
             }
@@ -42,7 +44,7 @@ Singleton {
         watchChanges: true
         onFileChanged: reload()
         onAdapterUpdated: writeAdapter()
-        onLoadFailed: (error) => {
+        onLoadFailed: error => {
             if (error === FileViewError.FileNotFound) {
                 writeAdapter();
             }
@@ -58,7 +60,7 @@ Singleton {
         watchChanges: true
         onFileChanged: reload()
         onAdapterUpdated: writeAdapter()
-        onLoadFailed: (error) => {
+        onLoadFailed: error => {
             if (error === FileViewError.FileNotFound) {
                 writeAdapter();
             }
@@ -77,19 +79,41 @@ Singleton {
         watchChanges: true
         onFileChanged: reload()
         onAdapterUpdated: writeAdapter()
-        onLoadFailed: (error) => {
+        onLoadFailed: error => {
             if (error === FileViewError.FileNotFound) {
                 writeAdapter();
             }
         }
         adapter: JsonAdapter {
             property string colorscheme: "Moonfly"
-            property string output: "DP-1"
-            property string wallpaper
-            property string wallpaperFolder: "$HOME/Pictures/Wallpapers/"
             property string fontFamily: "Google Sans"
             property string fontWeight: "Regular"
             property int fontSize: 14
+        }
+    }
+
+    FileView {
+        id: wallpaperLoader
+        path: Qt.resolvedUrl("../Config/wallpaper.json")
+        watchChanges: true
+        onFileChanged: reload()
+        onAdapterUpdated: writeAdapter()
+        onLoaded: {
+            Qt.callLater(() => {
+                WallpaperService.startAwwwDaemon();
+                WallpaperService.setWallpaperToCurrent();
+            });
+        }
+        onLoadFailed: error => {
+            if (error === FileViewError.FileNotFound) {
+                writeAdapter();
+            }
+        }
+        adapter: JsonAdapter {
+            property string output: "ALL"
+            property string current
+            property string type: "image"
+            property string staticWallpaperFolder: "$HOME/Pictures/Wallpapers/"
         }
     }
 
@@ -98,7 +122,7 @@ Singleton {
         path: Qt.resolvedUrl("../Themes/Moonfly.json")
         watchChanges: true
         onFileChanged: reload()
-        onLoadFailed: (error) => {
+        onLoadFailed: error => {
             if (error === FileViewError.FileNotFound) {
                 writeAdapter();
             }
