@@ -132,7 +132,7 @@ View {
 
     Process {
         id: videoLister
-        command: ["python3", "list_walls.py"]
+        command: ["python3", Quickshell.shellPath("Helpers/list_walls.py")]
         running: false
         stdout: StdioCollector {
             onStreamFinished: {
