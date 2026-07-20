@@ -10,13 +10,15 @@ import qs.Services
 View {
     id: root
     implicitWidth: carouselContainer.implicitWidth
-    implicitHeight: hoverHandler.hovered ? 280 : 240
+    implicitHeight: 280
     focused: true
     dismissable: false
     displayInFullscreen: true
 
     property var wallpaperType: WallpaperService.toType(Config.wallpaper.type)
     onWallpaperTypeChanged: WallpaperService.requestModelUpdate(wallpaperType);
+
+    Component.onCompleted: syncCarouselIndex()
 
     function syncCarouselIndex() {
         console.log("Syncing carousel index");
@@ -78,10 +80,6 @@ View {
             else
                 carousel.currentIndex = 0;
         }
-    }
-
-    HoverHandler {
-        id: hoverHandler
     }
 
     Column {
@@ -176,7 +174,10 @@ View {
                 }
 
                 delegate: WallpaperDelegate {
-                    onClicked: wallpaper => WallpaperService.setWallpaper(wallpaper, root.wallpaperType)
+                    onClicked: (wallpaper) => {
+                        WallpaperService.setWallpaper(wallpaper, root.wallpaperType);
+                        root.syncCarouselIndex();
+                    }
                 }
             }
 
@@ -203,10 +204,9 @@ View {
             id: typeSwitchContainer
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: 12
-            visible: hoverHandler.hovered
 
             ThemedText {
-                text: "Images"
+                text: "awww"
                 color: root.wallpaperType === WallpaperService.Type.Image ? "white" : "#888888"
                 font.bold: root.wallpaperType === WallpaperService.Type.Image
                 anchors.verticalCenter: parent.verticalCenter
