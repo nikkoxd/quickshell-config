@@ -23,27 +23,6 @@ View {
         }
     }
 
-    TapHandler {
-        acceptedButtons: Qt.LeftButton | Qt.RightButton
-        onTapped: (eventPoint, button) => {
-            if (button === Qt.LeftButton) {
-                root.viewChangeRequested("dashboard");
-            } else {
-                root.viewChangeRequested("controlCenter");
-            }
-        }
-    }
-
-    HoverHandler {
-        onHoveredChanged: {
-            if (hovered) {
-                timer.running = false;
-            } else {
-                timer.running = true;
-            }
-        }
-    }
-
     Item {
         id: wrapper
         width: workspaces.implicitWidth + Config.island.padding * 2
@@ -63,24 +42,6 @@ View {
                     text: modelData.name
                     opacity: modelData.active ? 1 : 0.5
                     required property var modelData
-
-                    HoverHandler {
-                        cursorShape: Qt.PointingHandCursor
-                        onHoveredChanged: {
-                            if (hovered) {
-                                text.opacity = 1;
-                            } else {
-                                text.opacity = 0.5;
-                            }
-                        }
-                    }
-
-                    TapHandler {
-                        acceptedButtons: Qt.LeftButton | Qt.RightButton
-                        onTapped: (eventPoint, button) => {
-
-                        }
-                    }
 
                     Behavior on opacity {
                         NumberAnimation {
