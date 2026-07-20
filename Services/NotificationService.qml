@@ -4,6 +4,8 @@ import Quickshell.Io
 import Quickshell.Services.Notifications
 
 Singleton {
+    property bool muted: false
+
     property NotificationServer server: NotificationServer {
         id: server
         actionsSupported: true

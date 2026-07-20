@@ -3,6 +3,7 @@ import Quickshell.Bluetooth
 import QtQuick
 import QtQuick.Layouts
 import qs.Core
+import qs.Services
 
 GridLayout {
     id: root
@@ -32,6 +33,11 @@ GridLayout {
 
     ControlCenterButton {
         icon: "notifications"
+        active: NotificationService.muted
+        activeIcon: "notifications_off"
+        onClicked: {
+            NotificationService.muted = !NotificationService.muted
+        }
     }
 
     ControlCenterButton {

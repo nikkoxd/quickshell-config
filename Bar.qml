@@ -141,7 +141,7 @@ Item {
         function onNotification(notification) {
             notification.tracked = true;
 
-            if (!content.currentView.dismissable)
+            if (!content.currentView.dismissable || NotificationService.muted)
                 return;
             root.openView("notification", {
                 notification: notification
