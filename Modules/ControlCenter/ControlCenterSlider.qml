@@ -20,7 +20,7 @@ Item {
         background: ClippingRectangle {
             clip: true
             radius: Config.island.radius / 2
-            color: Config.colorscheme.bg
+            color: "transparent"
 
             Rectangle {
                 id: previewBottom

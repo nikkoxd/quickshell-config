@@ -7,6 +7,7 @@ import QtQuick
 import QtQuick.Controls
 import qs.Core
 import qs.Modules
+import qs.Modules.ControlCenter as ControlCenterModule
 import qs.Modules.Dashboard as DashboardModule
 import qs.Modules.Launcher as LauncherModule
 import qs.Modules.LocalSend as LocalSendModule
@@ -25,10 +26,10 @@ Item {
     property Component clock: Clock {}
     property Component lyrics: Lyrics {}
     property Component notification: Notification {}
-    property Component controlCenter: ControlCenter {}
     property Component player: Player {}
     property Component workspaces: Workspaces {}
     property Component volume: Volume {}
+    property Component controlCenter: ControlCenterModule.ControlCenter {}
     property Component dashboard: DashboardModule.Dashboard {}
     property Component launcher: LauncherModule.Launcher {}
     property Component wallpapers: WallpapersModule.Wallpapers {}
