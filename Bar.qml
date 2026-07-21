@@ -6,7 +6,7 @@ import Quickshell.Services.Pipewire
 import QtQuick
 import QtQuick.Controls
 import qs.Core
-import qs.Modules
+import qs.Modules.Default as DefaultModule
 import qs.Modules.ControlCenter as ControlCenterModule
 import qs.Modules.Dashboard as DashboardModule
 import qs.Modules.Launcher as LauncherModule
@@ -23,12 +23,12 @@ Item {
     property string currentItem: "clock"
     property string defaultItem: "clock"
     property alias content: content
-    property Component clock: Clock {}
-    property Component lyrics: Lyrics {}
-    property Component notification: Notification {}
-    property Component player: Player {}
-    property Component workspaces: Workspaces {}
-    property Component volume: Volume {}
+    property Component clock: DefaultModule.Clock {}
+    property Component lyrics: DefaultModule.Lyrics {}
+    property Component notification: DefaultModule.Notification {}
+    property Component player: DefaultModule.Player {}
+    property Component workspaces: DefaultModule.Workspaces {}
+    property Component volume: DefaultModule.Volume {}
     property Component controlCenter: ControlCenterModule.ControlCenter {}
     property Component dashboard: DashboardModule.Dashboard {}
     property Component launcher: LauncherModule.Launcher {}
