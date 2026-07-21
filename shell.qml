@@ -10,7 +10,6 @@ import QtQuick
 import QtQuick.Effects
 import qs.Core
 import qs.Services
-import qs.Modules
 import qs.Modules.ScreenCorners as ScreenCornersModule
 
 ShellRoot {
