@@ -8,7 +8,7 @@ A [Quickshell](https://quickshell.outfoxxed.me/) desktop shell config written in
 
 ```sh
 qs -c island        # run
-qs -c island -n     # daemonless / no-reload check
+qs log -c island    # view logs of the running instance
 ```
 
 `shell.qml` is the entry point (referenced by the `//@ pragma UseQApplication` root). There is no build/lint/test tooling — QML is loaded and hot-reloaded live by Quickshell. `.qmlls.ini` is a symlink into Quickshell's VFS to power the `qmlls` language server; it is gitignored along with `Config/`.
@@ -21,7 +21,7 @@ Quickshell maps the config root to the `qs` import namespace. Directories become
 - `qs.Services` → `Services/` — singletons wrapping system state
 - `qs.Modules`, `qs.Modules.ControlCenter`, etc. → `Modules/` and its subfolders (imported `as` an alias when nested)
 
-Singletons are declared with `pragma Singleton` and used by type name (e.g. `Config.island.height`, `MprisService.onTrackChanged`). Reusable QML types just live as `.qml` files and are referenced by filename.
+Singletons are declared with `Singleton {}` imported from `Quickshell` and `pragma Singleton` at the top of the file and used by type name (e.g. `Config.island.height`, `MprisService.onTrackChanged`). Reusable QML types just live as `.qml` files and are referenced by filename.
 
 ## Core architecture: the view system
 

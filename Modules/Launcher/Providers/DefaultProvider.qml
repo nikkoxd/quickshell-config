@@ -12,6 +12,7 @@ LauncherProvider {
             name: "Dashboard",
             genericName: "Quickshell",
             icon: "dashboard",
+            iconType: LauncherProvider.IconType.Material,
             execute: function() {
                 root.svc.viewChangeRequested("dashboard");
             }
@@ -20,6 +21,7 @@ LauncherProvider {
             name: "Wallpapers",
             genericName: "Quickshell",
             icon: "wallpaper",
+            iconType: LauncherProvider.IconType.Material,
             execute: function() {
                 root.svc.viewChangeRequested("wallpapers");
             }
@@ -27,7 +29,8 @@ LauncherProvider {
         {
             name: "Audio Mixer",
             genericName: "Quickshell",
-            icon: "audio-volume-high",
+            icon: "graphic_eq",
+            iconType: LauncherProvider.IconType.Material,
             execute: function() {
                 root.svc.viewChangeRequested("mixer");
             }
@@ -36,6 +39,7 @@ LauncherProvider {
             name: "Bluetooth",
             genericName: "Quickshell",
             icon: "bluetooth",
+            iconType: LauncherProvider.IconType.Material,
             execute: function() {
                 root.svc.viewChangeRequested("bluetooth");
             }
@@ -44,6 +48,7 @@ LauncherProvider {
             name: "Notifications",
             genericName: "Quickshell",
             icon: "notification",
+            iconType: LauncherProvider.IconType.Material,
             execute: function() {
                 root.svc.viewChangeRequested("notifications");
             }
@@ -52,6 +57,7 @@ LauncherProvider {
             name: "Bar Settings",
             genericName: "Quickshell",
             icon: "settings",
+            iconType: LauncherProvider.IconType.Material,
             execute: function() {
                 root.svc.viewChangeRequested("settings");
             }
@@ -60,6 +66,7 @@ LauncherProvider {
             name: "Select Theme",
             genericName: "Quickshell",
             icon: "color_lens",
+            iconType: LauncherProvider.IconType.Material,
             preventClose: true,
             execute: function() {
                 root.svc.provider = "themes";
@@ -69,6 +76,7 @@ LauncherProvider {
             name: "Next Track",
             genericName: "MPRIS",
             icon: "skip_next",
+            iconType: LauncherProvider.IconType.Material,
             execute: function() {
                 root.svc.mpris.next();
             }
@@ -77,6 +85,7 @@ LauncherProvider {
             name: "Power Off",
             genericName: "Power",
             icon: "power_settings_new",
+            iconType: LauncherProvider.IconType.Material,
             execute: function() {
                 Quickshell.execDetached(["systemctl", "poweroff"])
             }
@@ -85,6 +94,7 @@ LauncherProvider {
             name: "Reboot",
             genericName: "Power",
             icon: "restart_alt",
+            iconType: LauncherProvider.IconType.Material,
             execute: function() {
                 Quickshell.execDetached(["systemctl", "reboot"])
             }
@@ -93,6 +103,7 @@ LauncherProvider {
             name: "Suspend",
             genericName: "Power",
             icon: "pause",
+            iconType: LauncherProvider.IconType.Material,
             execute: function() {
                 Quickshell.execDetached(["systemctl", "suspend"])
             }
@@ -101,6 +112,7 @@ LauncherProvider {
             name: "Lock",
             genericName: "Power",
             icon: "lock",
+            iconType: LauncherProvider.IconType.Material,
             execute: function() {
                 Quickshell.execDetached(["loginctl", "lock-session"])
             }
@@ -109,6 +121,7 @@ LauncherProvider {
             name: "Previous Track",
             genericName: "MPRIS",
             icon: "skip_previous",
+            iconType: LauncherProvider.IconType.Material,
             execute: function() {
                 root.svc.mpris.previous();
             }
@@ -117,6 +130,7 @@ LauncherProvider {
             name: "Play/Pause Track",
             genericName: "MPRIS",
             icon: "play_arrow",
+            iconType: LauncherProvider.IconType.Material,
             execute: function() {
                 root.svc.mpris.togglePlaying();
             }

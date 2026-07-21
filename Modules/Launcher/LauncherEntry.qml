@@ -2,6 +2,7 @@ import Quickshell
 import Quickshell.Widgets
 import QtQuick
 import qs.Core
+import qs.Modules.Launcher.Providers
 
 Rectangle {
     id: root
@@ -17,6 +18,9 @@ Rectangle {
         anchors.margins: 10
 
         IconImage {
+            visible: (root.modelData.iconType === LauncherProvider.IconType.Application
+                    || root.modelData.iconType === undefined)
+                    && source.toString().length > 0
             source: {
                 const icon = Quickshell.iconPath(root.modelData.icon, true);
                 return icon;
@@ -24,8 +28,20 @@ Rectangle {
             width: parent.height
             height: parent.height
             asynchronous: true
-            visible: source.toString().length > 0
             anchors.verticalCenter: parent.verticalCenter
+        }
+
+        ThemedText {
+            visible: root.modelData.iconType === LauncherProvider.IconType.Material
+            text: root.modelData.icon
+            icon: true
+            width: parent.height
+            height: parent.height
+            font.pixelSize: Config.theme.fontSize * 1.15
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            anchors.verticalCenter: parent.verticalCenter
+            color: root.ListView.isCurrentItem ? Config.colorscheme.bg : Config.colorscheme.fg
         }
 
         ThemedText {
