@@ -1,5 +1,6 @@
 import Quickshell
 import qs.Core
+import qs.Services
 
 LauncherProvider {
     id: root
@@ -38,6 +39,25 @@ LauncherProvider {
                 root.svc.provider = "emoji";
             }
         },
+        {
+            name: "Clipboard history",
+            genericName: "Clipboard",
+            icon: "content_paste",
+            iconType: LauncherProvider.IconType.Material,
+            preventClose: true,
+            execute: function() {
+                root.svc.provider = "clipboard";
+            }
+        },
+        /* { */
+        /*     name: "Wipe clipboard", */
+        /*     genericName: "Clipboard", */
+        /*     icon: "content_paste_off", */
+        /*     iconType: LauncherProvider.IconType.Material, */
+        /*     execute: function() { */
+        /*         CliphistService.wipe(); */
+        /*     } */
+        /* }, */
         {
             name: "Dashboard",
             genericName: "Quickshell",

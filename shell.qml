@@ -26,6 +26,10 @@ ShellRoot {
         }
         WlrLayershell.layer: bar.content.currentView.displayInFullscreen ? WlrLayer.Overlay : WlrLayer.Top
 
+        Component.onCompleted: {
+            CliphistService.startListener();
+        }
+
         anchors {
             top: true
             left: true

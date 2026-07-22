@@ -1,4 +1,5 @@
 import QtQuick
+import qs.Services
 
 QtObject {
     enum IconType {
@@ -11,7 +12,7 @@ QtObject {
     property string headerIcon: "search"
     property string placeholder: "Search..."
     property bool hideQuery: false
-    property var svc // injected LauncherService
+    property var svc: LauncherService // injected LauncherService
 
     // Returns an array of entries:
     // [{ name, genericName, icon, iconType, execute, preventClose }]

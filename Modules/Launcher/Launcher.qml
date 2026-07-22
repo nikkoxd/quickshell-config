@@ -15,10 +15,11 @@ View {
 
     // Registry of launcher providers. To add a provider: create a file in Providers/
     // extending LauncherProvider and add one instance here.
-    DefaultProvider { id: defaultProvider; svc: LauncherService }
-    ThemesProvider { id: themesProvider; svc: LauncherService }
-    PasswordsProvider { id: passwordsProvider; svc: LauncherService  }
-    EmojiProvider { id: emojiProvider; svc: LauncherService }
+    DefaultProvider { id: defaultProvider }
+    ThemesProvider { id: themesProvider }
+    PasswordsProvider { id: passwordsProvider  }
+    EmojiProvider { id: emojiProvider }
+    ClipboardProvider { id: clipboardProvider }
 
     function launchSelected() {
         if (list.currentItem && list.currentItem.modelData)
@@ -27,7 +28,13 @@ View {
 
     Component.onCompleted: {
         // Add created providers to the list
-        LauncherService.providers = [defaultProvider, themesProvider, passwordsProvider, emojiProvider];
+        LauncherService.providers = [
+            defaultProvider,
+            themesProvider,
+            passwordsProvider,
+            emojiProvider,
+            clipboardProvider
+        ];
         LauncherService.reset();
         searchInput.forceActiveFocus();
     }
