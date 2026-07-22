@@ -6,8 +6,16 @@ LauncherProvider {
     id: root
     providerId: "passwords"
     headerIcon: "key"
-    placeholder: KeePassService.locked ? "Enter password" : "Search passwords..."
+    placeholder: KeePassService.locked ? unlockFailed ? "Wrong password, try again" : "Enter password" : "Search passwords..."
     hideQuery: KeePassService.locked ? true : false
+
+    property bool unlockFailed: false
+    property Connections keepassSvcConnections: Connections {
+        target: KeePassService
+        function onUnlockFailed() {
+            root.unlockFailed = true
+        }
+    }
 
     function entries(query) {
         if (KeePassService.locked) {
