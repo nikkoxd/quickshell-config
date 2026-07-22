@@ -9,6 +9,26 @@ LauncherProvider {
 
     property var customEntries: [
         {
+            name: "Select Theme",
+            genericName: "Quickshell",
+            icon: "color_lens",
+            iconType: LauncherProvider.IconType.Material,
+            preventClose: true,
+            execute: function() {
+                root.svc.provider = "themes";
+            }
+        },
+        {
+            name: "Passwords",
+            genericName: "KeePassXC",
+            icon: "key",
+            iconType: LauncherProvider.IconType.Material,
+            preventClose: true,
+            execute: function() {
+                root.svc.provider = "passwords";
+            }
+        },
+        {
             name: "Dashboard",
             genericName: "Quickshell",
             icon: "dashboard",
@@ -60,16 +80,6 @@ LauncherProvider {
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
                 root.svc.viewChangeRequested("settings");
-            }
-        },
-        {
-            name: "Select Theme",
-            genericName: "Quickshell",
-            icon: "color_lens",
-            iconType: LauncherProvider.IconType.Material,
-            preventClose: true,
-            execute: function() {
-                root.svc.provider = "themes";
             }
         },
         {
@@ -144,16 +154,7 @@ LauncherProvider {
             return [];
 
         const all = [...DesktopEntries.applications.values, ...root.customEntries];
-        const scored = all.map(d => {
-            const nameScore = d.name ? root.svc.fuzzyScore(q, d.name) : 0;
-            const genericScore = d.genericName ? root.svc.fuzzyScore(q, d.genericName) : 0;
-            return {
-                entry: d,
-                score: Math.max(nameScore, genericScore)
-            };
-        }).filter(item => item.score > 0).sort((a, b) => b.score - a.score);
-
-        const results = scored.map(item => item.entry);
+        const results = root.svc.fuzzyFilter(q, all, ["name", "genericName"]);
 
         const calcResult = root.svc.evalMath(q);
         if (calcResult !== null) {
@@ -162,7 +163,6 @@ LauncherProvider {
                 genericName: "Calculator",
                 execute: function () {
                     Quickshell.execDetached(["wl-copy", calcResult.toString()]);
-                    console.log("Calculator result:", calcResult);
                 }
             };
             results.unshift(calcEntry);

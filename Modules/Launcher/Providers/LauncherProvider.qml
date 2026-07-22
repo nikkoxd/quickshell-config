@@ -9,6 +9,7 @@ QtObject {
     property string providerId
     property string headerIcon: "search"
     property string placeholder: "Search..."
+    property bool hideQuery: false
     property var svc // injected LauncherService
 
     // Returns an array of entries:

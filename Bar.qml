@@ -47,13 +47,13 @@ Item {
     }
 
     function openDefaultView() {
-        console.log("Opening default view");
+        console.log("[bar] Opening default view");
         root.currentItem = root.defaultItem;
         content.replace(root[root.defaultItem]);
     }
 
     function openView(view, params) {
-        console.log("Opening", view, "view");
+        console.log("[bar] Opening", view, "view");
         if (view === root.currentItem)
             return;
         root.currentItem = view;
@@ -152,7 +152,7 @@ Item {
     Connections {
         target: LocalSendService
         function onPrepareUploadReceived(transferData) {
-            console.log("Prepare upload received");
+            console.log("[localsend] Prepare upload received");
             root.openView("localsend", {
                 transferData: transferData
             });
@@ -201,14 +201,12 @@ Item {
         anchors.fill: parent
 
         onEntered: (drag) => {
-            console.log("Entered", drag);
             if (drag.hasUrls && root.currentItem !== "localsend") {
                 root.openView("localsend");
             }
         }
 
         onDropped: (drop) => {
-            console.log("Dropped", drop);
             if (drop.hasUrls && content.currentItem && root.currentItem === "localsend") {
                 let urls = [];
                 for (let i = 0; i < drop.urls.length; i++) {

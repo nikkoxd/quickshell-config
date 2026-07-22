@@ -42,7 +42,7 @@ Singleton {
 
     function rejectTransfer() {
         if (serverProc.running) {
-            console.log("Rejecting transfer");
+            console.log("[localsend] Rejecting transfer");
             serverProc.write("no\n");
         }
     }

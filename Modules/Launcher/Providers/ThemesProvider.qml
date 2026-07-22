@@ -35,10 +35,6 @@ LauncherProvider {
 
         if (!q) return themes;
 
-        return themes.map(t => {
-            return { entry: t, score: root.svc.fuzzyScore(q, t.name) };
-        }).filter(item => item.score > 0)
-            .sort((a, b) => b.score - a.score)
-            .map(item => item.entry);
+        return root.svc.fuzzyFilter(q, themes);
     }
 }

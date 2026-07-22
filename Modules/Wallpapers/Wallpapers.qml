@@ -21,17 +21,13 @@ View {
     Component.onCompleted: syncCarouselIndex()
 
     function syncCarouselIndex() {
-        console.log("Syncing carousel index");
-
         let model = carousel.model;
         if (model.count === 0) {
-            console.log("No wallpapers found");
+            console.log("[wallpapers] No wallpapers found");
             return;
         }
 
         let target = Config.wallpaper.current;
-        console.log("Target wallpaper:", target);
-
         for (let i = 0; i < model.count; i++) {
             let item;
             if (wallpaperType === WallpaperService.Type.Image) {
@@ -40,7 +36,6 @@ View {
                 item = model.get(i).filePath;
             }
             if (item && item === target) {
-                console.log("Syncing carousel index to:", i);
                 Qt.callLater(() => carousel.currentIndex = i);
                 return;
             }

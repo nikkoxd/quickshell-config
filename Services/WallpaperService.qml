@@ -14,7 +14,7 @@ Singleton {
     }
 
     function startAwwwDaemon() {
-        console.log("Starting awww-daemon");
+        console.log("[awww] Starting awww-daemon");
         awwwDaemon.running = true;
     }
 
@@ -68,12 +68,12 @@ Singleton {
         Config.wallpaper.current = wallpaper;
         Config.wallpaper.type = typeToString(type);
         if (type === WallpaperService.Type.Image) {
-            console.log("Setting static wallpaper:", wallpaper);
+            console.log("[awww] Setting wallpaper to", wallpaper);
             mpvpaperSetter.running = false;
             awwwSetter.command = ["awww", "img", wallpaper, "-t", "random", "--transition-fps", "60"];
             awwwSetter.running = true;
         } else if (type === WallpaperService.Type.Mpvpaper) {
-            console.log("Setting mpvpaper wallpaper:", wallpaper);
+            console.log("[mpvpaper] Setting wallpaper to", wallpaper);
             mpvpaperSetter.running = false;
             mpvpaperSetter.command = ["mpvpaper", Config.wallpaper.output, wallpaper, "-o", "no-audio loop-file=inf"];
             mpvpaperSetter.running = true;
@@ -130,7 +130,7 @@ Singleton {
                     }
                     Qt.callLater(root.modelUpdateDone);
                 } catch (e) {
-                    console.log("Failed to parse video wallpapers:", e);
+                    console.log("[mpvpaper] Failed to parse video wallpapers:", e);
                 }
             }
         }
@@ -140,7 +140,7 @@ Singleton {
         id: awwwDaemon
         command: ["awww-daemon"]
         onExited: (exitCode, exitStatus) => {
-            console.log("awww-daemon exited with code:", exitCode);
+            console.log("[awww] Daemon exited with code:", exitCode);
         }
     }
 
@@ -148,7 +148,7 @@ Singleton {
         id: awwwSetter
         running: false
         onExited: (exitCode, exitStatus) => {
-            console.log("awww setter exited with code:", exitCode);
+            console.log("[awww] Exited with code:", exitCode);
         }
     }
 
@@ -156,7 +156,7 @@ Singleton {
         id: mpvpaperSetter
         running: false
         onExited: (exitCode, exitStatus) => {
-            console.log("mpvpaper setter exited with code:", exitCode);
+            console.log("[mpvpaper] Exited with code:", exitCode);
         }
     }
 }

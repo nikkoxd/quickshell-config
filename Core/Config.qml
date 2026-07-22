@@ -35,6 +35,7 @@ Singleton {
             property int margins: 10
             property int padding: 40
             property int radius: 20
+            property string keepassVault: ""
         }
     }
 

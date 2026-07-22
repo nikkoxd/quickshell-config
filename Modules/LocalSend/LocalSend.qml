@@ -32,27 +32,24 @@ View {
     }
 
     onFilesChanged: {
-        console.log("Files changed", files);
         if (files.length > 0) {
             root.discoverDevices();
         }
     }
 
     onTransferDataChanged: {
-        console.log("Transfer data changed", transferData);
         if (transferData) {
             root.currentState = LocalSend.State.ReceivePrompt;
         }
     }
 
     function discoverDevices() {
-        console.log("Discovering devices");
+        console.log("[localsend] Discovering devices");
         root.currentState = LocalSend.State.Discovery;
         LocalSendService.startDiscovery();
     }
 
     onSelectedDeviceChanged: {
-        console.log("Selected device:", JSON.stringify(selectedDevice, null, 2));
         root.currentState = LocalSend.State.Sending;
         LocalSendService.send(root.files, root.selectedDevice);
     }

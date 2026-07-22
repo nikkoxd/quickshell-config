@@ -17,6 +17,7 @@ View {
     // extending LauncherProvider and add one instance here.
     DefaultProvider { id: defaultProvider; svc: LauncherService }
     ThemesProvider { id: themesProvider; svc: LauncherService }
+    PasswordsProvider { id: passwordsProvider; svc: LauncherService  }
 
     function launchSelected() {
         if (list.currentItem && list.currentItem.modelData)
@@ -24,7 +25,8 @@ View {
     }
 
     Component.onCompleted: {
-        LauncherService.providers = [defaultProvider, themesProvider];
+        // Add created providers to the list
+        LauncherService.providers = [defaultProvider, themesProvider, passwordsProvider];
         LauncherService.reset();
         searchInput.forceActiveFocus();
     }
@@ -38,6 +40,9 @@ View {
             root.viewChangeRequested(view);
         }
         function onProviderChanged() {
+            searchInput.text = "";
+        }
+        function onClearQueryRequested() {
             searchInput.text = "";
         }
     }
@@ -85,6 +90,7 @@ View {
                 focus: true
                 activeFocusOnTab: true
                 placeholderText: LauncherService.activeProvider()?.placeholder ?? "Search..."
+                echoMode: LauncherService.activeProvider()?.hideQuery ? TextInput.Password : TextInput.Normal
                 color: Config.colorscheme.fg
                 placeholderTextColor: Config.colorscheme.fg
                 selectionColor: Config.colorscheme.accent
@@ -95,7 +101,7 @@ View {
                     implicitWidth: 400
                     implicitHeight: 20
                 }
-                onTextChanged: LauncherService.query = text.toLowerCase().trim()
+                onTextChanged: LauncherService.query = text
                 Component.onCompleted: forceActiveFocus()
                 Keys.onEscapePressed: root.closeRequested()
                 Keys.onPressed: event => {

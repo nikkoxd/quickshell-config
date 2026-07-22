@@ -33,7 +33,7 @@ Rectangle {
 
         ThemedText {
             visible: root.modelData.iconType === LauncherProvider.IconType.Material
-            text: root.modelData.icon
+            text: root.modelData.icon ?? ""
             icon: true
             width: parent.height
             height: parent.height
@@ -45,13 +45,13 @@ Rectangle {
         }
 
         ThemedText {
-            text: root.modelData.name
+            text: root.modelData.name ?? ""
             color: root.ListView.isCurrentItem ? Config.colorscheme.bg : Config.colorscheme.fg
             anchors.verticalCenter: parent.verticalCenter
         }
 
         ThemedText {
-            text: root.modelData.genericName
+            text: root.modelData.genericName ?? ""
             color: root.ListView.isCurrentItem ? Config.colorscheme.bg : Config.colorscheme.fg
             anchors.verticalCenter: parent.verticalCenter
             opacity: 0.5

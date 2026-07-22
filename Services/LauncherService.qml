@@ -11,6 +11,7 @@ Singleton {
 
     signal viewChangeRequested(string view)
     signal closeRequested()
+    signal clearQueryRequested()
 
     function fuzzyScore(query, str) {
         if (!query)
@@ -43,6 +44,21 @@ Singleton {
 
         // Penalize length difference (prefer shorter matches)
         return score / s.length;
+    }
+
+    // Score `entries` against `query` on the given `keys` (default ["name"]),
+    // keeping matches sorted best-first. Reuses fuzzyScore per key.
+    function fuzzyFilter(query, entries, keys) {
+        keys = keys ?? ["name"];
+        return entries.map(entry => {
+            let score = 0;
+            for (const key of keys)
+                if (entry[key])
+                    score = Math.max(score, fuzzyScore(query, entry[key]));
+            return { entry, score };
+        }).filter(item => item.score > 0)
+          .sort((a, b) => b.score - a.score)
+          .map(item => item.entry);
     }
 
     function evalMath(expr) {
