@@ -3,7 +3,8 @@ import QtQuick
 QtObject {
     enum IconType {
         Application, // desktop icon name → Quickshell.iconPath (default)
-        Material     // Material Symbols glyph name → ThemedText { icon: true }
+        Material,    // Material Symbols glyph name → ThemedText { icon: true }
+        Emoji        // literal emoji glyph → ThemedText (color emoji font)
     }
 
     property string providerId

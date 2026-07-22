@@ -29,6 +29,16 @@ LauncherProvider {
             }
         },
         {
+            name: "Emoji",
+            genericName: "Picker",
+            icon: "mood",
+            iconType: LauncherProvider.IconType.Material,
+            preventClose: true,
+            execute: function() {
+                root.svc.provider = "emoji";
+            }
+        },
+        {
             name: "Dashboard",
             genericName: "Quickshell",
             icon: "dashboard",

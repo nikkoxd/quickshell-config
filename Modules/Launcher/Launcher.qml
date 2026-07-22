@@ -18,6 +18,7 @@ View {
     DefaultProvider { id: defaultProvider; svc: LauncherService }
     ThemesProvider { id: themesProvider; svc: LauncherService }
     PasswordsProvider { id: passwordsProvider; svc: LauncherService  }
+    EmojiProvider { id: emojiProvider; svc: LauncherService }
 
     function launchSelected() {
         if (list.currentItem && list.currentItem.modelData)
@@ -26,7 +27,7 @@ View {
 
     Component.onCompleted: {
         // Add created providers to the list
-        LauncherService.providers = [defaultProvider, themesProvider, passwordsProvider];
+        LauncherService.providers = [defaultProvider, themesProvider, passwordsProvider, emojiProvider];
         LauncherService.reset();
         searchInput.forceActiveFocus();
     }

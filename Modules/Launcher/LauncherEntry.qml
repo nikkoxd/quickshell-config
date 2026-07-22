@@ -45,6 +45,17 @@ Rectangle {
         }
 
         ThemedText {
+            visible: root.modelData.iconType === LauncherProvider.IconType.Emoji
+            text: root.modelData.icon ?? ""
+            width: parent.height
+            height: parent.height
+            font.pixelSize: Config.theme.fontSize * 1.15
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            anchors.verticalCenter: parent.verticalCenter
+        }
+
+        ThemedText {
             text: root.modelData.name ?? ""
             color: root.ListView.isCurrentItem ? Config.colorscheme.bg : Config.colorscheme.fg
             anchors.verticalCenter: parent.verticalCenter
