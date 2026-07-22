@@ -19,19 +19,23 @@ Singleton {
         if (!str)
             return 0;
 
-        const q = query.toLowerCase();
-        const s = str.toLowerCase();
+        /* const q = query.toLowerCase(); */
+        /* const s = str.toLowerCase(); */
         let score = 0;
         let qIdx = 0;
         let lastMatch = -1;
 
-        for (let i = 0; i < s.length && qIdx < q.length; i++) {
-            if (s[i] === q[qIdx]) {
+        for (let i = 0; i < str.length && qIdx < query.length; i++) {
+            let sCode = str.charCodeAt(i);
+            let qCode = query.charCodeAt(qIdx);
+            if (sCode === qCode ||
+                (sCode >= 64 && sCode <= 90 && sCode + 32 === qCode) ||
+                (sCode >= 97 && sCode <= 122 && sCode - 32 === qCode)) {
                 // Bonus for consecutive matches
                 if (lastMatch === i - 1)
                     score += 2;
                 // Bonus for matching at word boundaries
-                if (i === 0 || s[i - 1] === ' ' || s[i - 1] === '-')
+                if (i === 0 || str[i - 1] === ' ' || str[i - 1] === '-')
                     score += 3;
                 lastMatch = i;
                 qIdx++;
@@ -39,11 +43,11 @@ Singleton {
         }
 
         // Return 0 if not all characters matched
-        if (qIdx < q.length)
+        if (qIdx < query.length)
             return 0;
 
         // Penalize length difference (prefer shorter matches)
-        return score / s.length;
+        return score / str.length;
     }
 
     // Score `entries` against `query` on the given `keys` (default ["name"]),
@@ -59,6 +63,28 @@ Singleton {
         }).filter(item => item.score > 0)
           .sort((a, b) => b.score - a.score)
           .map(item => item.entry);
+    }
+
+    // Substring-match `entries` against `query` on their `search` field, ranked
+    // by match position (earlier ranks higher) then by shorter `name` on ties.
+    // Returns at most `maxResults` entries; the full list (sliced) when no query.
+    function substringFilter(query, entries, maxResults) {
+        if (!query)
+            return entries.slice(0, maxResults);
+
+        const q = query.toLowerCase();
+        const matches = [];
+        for (let i = 0; i < entries.length; i++) {
+            const idx = entries[i].search.indexOf(q);
+            if (idx !== -1)
+                matches.push({ entry: entries[i], idx });
+        }
+        matches.sort((a, b) => a.idx - b.idx || a.entry.name.length - b.entry.name.length);
+
+        const out = [];
+        for (let i = 0; i < matches.length && i < maxResults; i++)
+            out.push(matches[i].entry);
+        return out;
     }
 
     function evalMath(expr) {

@@ -29,24 +29,6 @@ LauncherProvider {
     }
 
     function entries(query) {
-        if (!query)
-            return root.allEntries.slice(0, root.maxResults);
-
-        const q = query.toLowerCase();
-        const matches = [];
-        const all = root.allEntries;
-        for (let i = 0; i < all.length; i++) {
-            const idx = all[i].search.indexOf(q);
-            if (idx !== -1)
-                matches.push({ entry: all[i], idx });
-        }
-        // Earlier match position (name comes first in `search`) ranks higher;
-        // break ties toward shorter names so exact-ish matches float up.
-        matches.sort((a, b) => a.idx - b.idx || a.entry.name.length - b.entry.name.length);
-
-        const out = [];
-        for (let i = 0; i < matches.length && i < root.maxResults; i++)
-            out.push(matches[i].entry);
-        return out;
+        return root.svc.substringFilter(query, root.allEntries, root.maxResults);
     }
 }
