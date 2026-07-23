@@ -1,12 +1,25 @@
 pragma Singleton
 import Quickshell
 import Quickshell.Io
+import Quickshell.Hyprland
 import QtQuick
 import Qt.labs.folderlistmodel
 import qs.Core
 
 Singleton {
     id: root
+
+    property bool paused: false;
+
+    onPausedChanged: {
+        if (paused) {
+            console.log("[mpvpaper] Pausing playback");
+        } else {
+            console.log("[mpvpaper] Resuming playback");
+        }
+        mpvpaperControl.command = ["sh", "-c", `echo '{ "command": ["set_property", "pause", ${paused}] }' | socat - /tmp/mpvpaper-socket`]
+        mpvpaperControl.running = true;
+    }
 
     enum Type {
         Image,
@@ -75,7 +88,8 @@ Singleton {
         } else if (type === WallpaperService.Type.Mpvpaper) {
             console.log("[mpvpaper] Setting wallpaper to", wallpaper);
             mpvpaperSetter.running = false;
-            mpvpaperSetter.command = ["mpvpaper", Config.wallpaper.output, wallpaper, "-o", "no-audio loop-file=inf"];
+            mpvpaperSetter.command = ["mpvpaper", Config.wallpaper.output, wallpaper,
+                                      "-o", "no-audio loop-file=inf input-ipc-server=/tmp/mpvpaper-socket"];
             mpvpaperSetter.running = true;
         }
     }
@@ -111,6 +125,27 @@ Singleton {
 
     ListModel {
         id: videoWallpapersModel
+    }
+
+    Connections {
+        target: Hyprland
+
+        function onRawEvent(event) {
+            if (event.name === "fullscreen") {
+                root.paused = event.data === "1";
+            }
+        }
+
+        function onFocusedWorkspaceChanged() {
+            if (Hyprland.focusedWorkspace?.toplevels.values.length === 0) {
+                root.paused = false;
+            }
+        }
+
+        function onActiveToplevelChanged() {
+            const wlToplevel = Hyprland.activeToplevel?.wayland;
+            root.paused = wlToplevel?.maximized || wlToplevel?.fullscreen || false;
+        }
     }
 
     Process {
@@ -158,5 +193,9 @@ Singleton {
         onExited: (exitCode, exitStatus) => {
             console.log("[mpvpaper] Exited with code:", exitCode);
         }
+    }
+
+    Process {
+        id: mpvpaperControl
     }
 }
