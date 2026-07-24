@@ -5,8 +5,6 @@
 - Hyprland - `paru -S hyprland`
 - Quickshell - `paru -S quickshell`
 - KeePassXC (password manager) - `paru -S keepassxc`
-- awww (static wallpapers) - `paru -S awww`
-- mpvpaper (video wallpapers) - `paru -S mpvpaper`
 - cava (audio visualizer) - `paru -S cava`
 - lrcsnc (lyrics) - [clone my fork](https://github.com/nikkoxd/lrcsnc) or `paru -S lrcsnc` 
 - LocalSend CLI (sending files between devices) - [clone from repo](https://github.com/nikkoxd/localsend-cli)
@@ -34,6 +32,7 @@ to be able to run it alongside other configs, such as [quickshell-overview](http
 - [ ] Add a bluetooth menu
 - [ ] Add a settings menu
 - [ ] Rewrite the StackView navigation
-- [ ] Rewrite the wallpaper service
+- [x] Rewrite the wallpaper service
+- [ ] Add more transition effects
 - [ ] Add an install script
 - [ ] DO CLEANUP

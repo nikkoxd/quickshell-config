@@ -168,7 +168,7 @@ View {
                     }
                 }
 
-                delegate: WallpaperDelegate {
+                delegate: WallpaperSelectorDelegate {
                     onClicked: (wallpaper) => {
                         WallpaperService.setWallpaper(wallpaper, root.wallpaperType);
                         root.syncCarouselIndex();
@@ -201,7 +201,7 @@ View {
             spacing: 12
 
             ThemedText {
-                text: "awww"
+                text: "Image"
                 color: root.wallpaperType === WallpaperService.Type.Image ? "white" : "#888888"
                 font.bold: root.wallpaperType === WallpaperService.Type.Image
                 anchors.verticalCenter: parent.verticalCenter
@@ -218,7 +218,7 @@ View {
             }
 
             ThemedText {
-                text: "mpvpaper"
+                text: "Video"
                 color: root.wallpaperType === WallpaperService.Type.Mpvpaper ? "white" : "#888888"
                 font.bold: root.wallpaperType === WallpaperService.Type.Mpvpaper
                 anchors.verticalCenter: parent.verticalCenter

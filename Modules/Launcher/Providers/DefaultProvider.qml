@@ -73,7 +73,7 @@ LauncherProvider {
             icon: "wallpaper",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
-                root.svc.viewChangeRequested("wallpapers");
+                root.svc.viewChangeRequested("wallpaperSelector");
             }
         },
         {

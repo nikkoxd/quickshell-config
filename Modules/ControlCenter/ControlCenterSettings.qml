@@ -60,7 +60,7 @@ GridLayout {
     ControlCenterButton {
         icon: "wallpaper"
         onClicked: {
-            root.viewChangeRequested("wallpapers");
+            root.viewChangeRequested("wallpaperSelector");
         }
     }
 

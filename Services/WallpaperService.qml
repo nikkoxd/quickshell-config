@@ -12,13 +12,7 @@ Singleton {
     property bool paused: false;
 
     onPausedChanged: {
-        if (paused) {
-            console.log("[mpvpaper] Pausing playback");
-        } else {
-            console.log("[mpvpaper] Resuming playback");
-        }
-        mpvpaperControl.command = ["sh", "-c", `echo '{ "command": ["set_property", "pause", ${paused}] }' | socat - /tmp/mpvpaper-socket`]
-        mpvpaperControl.running = true;
+        console.log("[wallpaper]", paused ? "Pausing playback" : "Resuming playback");
     }
 
     enum Type {
@@ -26,10 +20,7 @@ Singleton {
         Mpvpaper
     }
 
-    function startAwwwDaemon() {
-        console.log("[awww] Starting awww-daemon");
-        awwwDaemon.running = true;
-    }
+    signal wallpaperChanged(string path, int type)
 
     function getModel(type) {
         if (type === WallpaperService.Type.Image) {
@@ -78,20 +69,13 @@ Singleton {
     }
 
     function setWallpaper(wallpaper, type) {
+        if (!wallpaper || type === undefined) {
+            return;
+        }
+        console.log("[wallpaper] Setting wallpaper to", wallpaper);
         Config.wallpaper.current = wallpaper;
         Config.wallpaper.type = typeToString(type);
-        if (type === WallpaperService.Type.Image) {
-            console.log("[awww] Setting wallpaper to", wallpaper);
-            mpvpaperSetter.running = false;
-            awwwSetter.command = ["awww", "img", wallpaper, "-t", "random", "--transition-fps", "60"];
-            awwwSetter.running = true;
-        } else if (type === WallpaperService.Type.Mpvpaper) {
-            console.log("[mpvpaper] Setting wallpaper to", wallpaper);
-            mpvpaperSetter.running = false;
-            mpvpaperSetter.command = ["mpvpaper", Config.wallpaper.output, wallpaper,
-                                      "-o", "no-audio loop-file=inf input-ipc-server=/tmp/mpvpaper-socket"];
-            mpvpaperSetter.running = true;
-        }
+        root.wallpaperChanged(wallpaper, type);
     }
 
     function getWallpaperPath(index, type) {
@@ -171,31 +155,4 @@ Singleton {
         }
     }
 
-    Process {
-        id: awwwDaemon
-        command: ["awww-daemon"]
-        onExited: (exitCode, exitStatus) => {
-            console.log("[awww] Daemon exited with code:", exitCode);
-        }
-    }
-
-    Process {
-        id: awwwSetter
-        running: false
-        onExited: (exitCode, exitStatus) => {
-            console.log("[awww] Exited with code:", exitCode);
-        }
-    }
-
-    Process {
-        id: mpvpaperSetter
-        running: false
-        onExited: (exitCode, exitStatus) => {
-            console.log("[mpvpaper] Exited with code:", exitCode);
-        }
-    }
-
-    Process {
-        id: mpvpaperControl
-    }
 }

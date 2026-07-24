@@ -101,7 +101,6 @@ Singleton {
         onAdapterUpdated: writeAdapter()
         onLoaded: {
             Qt.callLater(() => {
-                WallpaperService.startAwwwDaemon();
                 WallpaperService.setWallpaperToCurrent();
             });
         }

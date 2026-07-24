@@ -32,7 +32,7 @@ Item {
     property Component controlCenter: ControlCenterModule.ControlCenter {}
     property Component dashboard: DashboardModule.Dashboard {}
     property Component launcher: LauncherModule.Launcher {}
-    property Component wallpapers: WallpapersModule.Wallpapers {}
+    property Component wallpaperSelector: WallpapersModule.WallpaperSelector {}
     property Component localsend: LocalSendModule.LocalSend {}
     property Component mixer: MixerModule.Mixer {}
 
