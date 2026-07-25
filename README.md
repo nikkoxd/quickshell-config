@@ -31,7 +31,7 @@ to be able to run it alongside other configs, such as [quickshell-overview](http
 - [x] Add a clipboard manager
 - [x] Add an emoji picker
 - [ ] Add a bluetooth menu
-- [ ] Add a settings menu
+- [x] Add a settings menu
 - [ ] Add a lockscreen
 - [ ] Add power menu?
 - [ ] Rewrite the StackView navigation
