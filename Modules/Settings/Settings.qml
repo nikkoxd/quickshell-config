@@ -1,0 +1,51 @@
+import Quickshell
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
+import qs.Core
+
+FloatingWindow {
+    id: root
+    color: Config.colorscheme.bg
+    title: "Settings"
+
+    property int currentTab: sidebar.currentTab
+
+    enum Tab {
+        Island,
+        Launcher,
+        Visualizer,
+        Theme,
+        Wallpaper
+    }
+
+    RowLayout {
+        spacing: 20
+        anchors.fill: parent
+        anchors.margins: Config.island.padding
+
+        SettingsSidebar {
+            id: sidebar
+        }
+
+        SettingsIsland {
+            visible: root.currentTab === Settings.Tab.Island
+        }
+
+        SettingsLauncher {
+            visible: root.currentTab === Settings.Tab.Launcher
+        }
+
+        SettingsVisualizer {
+            visible: root.currentTab === Settings.Tab.Visualizer
+        }
+
+        SettingsTheme {
+            visible: root.currentTab === Settings.Tab.Theme
+        }
+
+        SettingsWallpaper {
+            visible: root.currentTab === Settings.Tab.Wallpaper
+        }
+    }
+}

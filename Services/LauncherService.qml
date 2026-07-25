@@ -10,6 +10,7 @@ Singleton {
     property var mpris: MprisService
 
     signal viewChangeRequested(string view)
+    signal settingsRequested()
     signal closeRequested()
     signal clearQueryRequested()
 

@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 
+import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
 import Quickshell.Services.Pipewire
@@ -13,6 +14,7 @@ import qs.Modules.Launcher as LauncherModule
 import qs.Modules.LocalSend as LocalSendModule
 import qs.Modules.Wallpapers as WallpapersModule
 import qs.Modules.Mixer as MixerModule
+import qs.Modules.Settings as SettingsModule
 import qs.Services
 
 Item {
@@ -23,6 +25,7 @@ Item {
     property string currentItem: "clock"
     property string defaultItem: "clock"
     property alias content: content
+
     property Component clock: DefaultModule.Clock {}
     property Component lyrics: DefaultModule.Lyrics {}
     property Component notification: DefaultModule.Notification {}
@@ -160,6 +163,20 @@ Item {
     }
 
     Cava {}
+
+    Connections {
+        target: LauncherService
+        function onSettingsRequested() {
+            settingsLoader.activeAsync = true;
+        }
+    }
+
+    LazyLoader {
+        id: settingsLoader
+        SettingsModule.Settings {
+            onClosed: settingsLoader.activeAsync = false;
+        }
+    }
 
     StackView {
         id: content

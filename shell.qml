@@ -10,12 +10,14 @@ import QtQuick
 import QtQuick.Effects
 import qs.Core
 import qs.Services
-import qs.Modules.Wallpapers as WallpapersModule
 import qs.Modules.ScreenCorners as ScreenCornersModule
+import qs.Modules.Wallpapers as WallpapersModule
+import qs.Modules.Settings as SettingsModule
 
 ShellRoot {
     ScreenCornersModule.ScreenCorners {}
     WallpapersModule.Wallpaper {}
+    /* SettingsModule.Settings {} */
 
     PanelWindow {
         id: root

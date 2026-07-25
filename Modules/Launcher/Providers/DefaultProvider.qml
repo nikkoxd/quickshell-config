@@ -10,6 +10,15 @@ LauncherProvider {
 
     property var customEntries: [
         {
+            name: "Settings",
+            genericName: "Quickshell",
+            icon: "settings",
+            iconType: LauncherProvider.IconType.Material,
+            execute: function() {
+                root.svc.settingsRequested();
+            }
+        },
+        {
             name: "Select Theme",
             genericName: "Quickshell",
             icon: "color_lens",
@@ -101,15 +110,6 @@ LauncherProvider {
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
                 root.svc.viewChangeRequested("notifications");
-            }
-        },
-        {
-            name: "Bar Settings",
-            genericName: "Quickshell",
-            icon: "settings",
-            iconType: LauncherProvider.IconType.Material,
-            execute: function() {
-                root.svc.viewChangeRequested("settings");
             }
         },
         {
