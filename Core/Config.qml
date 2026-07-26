@@ -5,6 +5,7 @@ import QtQuick
 import qs.Services
 
 Singleton {
+    id: root
     property var island: islandLoader.adapter
     property var visualizer: visualizerLoader.adapter
     property var launcher: launcherLoader.adapter
@@ -124,6 +125,13 @@ Singleton {
         watchChanges: true
         onFileChanged: reload()
         onAdapterUpdated: writeAdapter()
+        onLoaded: {
+            Qt.callLater(() => {
+                if (root.recorder.replayAutostart) {
+                    RecordingService.toggleReplay();
+                }
+            })
+        }
         onLoadFailed: error => {
             if (error === FileViewError.FileNotFound) {
                 writeAdapter();
@@ -133,7 +141,8 @@ Singleton {
             property string recordingsFolder: "$HOME/Videos/"
             property string replaysFolder: "$HOME/Videos/Replays/"
             property string screenshotsFolder: "$HOME/Pictures/Screenshots/"
-            property bool replayRunning: false
+            property bool replayAutostart: false
+            property bool recordingAudio: true
             property int recordingFramerate: 60
             property int replayDuration: 60
         }

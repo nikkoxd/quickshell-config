@@ -68,8 +68,8 @@ LauncherProvider {
         /*     } */
         /* }, */
         {
-            name: "Screenshot",
-            genericName: "Quickshell",
+            name: "Recording options",
+            genericName: "Recording",
             icon: "center_focus_weak",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
@@ -77,12 +77,30 @@ LauncherProvider {
             }
         },
         {
-            name: "Record video",
-            genericName: "Quickshell",
+            name: "Record video (toggle)",
+            genericName: "Recording",
             icon: "videocam",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
-                root.svc.viewChangeRequested("recorder");
+                RecordingService.toggleRecording();
+            }
+        },
+        {
+            name: "Toggle replay recording",
+            genericName: "Replay",
+            icon: "replay",
+            iconType: LauncherProvider.IconType.Material,
+            execute: function() {
+                RecordingService.toggleReplay();
+            }
+        },
+        {
+            name: "Save replay",
+            genericName: "Replay",
+            icon: "save",
+            iconType: LauncherProvider.IconType.Material,
+            execute: function() {
+                RecordingService.saveReplay();
             }
         },
         {

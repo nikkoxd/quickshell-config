@@ -32,6 +32,13 @@ Column {
         }
 
         SettingsTab {
+            text: "Recordings"
+            icon: "camera"
+            selected: root.currentTab === Settings.Tab.Recording
+            onTapped: root.currentTab = Settings.Tab.Recording
+        }
+
+        SettingsTab {
             text: "Visualizer"
             icon: "graphic_eq"
             selected: root.currentTab === Settings.Tab.Visualizer

@@ -35,6 +35,10 @@ Singleton {
     function screenshot() {
     }
 
+    function audioArgs() {
+        return Config.recorder.recordingAudio ? ["-a", "default_output"] : [];
+    }
+
     function toggleRecording() {
         root.recording = !root.recording;
         console.log("[Recorder] Recording status:", root.recording);
@@ -42,7 +46,7 @@ Singleton {
             recordingStartProc.command = [
                 "gpu-screen-recorder", "-w", "screen",
                 "-f", String(Config.recorder.recordingFramerate),
-                "-a", "default_output",
+                ...audioArgs(),
                 "-o", outputFileName()
             ]
             recordingStartProc.running = true;
@@ -58,13 +62,14 @@ Singleton {
                 "gpu-screen-recorder", "-w", "screen",
                 "-df", "yes", // save in folders based on date
                 "-f", String(Config.recorder.recordingFramerate),
-                "-a", "default_output",
+                ...audioArgs(),
                 "-r", String(Config.recorder.replayDuration),
                 "-c", "mp4",
                 "-o", expandPath(Config.recorder.replaysFolder),
                 "-replay-storage", "disk"
             ]
-            replayProc.running = true;
+            // Sweep leftovers first, then start (see cleanupProc.onExited).
+            cleanupStaleReplays();
         } else {
             replayProc.running = false;
         }
@@ -72,6 +77,19 @@ Singleton {
 
     function saveReplay() {
         replaySaveProc.running = true;
+    }
+
+    // Remove leftover on-disk replay buffers from a previous run that didn't
+    // exit cleanly (e.g. a quickshell restart killed gpu-screen-recorder
+    // before it could clean up its own gsr-replay-*.gsr temp folders).
+    function cleanupStaleReplays() {
+        const folder = expandPath(Config.recorder.replaysFolder).replace(/\/+$/, "");
+        cleanupProc.command = [
+            "find", folder, "-maxdepth", "1",
+            "-type", "d", "-name", "gsr-replay-*.gsr",
+            "-exec", "rm", "-rf", "{}", "+"
+        ];
+        cleanupProc.running = true;
     }
 
     enum Kind {
@@ -97,6 +115,18 @@ Singleton {
 
     Process {
         id: replayProc
+    }
+
+    Process {
+        id: cleanupProc
+        onExited: (exitCode) => {
+            console.log("[Recorder] Cleaned up stale replay buffers, exit code:", exitCode);
+            // Start the replay only once the folder is clean, so find can't
+            // race with (and delete) the buffer this run is about to create.
+            if (root.replayRunning) {
+                replayProc.running = true;
+            }
+        }
     }
 
     Process {
