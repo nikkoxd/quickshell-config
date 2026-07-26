@@ -68,6 +68,24 @@ LauncherProvider {
         /*     } */
         /* }, */
         {
+            name: "Screenshot",
+            genericName: "Quickshell",
+            icon: "center_focus_weak",
+            iconType: LauncherProvider.IconType.Material,
+            execute: function() {
+                root.svc.viewChangeRequested("recorder");
+            }
+        },
+        {
+            name: "Record video",
+            genericName: "Quickshell",
+            icon: "videocam",
+            iconType: LauncherProvider.IconType.Material,
+            execute: function() {
+                root.svc.viewChangeRequested("recorder");
+            }
+        },
+        {
             name: "Dashboard",
             genericName: "Quickshell",
             icon: "dashboard",

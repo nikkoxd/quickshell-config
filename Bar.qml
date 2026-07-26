@@ -32,6 +32,7 @@ Item {
     property Component player: DefaultModule.Player {}
     property Component workspaces: DefaultModule.Workspaces {}
     property Component volume: DefaultModule.Volume {}
+    property Component recorder: DefaultModule.Recorder {}
     property Component controlCenter: ControlCenterModule.ControlCenter {}
     property Component dashboard: DashboardModule.Dashboard {}
     property Component launcher: LauncherModule.Launcher {}

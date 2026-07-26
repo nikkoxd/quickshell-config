@@ -55,6 +55,9 @@ GridLayout {
 
     ControlCenterButton {
         icon: "camera"
+        onClicked: {
+            root.viewChangeRequested("recorder");
+        }
     }
 
     ControlCenterButton {

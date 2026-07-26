@@ -10,6 +10,7 @@ Singleton {
     property var launcher: launcherLoader.adapter
     property var theme: themeLoader.adapter
     property var wallpaper: wallpaperLoader.adapter
+    property var recorder: recorderLoader.adapter
     property var colorscheme: colorschemeLoader.adapter
 
     Connections {
@@ -114,6 +115,27 @@ Singleton {
             property string current
             property string type: "image"
             property string staticWallpaperFolder: "$HOME/Pictures/Wallpapers/"
+        }
+    }
+
+    FileView {
+        id: recorderLoader
+        path: Qt.resolvedUrl("../Config/recorder.json")
+        watchChanges: true
+        onFileChanged: reload()
+        onAdapterUpdated: writeAdapter()
+        onLoadFailed: error => {
+            if (error === FileViewError.FileNotFound) {
+                writeAdapter();
+            }
+        }
+        adapter: JsonAdapter {
+            property string recordingsFolder: "$HOME/Videos/"
+            property string replaysFolder: "$HOME/Videos/Replays/"
+            property string screenshotsFolder: "$HOME/Pictures/Screenshots/"
+            property bool replayRunning: false
+            property int recordingFramerate: 60
+            property int replayDuration: 60
         }
     }
 
