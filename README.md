@@ -5,6 +5,7 @@
 - Hyprland - `paru -S hyprland`
 - Quickshell - `paru -S quickshell`
 - QT FFMpeg backend (for video wallpapers) - `paru -S qt6-multimedia-ffmpeg`
+- gpu-screen-recorder - `paru -S gpu-screen-recorder`
 - KeePassXC (password manager) - `paru -S keepassxc`
 - cava (audio visualizer) - `paru -S cava`
 - lrcsnc (lyrics) - [clone my fork](https://github.com/nikkoxd/lrcsnc) or `paru -S lrcsnc` 
