@@ -2,14 +2,15 @@
 
 ## Prerequisites
 
-- Hyprland - `paru -S hyprland`
-- Quickshell - `paru -S quickshell`
-- QT FFMpeg backend (for video wallpapers) - `paru -S qt6-multimedia-ffmpeg`
-- gpu-screen-recorder - `paru -S gpu-screen-recorder`
-- KeePassXC (password manager) - `paru -S keepassxc`
-- cava (audio visualizer) - `paru -S cava`
-- lrcsnc (lyrics) - [clone my fork](https://github.com/nikkoxd/lrcsnc) or `paru -S lrcsnc` 
-- LocalSend CLI (sending files between devices) - [clone from repo](https://github.com/nikkoxd/localsend-cli)
+Install dependencies with pacman:
+
+```bash
+sudo pacman -S hyprland quickshell qt6-multimedia-ffmpeg gpu-screen-recorder keepassxc cava
+```
+
+For lyrics, either [build my fork of lrcsnc from source](https://github.com/nikkoxd/lrcsnc) or install original version with pacman: `sudo pacman -S lrcsnc`
+
+For LocalSend integration, [build my cli from source](https://github.com/nikkoxd/localsend-cli)
 
 You can clone the config either into `~/.config/quickshell` and run it with `qs`,
 or clone it into `~/.config/quickshell/{custom_name}` and run it with `qs -c {custom_name}`
