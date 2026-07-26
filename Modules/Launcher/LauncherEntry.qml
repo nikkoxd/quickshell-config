@@ -2,15 +2,28 @@ import Quickshell
 import Quickshell.Widgets
 import QtQuick
 import qs.Core
+import qs.Services
 import qs.Modules.Launcher.Providers
 
 Rectangle {
     id: root
     width: parent.width
     height: 40
-    color: ListView.isCurrentItem ? Config.colorscheme.accent : "transparent"
+    color: ListView.isCurrentItem ? Config.colorscheme.accent :
+           hoverHandler.hovered ? Config.colorscheme.bgAlt : "transparent"
     radius: Config.island.radius / 2
     required property var modelData
+
+    HoverHandler {
+        id: hoverHandler
+        cursorShape: Qt.PointingHandCursor
+    }
+
+    TapHandler {
+        onTapped: {
+            LauncherService.launch(root.modelData)
+        }
+    }
 
     Row {
         spacing: 10
