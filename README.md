@@ -18,6 +18,29 @@ to be able to run it alongside other configs, such as [quickshell-overview](http
 
 ## Features
 
+- App launcher - `qs ipc call bar toggle launcher` 
+    - Password manager (KeePassXC)
+    - Clipboard history
+    - Emoji picker
+    - MPRIS controls
+    - Theme selector
+    - Calculator
+- Control center - `qs ipc call bar toggle controlCenter`
+    - Audio mixer
+    - Bluetooth controls (soon™)
+    - Notifications + mute toggle
+- Wallpaper picker - `qs ipc call bar toggle wallpaperSelector`
+    - Static wallpapers
+    - Video wallpapers /w Wallpaper Engine integration
+    - Fancy transitions (WIP)
+- LocalSend integration
+    - Drag any file onto the dynamic island to send a file
+      to a device on the local network
+- Screenshots + screen recording - `qs ipc call bar toggle recorder`
+    - Screenshots (soon™)
+    - Video recording
+    - Replay recording (like ShadowPlay)
+
 ## TODO
 
 - [x] Add player controls
