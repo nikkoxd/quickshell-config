@@ -19,30 +19,35 @@ Column {
 
         SettingsTab {
             text: "Island"
+            icon: "mountain_steam"
             selected: root.currentTab === Settings.Tab.Island
             onTapped: root.currentTab = Settings.Tab.Island
         }
 
         SettingsTab {
             text: "Launcher"
+            icon: "rocket_launch"
             selected: root.currentTab === Settings.Tab.Launcher
             onTapped: root.currentTab = Settings.Tab.Launcher
         }
 
         SettingsTab {
             text: "Visualizer"
+            icon: "graphic_eq"
             selected: root.currentTab === Settings.Tab.Visualizer
             onTapped: root.currentTab = Settings.Tab.Visualizer
         }
 
         SettingsTab {
             text: "Theme"
+            icon: "palette"
             selected: root.currentTab === Settings.Tab.Theme
             onTapped: root.currentTab = Settings.Tab.Theme
         }
 
         SettingsTab {
             text: "Wallpaper"
+            icon: "wallpaper"
             selected: root.currentTab === Settings.Tab.Wallpaper
             onTapped: root.currentTab = Settings.Tab.Wallpaper
         }

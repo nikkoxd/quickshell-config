@@ -20,7 +20,7 @@ FloatingWindow {
     }
 
     RowLayout {
-        spacing: 20
+        spacing: 30
         anchors.fill: parent
         anchors.margins: Config.island.padding
 

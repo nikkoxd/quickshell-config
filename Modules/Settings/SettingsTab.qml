@@ -10,6 +10,7 @@ Rectangle {
 
     signal tapped()
     required property string text
+    required property string icon
     property bool selected: false
 
     Behavior on color {
@@ -28,17 +29,35 @@ Rectangle {
         onTapped: root.tapped();
     }
 
-    ThemedText {
-        x: 10
+    Row {
+        x: 15
+        spacing: 10
         anchors.verticalCenter: parent.verticalCenter
-        color: selected ? Config.colorscheme.bg : Config.colorscheme.fg
-        text: root.text
-        font.pixelSize: 16
 
-        Behavior on color {
-            ColorAnimation {
-                duration: 100
-                easing.type: Easing.InOutQuad
+        ThemedText {
+            color: root.selected ? Config.colorscheme.bg : Config.colorscheme.fg
+            text: root.icon
+            icon: true
+            font.pixelSize: 16
+
+            Behavior on color {
+                ColorAnimation {
+                    duration: 100
+                    easing.type: Easing.InOutQuad
+                }
+            }
+        }
+
+        ThemedText {
+            color: root.selected ? Config.colorscheme.bg : Config.colorscheme.fg
+            text: root.text
+            font.pixelSize: 16
+
+            Behavior on color {
+                ColorAnimation {
+                    duration: 100
+                    easing.type: Easing.InOutQuad
+                }
             }
         }
     }
