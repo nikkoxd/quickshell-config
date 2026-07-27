@@ -8,6 +8,8 @@ import qs.Services
 WlSessionLockSurface {
     id: root
 
+    color: "transparent"
+
     required property LockscreenContext context
     property bool revealed: false
     property int slideDistance: 80
