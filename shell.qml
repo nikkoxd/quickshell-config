@@ -12,12 +12,12 @@ import qs.Core
 import qs.Services
 import qs.Modules.ScreenCorners as ScreenCornersModule
 import qs.Modules.Wallpapers as WallpapersModule
-import qs.Modules.Settings as SettingsModule
+import qs.Modules.Lockscreen as LockscreenModule
 
 ShellRoot {
     ScreenCornersModule.ScreenCorners {}
     WallpapersModule.Wallpaper {}
-    /* SettingsModule.Settings {} */
+    LockscreenModule.Lockscreen {}
 
     PanelWindow {
         id: root

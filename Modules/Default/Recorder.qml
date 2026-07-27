@@ -4,7 +4,7 @@ import qs.Services
 
 View {
     id: root
-    implicitWidth: container.implicitWidth + Config.island.padding * 2
+    implicitWidth: container.implicitWidth + 20
     implicitHeight: container.implicitHeight + 20
     dismissable: false
     focused: true
