@@ -13,10 +13,57 @@ WlSessionLockSurface {
     required property LockscreenContext context
     property bool revealed: false
     property int slideDistance: 80
+    signal animationFinished
+
+    Connections {
+        target: root.context
+        function onUnlocked(): void {
+            unlockAnim.start();
+        }
+    }
 
     function wake() {
         root.revealed = true;
         idleTimer.restart();
+    }
+
+    NumberAnimation {
+        id: lockAnim
+        running: true
+        target: wallpaper
+        property: "opacity"
+        to: 100
+        duration: 5000
+        easing: Easing.InOutQuad
+    }
+
+    ParallelAnimation {
+        id: unlockAnim
+        onFinished: root.animationFinished()
+
+        NumberAnimation {
+            target: overlay
+            property: "opacity"
+            to: 0
+            duration: 250
+            easing: Easing.InOutQuad
+        }
+
+        NumberAnimation {
+            target: content
+            property: "opacity"
+            to: 0
+            duration: 250
+            easing: Easing.InOutQuad
+        }
+
+        NumberAnimation {
+            target: wallpaper
+            property: "opacity"
+            to: 0
+            duration: 250
+            easing: Easing.InOutQuad
+        }
     }
 
     Timer {
@@ -26,15 +73,10 @@ WlSessionLockSurface {
         onTriggered: root.revealed = false
     }
 
-    ScreencopyView {
-        id: background
-        anchors.fill: parent
-        captureSource: root.screen
-        opacity: 1
-    }
-
     LockscreenWallpaper {
+        id: wallpaper
         anchors.fill: parent
+        opacity: 0
     }
 
     Rectangle {
