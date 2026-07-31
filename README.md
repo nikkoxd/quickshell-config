@@ -5,7 +5,7 @@
 Install dependencies with pacman:
 
 ```bash
-sudo pacman -S hyprland quickshell qt6-multimedia-ffmpeg gpu-screen-recorder keepassxc cava cliphist wl-clipboard
+sudo pacman -S hyprland quickshell ffmpeg qt6-multimedia-ffmpeg gpu-screen-recorder keepassxc cava cliphist wl-clipboard
 ```
 
 For lyrics, either [build my fork of lrcsnc from source](https://github.com/nikkoxd/lrcsnc) or install original version with pacman: `sudo pacman -S lrcsnc`

@@ -1,6 +1,4 @@
-import Quickshell
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
 import qs.Core
 
@@ -9,6 +7,10 @@ ColumnLayout {
     Layout.fillWidth: true
     Layout.fillHeight: true
     Layout.alignment: Qt.AlignTop
+
+    SettingsSection {
+        text: "Theme"
+    }
 
     SettingsOption {
         title: "Colorscheme"
@@ -38,4 +40,37 @@ ColumnLayout {
         onEdited: value => Config.theme.fontSize = parseInt(value)
         type: SettingsOption.Type.TextField
     }
+
+    SettingsSection {
+        text: "Iris"
+    }
+
+    SettingsOption {
+        title: "Enabled"
+        value: Config.iris.enabled
+        onChecked: value => Config.iris.enabled = value
+        type: SettingsOption.Type.Switch
+    }
+
+    SettingsOption {
+        title: "Auto light/dark mode"
+        value: Config.iris.autoMode
+        onChecked: value => Config.iris.autoMode = value
+        type: SettingsOption.Type.Switch
+    }
+
+    SettingsOption {
+        title: "Dark mode"
+        value: Config.iris.dark
+        onChecked: value => Config.iris.dark = value
+        type: SettingsOption.Type.Switch
+    }
+
+    SettingsOption {
+        title: "Commands to run after"
+        value: Config.iris.after
+        onEdited: value => Config.iris.after = value
+        type: SettingsOption.Type.TextField
+    }
+
 }

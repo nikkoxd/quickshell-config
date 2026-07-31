@@ -12,6 +12,7 @@ Singleton {
     property var theme: themeLoader.adapter
     property var wallpaper: wallpaperLoader.adapter
     property var recorder: recorderLoader.adapter
+    property var iris: irisLoader.adapter
     property var colorscheme: colorschemeLoader.adapter
 
     Connections {
@@ -145,6 +146,25 @@ Singleton {
             property bool recordingAudio: true
             property int recordingFramerate: 60
             property int replayDuration: 60
+        }
+    }
+
+    FileView {
+        id: irisLoader
+        path: Qt.resolvedUrl("../Config/iris.json")
+        watchChanges: true
+        onFileChanged: reload()
+        onAdapterUpdated: writeAdapter()
+        onLoadFailed: error => {
+            if (error === FileViewError.FileNotFound) {
+                writeAdapter();
+            }
+        }
+        adapter: JsonAdapter {
+            property bool enabled: true
+            property bool autoMode: true
+            property bool dark: true
+            property string after: ""
         }
     }
 
