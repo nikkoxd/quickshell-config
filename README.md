@@ -2,10 +2,12 @@
 
 ## Prerequisites
 
-Install dependencies with pacman:
+Install dependencies with paru/yay:
 
 ```bash
-sudo pacman -S hyprland quickshell ffmpeg qt6-multimedia-ffmpeg gpu-screen-recorder keepassxc cava cliphist wl-clipboard
+paru -S hyprland quickshell iris-colors ffmpeg qt6-multimedia-ffmpeg gpu-screen-recorder keepassxc cava cliphist wl-clipboard
+# or
+yay -S hyprland quickshell iris-colors ffmpeg qt6-multimedia-ffmpeg gpu-screen-recorder keepassxc cava cliphist wl-clipboard
 ```
 
 For lyrics, either [build my fork of lrcsnc from source](https://github.com/nikkoxd/lrcsnc) or install original version with pacman: `sudo pacman -S lrcsnc`
