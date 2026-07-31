@@ -8,7 +8,7 @@ Rectangle {
     width: Math.max(list.width, notifRow.implicitWidth + 20)
     height: notifRow.implicitHeight + 20
     radius: Config.island.radius / 2
-    color: Config.colorscheme.bgAlt
+    color: Config.colorscheme.surface
     required property var modelData
 
     ParallelAnimation {

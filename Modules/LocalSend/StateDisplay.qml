@@ -127,7 +127,7 @@ Item {
             component Button: Rectangle {
                 id: button
                 height: 30
-                color: buttonHover.hovered ? Config.colorscheme.bgAlt : Config.colorscheme.bg
+                color: buttonHover.hovered ? Config.colorscheme.surface : Config.colorscheme.bg
                 radius: 10
                 Layout.fillWidth: true
                 required property string buttonText

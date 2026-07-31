@@ -3,7 +3,7 @@ import qs.Core
 
 Rectangle {
     id: root
-    color: selected ? Config.colorscheme.accent : hoverHandler.hovered ? Config.colorscheme.bgAlt : Config.colorscheme.bg
+    color: selected ? Config.colorscheme.accent : hoverHandler.hovered ? Config.colorscheme.surface : Config.colorscheme.bg
     width: 250
     height: 40
     radius: 10

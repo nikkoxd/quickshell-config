@@ -22,9 +22,9 @@ Rectangle {
         } else if (active) {
             return Config.colorscheme.accent
         } else if (hovered) {
-            return Config.colorscheme.fgAlt
+            return Config.colorscheme.dim
         } else {
-            return Config.colorscheme.bgAlt
+            return Config.colorscheme.surface
         }
     }
 

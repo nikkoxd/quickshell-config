@@ -10,7 +10,7 @@ Rectangle {
     width: parent.width
     height: 40
     color: ListView.isCurrentItem ? Config.colorscheme.accent :
-           hoverHandler.hovered ? Config.colorscheme.bgAlt : "transparent"
+           hoverHandler.hovered ? Config.colorscheme.surface : "transparent"
     radius: Config.island.radius / 2
     required property var modelData
 

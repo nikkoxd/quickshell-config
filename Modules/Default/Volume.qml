@@ -58,7 +58,7 @@ View {
             implicitWidth: 200
             handle: Item {}
             background: ClippingRectangle {
-                color: Config.colorscheme.bgAlt
+                color: Config.colorscheme.surface
                 width: volumeSlider.availableWidth
                 radius: 100
                 clip: true

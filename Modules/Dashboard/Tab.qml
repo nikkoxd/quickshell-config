@@ -8,7 +8,7 @@ Rectangle {
     height: 40
     width: 40
     radius: Config.island.radius / 2
-    color: focused ? Config.colorscheme.accent : hovered ? Config.colorscheme.bgAlt : Config.colorscheme.bg
+    color: focused ? Config.colorscheme.accent : hovered ? Config.colorscheme.surface : Config.colorscheme.bg
     property bool focused: false
     property bool hovered: false
     required property string icon

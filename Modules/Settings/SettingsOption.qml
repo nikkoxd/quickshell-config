@@ -39,7 +39,7 @@ RowLayout {
             onEditingFinished: root.edited(text)
             background: Rectangle {
                 anchors.fill: parent
-                color: Config.colorscheme.bgAlt
+                color: Config.colorscheme.surface
                 radius: 10
             }
             color: Config.colorscheme.fg
@@ -61,7 +61,7 @@ RowLayout {
             indicator: Rectangle {
                 anchors.fill: parent
                 anchors.margins: 7
-                color: Config.colorscheme.bgAlt
+                color: Config.colorscheme.surface
                 radius: height
 
                 HoverHandler {

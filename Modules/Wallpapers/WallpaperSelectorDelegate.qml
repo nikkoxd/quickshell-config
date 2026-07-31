@@ -25,7 +25,7 @@ Item {
         border.width: 2
         border.color: Config.wallpaper.current === root.model.filePath ? Config.colorscheme.accent : hovered ? Config.colorscheme.accentAlt : "transparent"
         radius: 8
-        color: Config.colorscheme.bgAlt
+        color: Config.colorscheme.surface
         property bool hovered: false
         layer.enabled: true
         layer.effect: MultiEffect {

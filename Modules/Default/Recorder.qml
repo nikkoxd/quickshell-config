@@ -12,7 +12,7 @@ View {
 
     component RecorderButton: Rectangle {
         id: button
-        color: active ? Config.colorscheme.accent : hoverHandler.hovered ? Config.colorscheme.bgAlt : "transparent"
+        color: active ? Config.colorscheme.accent : hoverHandler.hovered ? Config.colorscheme.surface : "transparent"
         width: 40
         height: 40
         radius: 10

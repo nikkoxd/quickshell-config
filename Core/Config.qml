@@ -169,9 +169,9 @@ Singleton {
 
         adapter: JsonAdapter {
             property string bg: "#080808"
-            property string bgAlt: "#313131"
+            property string surface: "#313131"
             property string fg: "#dadada"
-            property string fgAlt: "#555555"
+            property string dim: "#555555"
             property string accent: "#bfad9e"
             property string accentAlt: "#5f4d3e"
         }
