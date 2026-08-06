@@ -5,14 +5,23 @@ import qs.Services
 LauncherProvider {
     id: root
     providerId: "default"
-    headerIcon: "search"
+    headerIcon: "magnifying-glass"
     placeholder: "Search..."
 
     property var customEntries: [
+        // {
+        //     name: "Switch to Big Picture",
+        //     genericName: "Steam",
+        //     icon: "desktop",
+        //     iconType: LauncherProvider.IconType.Material,
+        //     execute: function() {
+        //         Quickshell.execDetached(["sh", "c", "steamos-session-select gamescope"])
+        //     }
+        // },
         {
             name: "Settings",
             genericName: "Quickshell",
-            icon: "settings",
+            icon: "gear-six",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
                 root.svc.settingsRequested();
@@ -21,7 +30,7 @@ LauncherProvider {
         {
             name: "Select Theme",
             genericName: "Quickshell",
-            icon: "color_lens",
+            icon: "palette",
             iconType: LauncherProvider.IconType.Material,
             preventClose: true,
             execute: function() {
@@ -31,7 +40,7 @@ LauncherProvider {
         {
             name: "Passwords",
             genericName: "KeePassXC",
-            icon: "key",
+            icon: "password",
             iconType: LauncherProvider.IconType.Material,
             preventClose: true,
             execute: function() {
@@ -41,7 +50,7 @@ LauncherProvider {
         {
             name: "Emoji",
             genericName: "Picker",
-            icon: "mood",
+            icon: "smiley",
             iconType: LauncherProvider.IconType.Material,
             preventClose: true,
             execute: function() {
@@ -51,7 +60,7 @@ LauncherProvider {
         {
             name: "Clipboard history",
             genericName: "Clipboard",
-            icon: "content_paste",
+            icon: "clipboard",
             iconType: LauncherProvider.IconType.Material,
             preventClose: true,
             execute: function() {
@@ -70,7 +79,7 @@ LauncherProvider {
         {
             name: "Recording options",
             genericName: "Recording",
-            icon: "center_focus_weak",
+            icon: "gear-six",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
                 root.svc.viewChangeRequested("recorder");
@@ -79,7 +88,7 @@ LauncherProvider {
         {
             name: "Record video (toggle)",
             genericName: "Recording",
-            icon: "videocam",
+            icon: "video-camera",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
                 RecordingService.toggleRecording();
@@ -88,7 +97,7 @@ LauncherProvider {
         {
             name: "Toggle replay recording",
             genericName: "Replay",
-            icon: "replay",
+            icon: "arrows-clockwise",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
                 RecordingService.toggleReplay();
@@ -97,7 +106,7 @@ LauncherProvider {
         {
             name: "Save replay",
             genericName: "Replay",
-            icon: "save",
+            icon: "floppy-disk",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
                 RecordingService.saveReplay();
@@ -106,7 +115,7 @@ LauncherProvider {
         {
             name: "Dashboard",
             genericName: "Quickshell",
-            icon: "dashboard",
+            icon: "cards-three",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
                 root.svc.viewChangeRequested("dashboard");
@@ -115,7 +124,7 @@ LauncherProvider {
         {
             name: "Wallpapers",
             genericName: "Quickshell",
-            icon: "wallpaper",
+            icon: "image",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
                 root.svc.viewChangeRequested("wallpaperSelector");
@@ -124,7 +133,7 @@ LauncherProvider {
         {
             name: "Audio Mixer",
             genericName: "Quickshell",
-            icon: "graphic_eq",
+            icon: "faders",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
                 root.svc.viewChangeRequested("mixer");
@@ -142,7 +151,7 @@ LauncherProvider {
         {
             name: "Notifications",
             genericName: "Quickshell",
-            icon: "notification",
+            icon: "bell",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
                 root.svc.viewChangeRequested("notifications");
@@ -151,7 +160,7 @@ LauncherProvider {
         {
             name: "Next Track",
             genericName: "MPRIS",
-            icon: "skip_next",
+            icon: "skip-forward",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
                 root.svc.mpris.next();
@@ -160,7 +169,7 @@ LauncherProvider {
         {
             name: "Power Off",
             genericName: "Power",
-            icon: "power_settings_new",
+            icon: "power",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
                 Quickshell.execDetached(["systemctl", "poweroff"])
@@ -169,7 +178,7 @@ LauncherProvider {
         {
             name: "Reboot",
             genericName: "Power",
-            icon: "restart_alt",
+            icon: "arrows-clockwise",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
                 Quickshell.execDetached(["systemctl", "reboot"])
@@ -196,7 +205,7 @@ LauncherProvider {
         {
             name: "Previous Track",
             genericName: "MPRIS",
-            icon: "skip_previous",
+            icon: "skip-back",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
                 root.svc.mpris.previous();
@@ -205,7 +214,7 @@ LauncherProvider {
         {
             name: "Play/Pause Track",
             genericName: "MPRIS",
-            icon: "play_arrow",
+            icon: "play",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
                 root.svc.mpris.togglePlaying();

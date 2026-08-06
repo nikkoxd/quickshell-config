@@ -38,7 +38,8 @@ Rectangle {
             color: root.selected ? Config.colorscheme.bg : Config.colorscheme.fg
             text: root.icon
             icon: true
-            font.pixelSize: 16
+            font.pixelSize: 18
+            anchors.verticalCenter: parent.verticalCenter
 
             Behavior on color {
                 ColorAnimation {
@@ -52,6 +53,7 @@ Rectangle {
             color: root.selected ? Config.colorscheme.bg : Config.colorscheme.fg
             text: root.text
             font.pixelSize: 16
+            anchors.verticalCenter: parent.verticalCenter
 
             Behavior on color {
                 ColorAnimation {

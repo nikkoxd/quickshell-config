@@ -1,6 +1,7 @@
 import Quickshell.Widgets
 import Quickshell.Services.Mpris
 import QtQuick
+import QtQuick.Effects
 import qs.Core
 import qs.Services
 
@@ -29,7 +30,7 @@ Column {
         }
 
         ThemedText {
-            text: "music_note"
+            text: "music-note-simple"
             icon: true
             font.pixelSize: 48
             anchors.centerIn: parent
@@ -76,17 +77,17 @@ Column {
                 spacing: 10
 
                 PlayerButton {
-                    text: "skip_previous"
+                    text: "skip-back"
                     onClicked: root.player.previous()
                 }
 
                 PlayerButton {
-                    text: MprisService.activePlayer.isPlaying ? "pause" : "play_arrow"
+                    text: MprisService.activePlayer.isPlaying ? "pause" : "play"
                     onClicked: root.player.togglePlaying()
                 }
 
                 PlayerButton {
-                    text: "skip_next"
+                    text: "skip-forward"
                     onClicked: root.player.next()
                 }
             }

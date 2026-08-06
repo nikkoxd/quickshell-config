@@ -50,7 +50,7 @@ View {
             }
 
             ThemedText {
-                text: "music_note"
+                text: "music-note-simple"
                 icon: true
                 isHeading: true
                 anchors.centerIn: parent

@@ -5,7 +5,7 @@ Column {
     spacing: 10
 
     ControlCenterSlider {
-        icon: "volume_up"
+        icon: "speaker-high"
         value: Pipewire.defaultAudioSink.audio.volume
         onValueChanged: {
             if (Pipewire.defaultAudioSink) {
@@ -15,7 +15,7 @@ Column {
     }
 
     ControlCenterSlider {
-        icon: "mic"
+        icon: "microphone"
         value: Pipewire.defaultAudioSource.audio.volume
         onValueChanged: {
             if (Pipewire.defaultAudioSource) {

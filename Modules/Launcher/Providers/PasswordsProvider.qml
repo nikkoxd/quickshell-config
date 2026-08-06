@@ -21,7 +21,7 @@ LauncherProvider {
         if (KeePassService.locked) {
             return [{
                 name: "Unlock vault",
-                icon: "lock_open_right",
+                icon: "lock-key-open",
                 iconType: LauncherProvider.IconType.Material,
                 preventClose: true,
                 execute: function() {
@@ -32,7 +32,7 @@ LauncherProvider {
         } else if (query === "") {
             return [{
                 name: "Lock vault",
-                icon: "lock",
+                icon: "lock-key",
                 iconType: LauncherProvider.IconType.Material,
                 preventClose: true,
                 execute: function() {

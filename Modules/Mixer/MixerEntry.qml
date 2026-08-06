@@ -40,7 +40,7 @@ Column {
     MixerSlider {
         id: slider
         value: root.node.audio.volume
-        icon: "volume_up"
+        icon: "speaker-high"
         onValueChanged: root.node.audio.volume = value
     }
 }

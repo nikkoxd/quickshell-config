@@ -19,9 +19,9 @@ GridLayout {
     }
 
     ControlCenterButton {
-        icon: "volume_up"
+        icon: "speaker-high"
         active: Pipewire.defaultAudioSink.audio.muted
-        activeIcon: "volume_off"
+        activeIcon: "speaker-slash"
         onClicked: (button) => {
             if (button === Qt.LeftButton) {
                 root.viewChangeRequested("mixer");
@@ -32,16 +32,16 @@ GridLayout {
     }
 
     ControlCenterButton {
-        icon: "notifications"
+        icon: "bell"
         active: NotificationService.muted
-        activeIcon: "notifications_off"
+        activeIcon: "bell-slash"
         onClicked: {
             NotificationService.muted = !NotificationService.muted
         }
     }
 
     ControlCenterButton {
-        icon: "bluetooth_disabled"
+        icon: "bluetooth-slash"
         active: Bluetooth.defaultAdapter.enabled
         activeIcon: "bluetooth"
         onClicked: (button) => {
@@ -54,21 +54,21 @@ GridLayout {
     }
 
     ControlCenterButton {
-        icon: "camera"
+        icon: "aperture"
         onClicked: {
             root.viewChangeRequested("recorder");
         }
     }
 
     ControlCenterButton {
-        icon: "wallpaper"
+        icon: "image"
         onClicked: {
             root.viewChangeRequested("wallpaperSelector");
         }
     }
 
     ControlCenterButton {
-        icon: "rocket_launch"
+        icon: "rocket-launch"
         onClicked: {
             root.viewChangeRequested("launcher");
         }

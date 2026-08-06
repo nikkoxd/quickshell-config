@@ -19,28 +19,28 @@ Column {
 
         SettingsTab {
             text: "Island"
-            icon: "mountain_steam"
+            icon: "island"
             selected: root.currentTab === Settings.Tab.Island
             onTapped: root.currentTab = Settings.Tab.Island
         }
 
         SettingsTab {
             text: "Launcher"
-            icon: "rocket_launch"
+            icon: "rocket-launch"
             selected: root.currentTab === Settings.Tab.Launcher
             onTapped: root.currentTab = Settings.Tab.Launcher
         }
 
         SettingsTab {
             text: "Recordings"
-            icon: "camera"
+            icon: "aperture"
             selected: root.currentTab === Settings.Tab.Recording
             onTapped: root.currentTab = Settings.Tab.Recording
         }
 
         SettingsTab {
             text: "Visualizer"
-            icon: "graphic_eq"
+            icon: "equalizer"
             selected: root.currentTab === Settings.Tab.Visualizer
             onTapped: root.currentTab = Settings.Tab.Visualizer
         }
@@ -54,7 +54,7 @@ Column {
 
         SettingsTab {
             text: "Wallpaper"
-            icon: "wallpaper"
+            icon: "image"
             selected: root.currentTab === Settings.Tab.Wallpaper
             onTapped: root.currentTab = Settings.Tab.Wallpaper
         }

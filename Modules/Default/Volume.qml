@@ -48,7 +48,7 @@ View {
         anchors.centerIn: parent
 
         ThemedText {
-            text: "volume_up"
+            text: "speaker-high"
             icon: true
         }
 

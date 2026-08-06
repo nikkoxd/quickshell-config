@@ -83,7 +83,7 @@ Rectangle {
     }
 
     ThemedText {
-        text: "keyboard_return"
+        text: "arrow-bend-down-left"
         icon: true
         anchors.right: parent.right
         anchors.margins: 10

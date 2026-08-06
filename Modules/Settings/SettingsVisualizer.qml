@@ -1,6 +1,4 @@
-import Quickshell
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
 import qs.Core
 
@@ -28,16 +26,16 @@ ColumnLayout {
     SettingsOption {
         title: "Top opacity"
         units: "%"
-        value: Config.visualizer.topOpacity
-        onEdited: value => Config.visualizer.topOpacity = parseInt(value)
+        value: Config.visualizer.topOpacity * 100
+        onEdited: value => Config.visualizer.topOpacity = parseInt(value) / 100
         type: SettingsOption.Type.TextField
     }
 
     SettingsOption {
         title: "Bottom opacity"
         units: "%"
-        value: Config.visualizer.bottomOpacity
-        onEdited: value => Config.visualizer.bottomOpacity = parseInt(value)
+        value: Config.visualizer.bottomOpacity * 100
+        onEdited: value => Config.visualizer.bottomOpacity = parseInt(value) / 100
         type: SettingsOption.Type.TextField
     }
 }

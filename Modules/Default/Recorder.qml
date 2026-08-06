@@ -39,7 +39,7 @@ View {
             text: button.icon
             color: button.active ? Config.colorscheme.bg : button.iconColor
             icon: true
-            font.pixelSize: 16
+            font.pixelSize: 18
             anchors.centerIn: parent
 
             Behavior on color {
@@ -59,10 +59,10 @@ View {
         Row {
             spacing: 5
             RecorderButton {
-                icon: "activity_zone"
+                icon: "selection"
             }
             RecorderButton {
-                icon: "select_window"
+                icon: "app-window"
             }
             RecorderButton {
                 icon: "monitor"
@@ -72,17 +72,17 @@ View {
         Row {
             spacing: 5
             RecorderButton {
-                icon: "videocam"
+                icon: "video-camera"
                 active: RecordingService.recording
                 onTapped: RecordingService.toggleRecording()
             }
             RecorderButton {
-                icon: "replay"
+                icon: "arrows-clockwise"
                 active: RecordingService.replayRunning
                 onTapped: RecordingService.toggleReplay()
             }
             RecorderButton {
-                icon: "save"
+                icon: "floppy-disk"
                 visible: RecordingService.replayRunning
                 onTapped: RecordingService.saveReplay()
             }

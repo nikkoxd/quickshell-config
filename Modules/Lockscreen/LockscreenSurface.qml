@@ -1,5 +1,6 @@
 import Quickshell.Wayland
 import QtQuick
+import QtQuick.Effects
 import QtQuick.Controls
 import QtQuick.Layouts
 import qs.Core
@@ -174,7 +175,7 @@ WlSessionLockSurface {
                     placeholderText: "Password"
                     placeholderTextColor: Config.colorscheme.fg
                     background: Rectangle {
-                        color: Config.colorscheme.bg
+                        color: Config.colorscheme.surface
                         radius: height / 2
                     }
                 }
