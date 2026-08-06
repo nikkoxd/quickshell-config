@@ -12,7 +12,7 @@ ClippingRectangle {
     color: "transparent"
     radius: Config.island.radius
     property real maxHeight: Config.visualizer.visualizerHeight
-    property color visualizerColor: Config.colorscheme.accent
+    property color visualizerColor: Config.colorscheme.fg
     property real topOpacity: Config.visualizer.topOpacity
     property real bottomOpacity: Config.visualizer.bottomOpacity
 

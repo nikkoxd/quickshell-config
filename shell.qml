@@ -64,7 +64,21 @@ ShellRoot {
             layer.enabled: true
             layer.effect: MultiEffect {
                 shadowEnabled: true
-                shadowBlur: 0.5
+                shadowColor: "#af1a1a1a"
+                shadowVerticalOffset: 10
+                shadowHorizontalOffset: 0
+                shadowScale: 0.9
+                blurMax: 64
+                blurMultiplier: 1.5
+                shadowBlur: 1.0
+                autoPaddingEnabled: true
+            }
+
+            Behavior on color {
+                ColorAnimation {
+                    duration: 250
+                    easing.type: Easing.OutCubic
+                }
             }
         }
 

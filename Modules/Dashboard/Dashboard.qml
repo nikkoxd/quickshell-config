@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell.Services.Mpris
 import qs.Core
+import qs.Services
 
 View {
     id: root
@@ -31,13 +32,28 @@ View {
     RowLayout {
         id: row
         spacing: 30
-        anchors.centerIn: parent
+        x: Config.island.padding
+        y: Config.island.padding
 
         Player {
             Layout.alignment: Qt.AlignVCenter
             visible: Mpris.players.values.length > 0
         }
-        Calendar {}
+
+        Loader {
+            id: calTrayLoader
+            property Component cal: Calendar {}
+            property Component lyrics: Lyrics {}
+
+            WheelHandler {
+                acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+                acceptedModifiers: Qt.ControlModifier
+                onWheel: DashboardService.togglePanel()
+            }
+
+            sourceComponent: DashboardService.panel === 0 ? cal : lyrics
+        }
+
         Tray {
             id: tray
             onCloseRequested: root.closeRequested()

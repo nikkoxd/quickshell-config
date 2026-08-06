@@ -53,11 +53,12 @@ Use `Core/ThemedText.qml` (font from `Config.theme`) and `Core/ScrollingText.qml
 
 Singletons in `Services/` wrap external systems and expose reactive properties/signals for views to bind to:
 
-- `MprisService` — media players (emits `trackChanged`).
+- `MprisService` — media players (emits `trackChanged`); also exposes `position`/`length`, refreshed by a timer since `MprisPlayer.position` is not self-updating.
 - `NotificationService` — wraps `NotificationServer`; `muted` gates OSD popups; `notify()` shells out to `notify-send`.
 - `CavaService` — spawns `cava` as a `Process`, feeds it config via stdin, parses raw stdout into a `values` array for the visualizer.
 - `WallpaperService` — drives `awww`/`awww-daemon` (images) and `mpvpaper` (video); folder models from `Config.wallpaper.staticWallpaperFolder`; video list via `Helpers/list_walls.py`.
-- `LocalSendService`, `LyricsService`, `DateService`.
+- `LyricsService` — fetches the whole timestamped LRC once per track via `Helpers/lyrics.py fetch` (lrclib.net, cached under `$XDG_CACHE_HOME/island/lyrics/`); exposes `state`, `lines`, `plain`, `currentIndex`, `currentText` and `seek()`. The active line is derived in QML from `MprisService.position`, not by re-spawning the helper.
+- `LocalSendService`, `DateService`.
 
 External CLI tools these depend on (must be on PATH): `cava`, `awww` + `awww-daemon`, `mpvpaper`, `notify-send`, plus `python3` for helpers.
 
