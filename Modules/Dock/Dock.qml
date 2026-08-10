@@ -35,8 +35,24 @@ LazyLoader {
 
         anchors.bottom: true
 
-        readonly property bool revealed: !Config.dock.onlyOnHover || Hyprland.focusedWorkspace.toplevels.values.length === 0 || dockHover.hovered || hotzoneHover.hovered || menu.visible || dragging
+        readonly property bool revealed: !Config.dock.onlyOnHover || workspaceClear || dockHover.hovered || hotzoneHover.hovered || menu.visible || dragging
         property bool dragging: false
+
+        // Nothing on the workspace claims the bottom of the screen: either no
+        // windows at all, or only floating ones. `floating` isn't a property of
+        // HyprlandToplevel, it only lives in the `clients` IPC payload.
+        readonly property bool workspaceClear: Hyprland.focusedWorkspace?.toplevels.values.every(toplevel => toplevel.lastIpcObject.floating === true) ?? true
+
+        // Toggling a window's float state doesn't invalidate lastIpcObject on
+        // its own, so ask for a fresh `clients` dump when it happens.
+        Connections {
+            target: Hyprland
+
+            function onRawEvent(event) {
+                if (event.name === "changefloatingmode")
+                    Hyprland.refreshToplevels();
+            }
+        }
 
         // Entry the tooltip describes, or null when nothing is hovered.
         property DockEntry hoveredEntry: null
