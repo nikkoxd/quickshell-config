@@ -187,7 +187,6 @@ Singleton {
             property int hotzoneHeight: 40
             property int iconSize: 40
             property int spacing: 8
-            // Pinned app ids (toplevel appId / desktop entry id), in dock order.
             property list<string> pinned: []
         }
     }

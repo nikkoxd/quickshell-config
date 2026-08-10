@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Wayland
 import Quickshell.Widgets
 import QtQuick
@@ -34,7 +35,7 @@ LazyLoader {
 
         anchors.bottom: true
 
-        readonly property bool revealed: !Config.dock.onlyOnHover || dockHover.hovered || hotzoneHover.hovered || menu.visible || dragging
+        readonly property bool revealed: !Config.dock.onlyOnHover || Hyprland.focusedWorkspace.toplevels.values.length === 0 || dockHover.hovered || hotzoneHover.hovered || menu.visible || dragging
         property bool dragging: false
 
         // Index the dragged icon should land on, from its centre in row coordinates.
