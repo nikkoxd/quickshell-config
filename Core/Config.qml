@@ -174,7 +174,7 @@ Singleton {
         path: Qt.resolvedUrl("../Config/dock.json")
         watchChanges: true
         onFileChanged: reload()
-        onAdapterChanged: writeAdapter()
+        onAdapterUpdated: writeAdapter()
         onLoadFailed: error => {
             if (error === FileViewError.FileNotFound) {
                 writeAdapter();
@@ -187,6 +187,8 @@ Singleton {
             property int hotzoneHeight: 40
             property int iconSize: 40
             property int spacing: 8
+            // Pinned app ids (toplevel appId / desktop entry id), in dock order.
+            property list<string> pinned: []
         }
     }
 

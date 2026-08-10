@@ -47,7 +47,9 @@ Colorschemes are separate: `Config/theme.json` names a scheme (e.g. `"Moonfly"`)
 
 > Note: `Core/ThemeLoader.qml` is a legacy/duplicate colorscheme singleton with a different key set (`bg2`/`bg3`/`bg4`). New code should use `Config.colorscheme`, not `ThemeLoader`.
 
-Use `Core/ThemedText.qml` (font from `Config.theme`) and `Core/ScrollingText.qml` for text so typography stays centralized.
+Use `Core/ThemedText.qml` (font from `Config.theme`) and `Core/ScrollingText.qml` for text so typography stays centralized. Icon glyphs are Phosphor ligature names (`ThemedText { icon: true; text: "push-pin" }`).
+
+`Modules/Settings/` is the GUI over those JSON files. **To add a settings page:** create `Modules/Settings/Settings<Name>.qml` as a `ColumnLayout` of `SettingsOption`s (grouped under `SettingsSection`s), add a value to the `Settings.Tab` enum plus the instance in `Settings.qml`, and a `SettingsTab` in `SettingsSidebar.qml`.
 
 ## Services
 
@@ -58,6 +60,7 @@ Singletons in `Services/` wrap external systems and expose reactive properties/s
 - `CavaService` — spawns `cava` as a `Process`, feeds it config via stdin, parses raw stdout into a `values` array for the visualizer.
 - `WallpaperService` — drives `awww`/`awww-daemon` (images) and `mpvpaper` (video); folder models from `Config.wallpaper.staticWallpaperFolder`; video list via `Helpers/list_walls.py`.
 - `LyricsService` — fetches the whole timestamped LRC once per track via `Helpers/lyrics.py fetch` (lrclib.net, cached under `$XDG_CACHE_HOME/island/lyrics/`); exposes `state`, `lines`, `plain`, `currentIndex`, `currentText` and `seek()`. The active line is derived in QML from `MprisService.position`, not by re-spawning the helper.
+- `DockService` — builds the dock model: one item per application (`{ appId, entry, toplevels, pinned }`), pinned apps first in the order saved to `Config.dock.pinned`, then running-but-unpinned apps. Owns `move()`/`persistOrder()` (drag reorder; only pinned positions survive a restart), `setPinned()`/`togglePin()`, and `activate()`/`launch()`/`close()`.
 - `LocalSendService`, `DateService`.
 
 External CLI tools these depend on (must be on PATH): `cava`, `awww` + `awww-daemon`, `mpvpaper`, `notify-send`, plus `python3` for helpers.
