@@ -6,6 +6,7 @@ View {
     id: root
     implicitWidth: workspaces.implicitWidth + Config.island.padding * 2
     implicitHeight: Config.island.height
+    displayInFullscreen: true
 
     Connections {
         target: Hyprland
