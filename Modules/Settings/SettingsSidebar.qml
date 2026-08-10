@@ -25,6 +25,13 @@ Column {
         }
 
         SettingsTab {
+            text: "Dock"
+            icon: "app-window"
+            selected: root.currentTab === Settings.Tab.Dock
+            onTapped: root.currentTab = Settings.Tab.Dock
+        }
+
+        SettingsTab {
             text: "Launcher"
             icon: "rocket-launch"
             selected: root.currentTab === Settings.Tab.Launcher

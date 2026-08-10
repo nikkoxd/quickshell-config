@@ -13,6 +13,7 @@ FloatingWindow {
 
     enum Tab {
         Island,
+        Dock,
         Launcher,
         Recording,
         Visualizer,
@@ -31,6 +32,10 @@ FloatingWindow {
 
         SettingsIsland {
             visible: root.currentTab === Settings.Tab.Island
+        }
+
+        SettingsDock {
+            visible: root.currentTab === Settings.Tab.Dock
         }
 
         SettingsLauncher {
