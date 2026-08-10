@@ -41,15 +41,20 @@ LazyLoader {
         // Nothing on the workspace claims the bottom of the screen: either no
         // windows at all, or only floating ones. `floating` isn't a property of
         // HyprlandToplevel, it only lives in the `clients` IPC payload.
-        readonly property bool workspaceClear: Hyprland.focusedWorkspace?.toplevels.values.every(toplevel => toplevel.lastIpcObject.floating === true) ?? true
+        // Only a window known to be tiled hides the dock: a toplevel Hyprland
+        // hasn't described yet has an empty lastIpcObject, and treating that as
+        // tiled made every newly opened window — floating ones included — hide
+        // the dock until something else refreshed it.
+        readonly property bool workspaceClear: (Hyprland.focusedWorkspace?.toplevels.values ?? []).every(toplevel => toplevel.lastIpcObject.floating !== false)
 
-        // Toggling a window's float state doesn't invalidate lastIpcObject on
-        // its own, so ask for a fresh `clients` dump when it happens.
         Connections {
             target: Hyprland
 
             function onRawEvent(event) {
-                if (event.name === "changefloatingmode")
+                // `openwindow` beats the `clients` dump the new window has to
+                // come from, and toggling float state doesn't invalidate
+                // lastIpcObject at all, so refresh on both.
+                if (event.name === "openwindow" || event.name === "changefloatingmode")
                     Hyprland.refreshToplevels();
             }
         }
