@@ -7,6 +7,7 @@ View {
     implicitHeight: column.implicitHeight + 30
     focused: true
     dismissable: false
+    displayInFullscreen: true
 
     TapHandler {
         acceptedButtons: Qt.LeftButton | Qt.RightButton
