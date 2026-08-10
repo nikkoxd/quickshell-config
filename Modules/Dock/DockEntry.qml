@@ -20,6 +20,7 @@ Item {
     readonly property bool running: toplevels.length > 0
     readonly property bool activated: toplevels.some(toplevel => toplevel.activated)
     readonly property bool dragging: dragHandler.active
+    readonly property bool hovered: hover.hovered
     // Position of the icon inside the dock row, drag offset included.
     readonly property real centerX: x + content.x + width / 2
 

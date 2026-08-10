@@ -38,6 +38,29 @@ LazyLoader {
         readonly property bool revealed: !Config.dock.onlyOnHover || Hyprland.focusedWorkspace.toplevels.values.length === 0 || dockHover.hovered || hotzoneHover.hovered || menu.visible || dragging
         property bool dragging: false
 
+        // Entry the tooltip describes, or null when nothing is hovered.
+        property DockEntry hoveredEntry: null
+
+        onDraggingChanged: {
+            if (dragging)
+                root.hoveredEntry = null;
+        }
+
+        onHoveredEntryChanged: {
+            if (root.hoveredEntry) {
+                tooltipDelay.restart();
+            } else {
+                tooltipDelay.stop();
+                tooltip.visible = false;
+            }
+        }
+
+        Timer {
+            id: tooltipDelay
+            interval: 350
+            onTriggered: tooltip.visible = root.hoveredEntry !== null && !menu.visible
+        }
+
         // Index the dragged icon should land on, from its centre in row coordinates.
         // Every entry has the same width, so this is plain arithmetic.
         function indexAt(centerX) {
@@ -120,6 +143,13 @@ LazyLoader {
 
                         onDraggingChanged: root.dragging = entry.dragging
 
+                        onHoveredChanged: {
+                            if (entry.hovered)
+                                root.hoveredEntry = entry;
+                            else if (root.hoveredEntry === entry)
+                                root.hoveredEntry = null;
+                        }
+
                         onDragMoved: centerX => DockService.move(entry.index, root.indexAt(centerX))
 
                         onDragFinished: DockService.persistOrder()
@@ -158,6 +188,9 @@ LazyLoader {
             menu.anchorCenterX = pos.x;
             menu.anchorTopY = pos.y;
             menu.open(entries);
+
+            tooltipDelay.stop();
+            tooltip.visible = false;
         }
 
         // Full-screen click target that dismisses the menu; zero-sized (and so
@@ -175,6 +208,20 @@ LazyLoader {
 
         DockMenu {
             id: menu
+        }
+
+        DockTooltip {
+            id: tooltip
+
+            // Chained x/y instead of mapToItem: these stay live, so the tooltip
+            // rides along with the dock's slide-in and with drag reorders.
+            readonly property real centerX: root.hoveredEntry ? dock.x + content.x + root.hoveredEntry.x + root.hoveredEntry.width / 2 : 0
+
+            name: root.hoveredEntry ? (root.hoveredEntry.modelData.entry?.name ?? root.hoveredEntry.modelData.appId) : ""
+            appId: root.hoveredEntry ? root.hoveredEntry.modelData.appId : ""
+
+            x: Math.max(8, Math.min(root.width - width - 8, centerX - width / 2))
+            y: root.hoveredEntry ? dock.y + content.y + root.hoveredEntry.y - height - 8 : 0
         }
     }
 }
