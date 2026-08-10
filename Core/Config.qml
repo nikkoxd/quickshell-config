@@ -13,6 +13,7 @@ Singleton {
     property var wallpaper: wallpaperLoader.adapter
     property var recorder: recorderLoader.adapter
     property var iris: irisLoader.adapter
+    property var dock: dockLoader.adapter
     property var colorscheme: colorschemeLoader.adapter
 
     Connections {
@@ -165,6 +166,27 @@ Singleton {
             property bool autoMode: true
             property bool dark: true
             property string after: ""
+        }
+    }
+
+    FileView {
+        id: dockLoader
+        path: Qt.resolvedUrl("../Config/dock.json")
+        watchChanges: true
+        onFileChanged: reload()
+        onAdapterChanged: writeAdapter()
+        onLoadFailed: error => {
+            if (error === FileViewError.FileNotFound) {
+                writeAdapter();
+            }
+        }
+        adapter: JsonAdapter {
+            property bool enabled: true
+            property bool onlyOnHover: true
+            property bool coloredIcons: true
+            property int hotzoneHeight: 40
+            property int iconSize: 40
+            property int spacing: 8
         }
     }
 

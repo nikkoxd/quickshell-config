@@ -1,5 +1,5 @@
 //@ pragma UseQApplication
-//@ pragma IconTheme WhiteSur
+//@ pragma IconTheme Reversal
 //@ pragma Env QS_NO_RELOAD_POPUP=1
 //@ pragma Env QSG_RENDER_LOOP=threaded
 
@@ -13,10 +13,12 @@ import qs.Services
 import qs.Modules.ScreenCorners as ScreenCornersModule
 import qs.Modules.Wallpapers as WallpapersModule
 import qs.Modules.Lockscreen as LockscreenModule
+import qs.Modules.Dock as DockModule
 
 ShellRoot {
-    ScreenCornersModule.ScreenCorners {}
     WallpapersModule.Wallpaper {}
+    ScreenCornersModule.ScreenCorners {}
+    DockModule.Dock {}
     LockscreenModule.Lockscreen {}
 
     PanelWindow {
