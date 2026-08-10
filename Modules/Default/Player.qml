@@ -8,6 +8,7 @@ View {
     id: root
     implicitWidth: row.implicitWidth + 20
     implicitHeight: row.implicitHeight + 20
+    displayInFullscreen: true
 
     Timer {
         id: timer
