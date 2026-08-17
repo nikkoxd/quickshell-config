@@ -1,26 +1,34 @@
-import Quickshell.Services.Pipewire
 import QtQuick
-import QtQuick.Layouts
-import qs.Core
 import qs.Services
 
 Column {
+    id: root
+
     spacing: 5
-    visible: NotificationService.server.trackedNotifications.values.length > 0
+    visible: NotificationService.groups.length > 0
+
+    required property int contentHeight
+
+    property var expandedApps: ({})
+
+    function setExpanded(appName, value) {
+        var next = Object.assign({}, expandedApps);
+        if (value)
+            next[appName] = true;
+        else
+            delete next[appName];
+        expandedApps = next;
+    }
 
     ListView {
         id: list
         clip: true
         width: 310
-        height: Math.min(contentHeight, 200)
+        height: root.contentHeight
         spacing: 5
-        model: NotificationService.server.trackedNotifications
-        verticalLayoutDirection: ListView.BottomToTop
-        onCountChanged: {
-            Qt.callLater(function () {
-                list.positionViewAtEnd();
-            });
-        }
+        model: NotificationService.groups
+        verticalLayoutDirection: ListView.TopToBottom
+        highlightFollowsCurrentItem: false
         add: Transition {
             NumberAnimation {
                 property: "opacity"
@@ -37,6 +45,11 @@ Column {
                 easing.type: Easing.OutCubic
             }
         }
-        delegate: ControlCenterNotification {}
+        delegate: ControlCenterNotificationGroup {
+            fullWidth: list.width
+            expanded: root.expandedApps[modelData.appName] === true
+            onExpandRequested: root.setExpanded(modelData.appName, true)
+            onCollapseRequested: root.setExpanded(modelData.appName, false)
+        }
     }
 }

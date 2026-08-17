@@ -5,24 +5,73 @@ import qs.Core
 
 Rectangle {
     id: notifEntry
-    width: Math.max(list.width, notifRow.implicitWidth + 20)
-    height: notifRow.implicitHeight + 20
-    radius: Config.island.radius / 2
-    color: Config.colorscheme.surface
+
     required property var modelData
+
+    property real fullWidth: 310
+    // Position inside a collapsed stack: 0 is the front card, deeper cards are
+    // drawn as slivers peeking out below it.
+    property int depth: 0
+    property bool stacked: false
+    // Shown as a pill on the front card of a collapsed stack.
+    property int badgeCount: 0
+    // Kept separate from `opacity` so the swipe gesture does not clobber the
+    // binding that dims cards behind the front one.
+    property real swipeOpacity: 1
+    // Swipe offset, added on top of the resting `x` so the gesture never breaks
+    // the binding that insets cards inside a stack. A collapsed stack is swiped
+    // as a whole by ControlCenterNotificationGroup instead.
+    property real swipeX: 0
+
+    signal dismissRequested
+    signal expandRequested
+
+    readonly property real stackInset: 8
+    // Cards behind the front one slide up under it by `stackOverlap` (see the
+    // negative Column spacing in ControlCenterNotificationGroup) so only their
+    // rounded bottom edge shows.
+    readonly property real stackOverlap: radius
+    readonly property real stackPeek: 6
+    readonly property bool interactive: !stacked || depth === 0
+
+    width: fullWidth - (stacked ? depth * stackInset * 2 : 0)
+    x: (stacked ? depth * stackInset : 0) + swipeX
+    height: stacked && depth > 0 ? stackOverlap + stackPeek : notifRow.implicitHeight + 20
+    z: stacked ? -depth : 0
+    visible: !stacked || depth < 3
+    clip: true
+    radius: Config.island.radius / 2
+    topLeftRadius: stacked && depth > 0 ? 0 : radius
+    topRightRadius: stacked && depth > 0 ? 0 : radius
+    color: Config.colorscheme.surface
+    opacity: swipeOpacity * (stacked && depth > 0 ? 0.7 : 1)
+
+    Behavior on width {
+        NumberAnimation {
+            duration: 200
+            easing.type: Easing.OutCubic
+        }
+    }
+
+    Behavior on height {
+        NumberAnimation {
+            duration: 200
+            easing.type: Easing.OutCubic
+        }
+    }
 
     ParallelAnimation {
         id: resetAnim
         NumberAnimation {
             target: notifEntry
-            property: "opacity"
+            property: "swipeOpacity"
             to: 1
             duration: 100
             easing.type: Easing.InOutCubic
         }
         NumberAnimation {
             target: notifEntry
-            property: "x"
+            property: "swipeX"
             to: 0
             duration: 100
             easing.type: Easing.OutQuad
@@ -34,7 +83,7 @@ Rectangle {
         ParallelAnimation {
             NumberAnimation {
                 target: notifEntry
-                property: "opacity"
+                property: "swipeOpacity"
                 to: 0
                 duration: 100
                 easing.type: Easing.InOutCubic
@@ -48,7 +97,7 @@ Rectangle {
             }
             NumberAnimation {
                 target: notifEntry
-                property: "x"
+                property: "swipeX"
                 to: notifEntry.width
                 duration: 100
                 easing.type: Easing.OutQuad
@@ -56,32 +105,42 @@ Rectangle {
         }
         ScriptAction {
             script: {
-                notifEntry.modelData.dismiss();
+                notifEntry.dismissRequested();
             }
         }
     }
 
+    // A collapsed stack is dragged as a whole by the group, so this only runs for
+    // standalone cards and for the cards of an expanded stack.
     DragHandler {
-        xAxis.minimum: 0
+        enabled: !notifEntry.stacked
+        target: null
         yAxis.enabled: false
         dragThreshold: 10
         onActiveChanged: {
             if (!active) {
-                if (Math.abs(notifEntry.x) > notifEntry.width * 0.2) {
-                    dismissAnim.running = true;
+                if (notifEntry.swipeX > notifEntry.width * 0.2) {
+                    dismissAnim.restart();
                 } else {
-                    resetAnim.running = true;
+                    resetAnim.restart();
                 }
             }
         }
-        onTranslationChanged: {
-            notifEntry.opacity = 1 - Math.abs(notifEntry.x) / (notifEntry.width * 0.8);
+        onActiveTranslationChanged: {
+            notifEntry.swipeX = Math.max(0, activeTranslation.x);
+            notifEntry.swipeOpacity = 1 - notifEntry.swipeX / (notifEntry.width * 0.8);
         }
     }
 
     TapHandler {
+        enabled: notifEntry.interactive
         gesturePolicy: TapHandler.WithinBounds
         onTapped: (eventPoint, button) => {
+            if (notifEntry.stacked) {
+                notifEntry.expandRequested();
+                return;
+            }
+
             var defaultAction = notifEntry.modelData.actions.find(a => a.identifier === "default");
             if (defaultAction) {
                 defaultAction.invoke();
@@ -95,6 +154,8 @@ Rectangle {
         spacing: 10
         anchors.fill: parent
         anchors.margins: 10
+        // A sliver is only a few pixels tall, its content would bleed through.
+        visible: !notifEntry.stacked || notifEntry.depth === 0
 
         IconImage {
             source: Quickshell.iconPath(notifEntry.modelData.appIcon, true)
@@ -115,18 +176,37 @@ Rectangle {
 
             ScrollingText {
                 text: notifEntry.modelData.summary
-                maxWidth: 240
+                maxWidth: notifEntry.badgeCount > 1 ? 205 : 240
             }
 
             ThemedText {
                 text: notifEntry.modelData.body
                 font.pixelSize: 12
                 opacity: 0.5
-                width: 240
+                width: notifEntry.badgeCount > 1 ? 205 : 240
                 wrapMode: Text.WrapAnywhere
                 maximumLineCount: 3
                 elide: Text.ElideRight
             }
+        }
+    }
+
+    Rectangle {
+        visible: notifEntry.badgeCount > 1
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.margins: 10
+        width: Math.max(20, badgeText.implicitWidth + 10)
+        height: 20
+        radius: height / 2
+        color: Config.colorscheme.accent
+
+        ThemedText {
+            id: badgeText
+            anchors.centerIn: parent
+            text: notifEntry.badgeCount
+            font.pixelSize: 11
+            color: Config.colorscheme.bg
         }
     }
 }

@@ -2,15 +2,13 @@ import Quickshell.Services.Pipewire
 import Quickshell.Bluetooth
 import QtQuick
 import QtQuick.Layouts
-import qs.Core
 import qs.Services
 
 GridLayout {
     id: root
-    width: parent.width
     rowSpacing: 10
     columnSpacing: 10
-    columns: 3
+    columns: 2
 
     signal viewChangeRequested(view: string)
 

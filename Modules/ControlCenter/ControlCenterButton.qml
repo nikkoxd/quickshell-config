@@ -4,10 +4,12 @@ import qs.Core
 
 Rectangle {
     id: root
-    height: 40
+    implicitWidth: 40
+    implicitHeight: 40
     color: getColor()
     radius: Config.island.radius / 2
     Layout.fillWidth: true
+    Layout.fillHeight: true
 
     required property string icon
     property bool active: false
