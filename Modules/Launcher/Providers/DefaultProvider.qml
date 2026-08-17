@@ -9,18 +9,18 @@ LauncherProvider {
     placeholder: "Search..."
 
     property var customEntries: [
-        // {
-        //     name: "Switch to Big Picture",
-        //     genericName: "Steam",
-        //     icon: "desktop",
-        //     iconType: LauncherProvider.IconType.Material,
-        //     execute: function() {
-        //         Quickshell.execDetached(["sh", "c", "steamos-session-select gamescope"])
-        //     }
-        // },
+        {
+            name: "Switch to Big Picture",
+            genericName: "big picture",
+            icon: "desktop",
+            iconType: LauncherProvider.IconType.Material,
+            execute: function() {
+                Quickshell.execDetached(["sh", "-c", "steamos-session-select gamescope"])
+            }
+        },
         {
             name: "Settings",
-            genericName: "Quickshell",
+            genericName: "settings",
             icon: "gear-six",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
@@ -29,7 +29,7 @@ LauncherProvider {
         },
         {
             name: "Select Theme",
-            genericName: "Quickshell",
+            genericName: "colorscheme",
             icon: "palette",
             iconType: LauncherProvider.IconType.Material,
             preventClose: true,
@@ -39,7 +39,7 @@ LauncherProvider {
         },
         {
             name: "Passwords",
-            genericName: "KeePassXC",
+            genericName: "keepassxc",
             icon: "password",
             iconType: LauncherProvider.IconType.Material,
             preventClose: true,
@@ -49,7 +49,7 @@ LauncherProvider {
         },
         {
             name: "Emoji",
-            genericName: "Picker",
+            genericName: "emoji",
             icon: "smiley",
             iconType: LauncherProvider.IconType.Material,
             preventClose: true,
@@ -59,7 +59,7 @@ LauncherProvider {
         },
         {
             name: "Clipboard history",
-            genericName: "Clipboard",
+            genericName: "clipboard",
             icon: "clipboard",
             iconType: LauncherProvider.IconType.Material,
             preventClose: true,
@@ -67,18 +67,18 @@ LauncherProvider {
                 root.svc.provider = "clipboard";
             }
         },
-        /* { */
-        /*     name: "Wipe clipboard", */
-        /*     genericName: "Clipboard", */
-        /*     icon: "content_paste_off", */
-        /*     iconType: LauncherProvider.IconType.Material, */
-        /*     execute: function() { */
-        /*         CliphistService.wipe(); */
-        /*     } */
-        /* }, */
+        {
+            name: "Wipe clipboard",
+            genericName: "wipe clipboard",
+            icon: "trash-simple",
+            iconType: LauncherProvider.IconType.Material,
+            execute: function() {
+                CliphistService.wipe();
+            }
+        },
         {
             name: "Recording options",
-            genericName: "Recording",
+            genericName: "recording options",
             icon: "gear-six",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
@@ -87,7 +87,7 @@ LauncherProvider {
         },
         {
             name: "Record video (toggle)",
-            genericName: "Recording",
+            genericName: "toggle video",
             icon: "video-camera",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
@@ -96,7 +96,7 @@ LauncherProvider {
         },
         {
             name: "Toggle replay recording",
-            genericName: "Replay",
+            genericName: "toggle replay",
             icon: "arrows-clockwise",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
@@ -105,7 +105,7 @@ LauncherProvider {
         },
         {
             name: "Save replay",
-            genericName: "Replay",
+            genericName: "save replay",
             icon: "floppy-disk",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
@@ -114,7 +114,7 @@ LauncherProvider {
         },
         {
             name: "Dashboard",
-            genericName: "Quickshell",
+            genericName: "dashboard",
             icon: "cards-three",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
@@ -123,7 +123,7 @@ LauncherProvider {
         },
         {
             name: "Wallpapers",
-            genericName: "Quickshell",
+            genericName: "wallpapers",
             icon: "image",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
@@ -132,7 +132,7 @@ LauncherProvider {
         },
         {
             name: "Audio Mixer",
-            genericName: "Quickshell",
+            genericName: "mixer",
             icon: "faders",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
@@ -141,7 +141,7 @@ LauncherProvider {
         },
         {
             name: "Bluetooth",
-            genericName: "Quickshell",
+            genericName: "bluetooth",
             icon: "bluetooth",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
@@ -150,7 +150,7 @@ LauncherProvider {
         },
         {
             name: "Notifications",
-            genericName: "Quickshell",
+            genericName: "notifications",
             icon: "bell",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
@@ -159,7 +159,7 @@ LauncherProvider {
         },
         {
             name: "Next Track",
-            genericName: "MPRIS",
+            genericName: "mpris next",
             icon: "skip-forward",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
@@ -168,7 +168,7 @@ LauncherProvider {
         },
         {
             name: "Power Off",
-            genericName: "Power",
+            genericName: "poweroff",
             icon: "power",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
@@ -177,7 +177,7 @@ LauncherProvider {
         },
         {
             name: "Reboot",
-            genericName: "Power",
+            genericName: "reboot",
             icon: "arrows-clockwise",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
@@ -186,7 +186,7 @@ LauncherProvider {
         },
         {
             name: "Suspend",
-            genericName: "Power",
+            genericName: "suspend",
             icon: "pause",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
@@ -195,7 +195,7 @@ LauncherProvider {
         },
         {
             name: "Lock",
-            genericName: "Power",
+            genericName: "lock",
             icon: "lock",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
@@ -204,7 +204,7 @@ LauncherProvider {
         },
         {
             name: "Previous Track",
-            genericName: "MPRIS",
+            genericName: "mpris previous",
             icon: "skip-back",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
@@ -213,7 +213,7 @@ LauncherProvider {
         },
         {
             name: "Play/Pause Track",
-            genericName: "MPRIS",
+            genericName: "mpris playpause",
             icon: "play",
             iconType: LauncherProvider.IconType.Material,
             execute: function() {
@@ -228,8 +228,32 @@ LauncherProvider {
         if (!q && !Config.launcher.showResultsWithEmptyQuery)
             return [];
 
-        const all = [...DesktopEntries.applications.values, ...root.customEntries];
-        const results = root.svc.fuzzyFilter(q, all, ["name", "genericName"]);
+        // An empty prefix would match every query, so it disables the prefix instead.
+        const customPrefix = Config.launcher.useCustomEntriesPrefix ? Config.launcher.customEntriesPrefix : "";
+        const commandPrefix = Config.launcher.commandPrefix;
+
+        if (customPrefix && q.startsWith(customPrefix))
+            return root.svc.fuzzyFilter(q.slice(customPrefix.length).trim(), root.customEntries, ["name", "genericName"]);
+
+        if (commandPrefix && q.startsWith(commandPrefix)) {
+            const cmd = q.slice(commandPrefix.length).trim();
+            if (!cmd) return [];
+
+            return [{
+                name: cmd,
+                genericName: "Run command",
+                icon: "terminal",
+                iconType: LauncherProvider.IconType.Material,
+                execute: function() { Quickshell.execDetached(["sh", "-c", cmd]) }
+            }];
+        }
+
+        // Without a prefix to hide behind, custom entries compete with apps directly.
+        const pool = customPrefix
+            ? DesktopEntries.applications.values
+            : Array.from(DesktopEntries.applications.values).concat(root.customEntries);
+
+        const results = root.svc.fuzzyFilter(q, pool, ["name", "genericName"]);
 
         const calcResult = root.svc.evalMath(q);
         if (calcResult !== null) {

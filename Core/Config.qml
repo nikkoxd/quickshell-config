@@ -56,6 +56,14 @@ Singleton {
         }
         adapter: JsonAdapter {
             property bool showResultsWithEmptyQuery: true
+            property bool sortByUsage: true
+            // When false, custom entries are mixed into the normal app results
+            // instead of living behind customEntriesPrefix.
+            property bool useCustomEntriesPrefix: true
+            property string customEntriesPrefix: ">"
+            property string commandPrefix: "%"
+            property real usageWeight: 0.5
+            property int usageHalfLifeDays: 14
         }
     }
 

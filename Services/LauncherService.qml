@@ -52,35 +52,50 @@ Singleton {
     }
 
     // Score `entries` against `query` on the given `keys` (default ["name"]),
-    // keeping matches sorted best-first. Reuses fuzzyScore per key.
+    // keeping matches sorted best-first. Reuses fuzzyScore per key, then scales by
+    // the entry's usage frecency (1x when unused), so an empty query — where every
+    // text score is 1 — ends up ordered purely by usage.
     function fuzzyFilter(query, entries, keys) {
         keys = keys ?? ["name"];
-        return entries.map(entry => {
+        return entries.map((entry, index) => {
             let score = 0;
             for (const key of keys)
                 if (entry[key])
                     score = Math.max(score, fuzzyScore(query, entry[key]));
-            return { entry, score };
+            return { entry, index, score: score * usageBoost(entry) };
         }).filter(item => item.score > 0)
-          .sort((a, b) => b.score - a.score)
+          .sort((a, b) => b.score - a.score || a.index - b.index)
           .map(item => item.entry);
     }
 
+    // Usage frecency multiplier for an entry, scoped to the active provider.
+    // 1 for never-launched entries, so a zero text score stays zero.
+    function usageBoost(entry) {
+        return LauncherUsageService.boost(LauncherUsageService.key(entry, root.provider));
+    }
+
     // Substring-match `entries` against `query` on their `search` field, ranked
-    // by match position (earlier ranks higher) then by shorter `name` on ties.
-    // Returns at most `maxResults` entries; the full list (sliced) when no query.
+    // by match position (earlier ranks higher) and usage frecency, then by shorter
+    // `name` on ties. Returns at most `maxResults` entries; the most-used entries
+    // (sliced) when no query.
     function substringFilter(query, entries, maxResults) {
-        if (!query)
-            return entries.slice(0, maxResults);
+        if (!query) {
+            return entries.map((entry, index) => ({ entry, index, score: usageBoost(entry) }))
+                .sort((a, b) => b.score - a.score || a.index - b.index)
+                .slice(0, maxResults)
+                .map(item => item.entry);
+        }
 
         const q = query.toLowerCase();
         const matches = [];
         for (let i = 0; i < entries.length; i++) {
             const idx = entries[i].search.indexOf(q);
             if (idx !== -1)
-                matches.push({ entry: entries[i], idx });
+                matches.push({ entry: entries[i], index: i, score: usageBoost(entries[i]) / (1 + idx) });
         }
-        matches.sort((a, b) => a.idx - b.idx || a.entry.name.length - b.entry.name.length);
+        matches.sort((a, b) => b.score - a.score
+                            || a.entry.name.length - b.entry.name.length
+                            || a.index - b.index);
 
         const out = [];
         for (let i = 0; i < matches.length && i < maxResults; i++)
@@ -126,6 +141,7 @@ Singleton {
     function launch(entry) {
         if (!entry)
             return;
+        LauncherUsageService.record(LauncherUsageService.key(entry, root.provider));
         entry.execute();
         if (entry.preventClose !== true)
             root.closeRequested();
