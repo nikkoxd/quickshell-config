@@ -3,8 +3,8 @@ import qs.Core
 
 View {
     id: root
-    implicitWidth: column.implicitWidth + 30
-    implicitHeight: column.implicitHeight + 30
+    implicitWidth: column.implicitWidth + Config.island.padding
+    implicitHeight: column.implicitHeight + Config.island.padding
     focused: true
     dismissable: false
     displayInFullscreen: true
@@ -22,9 +22,9 @@ View {
 
     Column {
         id: column
-        spacing: 15
-        x: 15
-        y: 15
+        spacing: Config.island.padding / 2
+        x: Config.island.padding / 2
+        y: Config.island.padding / 2
 
         ControlCenterSettings {
             onViewChangeRequested: (view) => root.viewChangeRequested(view);
