@@ -4,7 +4,7 @@ import qs.Services
 LauncherProvider {
     id: root
     providerId: "clipboard"
-    headerIcon: "content_paste"
+    headerIcon: "clipboard"
     placeholder: "Search clipboard..."
 
     Component.onCompleted: {
@@ -15,7 +15,7 @@ LauncherProvider {
         if (CliphistService.entries.length === 0) {
             return [{
                 name: "Clipboard history is empty",
-                icon: "sentiment_dissatisfied",
+                icon: "empty",
                 iconType: LauncherProvider.IconType.Material
             }]
         }
