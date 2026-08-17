@@ -66,11 +66,11 @@ ColumnLayout {
         type: SettingsOption.Type.Switch
     }
 
-    SettingsOption {
+    SettingsListOption {
         title: "Commands to run after"
-        value: Config.iris.after
-        onEdited: value => Config.iris.after = value
-        type: SettingsOption.Type.TextField
+        placeholder: "emacsclient -e \"(load-theme 'iris t)\""
+        values: Config.iris.after
+        onUpdated: values => Config.iris.after = values
     }
 
 }

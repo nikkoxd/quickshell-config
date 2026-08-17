@@ -8,6 +8,9 @@ Singleton {
 
     property string _pending: ""
 
+    // Commands left to run after the last successful iris run, in order.
+    property var _queue: []
+
     function generate(wallpaper) {
         if (!wallpaper || Config.iris.enabled === false) {
             return;
@@ -28,14 +31,28 @@ Singleton {
     }
 
     function _runAfter() {
-        const cmd = Config.iris.after;
-        if (!cmd || afterProc.running) {
+        const cmds = Config.iris.after;
+        if (!cmds || cmds.length === 0 || afterProc.running) {
             return;
         }
 
-        // Run through a shell so quoting/pipes in the user's command work.
-        afterProc.command = ["sh", "-c", cmd];
-        afterProc.running = true;
+        root._queue = Array.from(cmds);
+        root._runNext();
+    }
+
+    function _runNext() {
+        const queue = root._queue;
+        while (queue.length > 0) {
+            const cmd = queue.shift();
+            if (!cmd) {
+                continue;
+            }
+
+            // Run through a shell so quoting/pipes in the user's command work.
+            afterProc.command = ["sh", "-c", cmd];
+            afterProc.running = true;
+            return;
+        }
     }
 
     Process {
@@ -55,6 +72,8 @@ Singleton {
 
     Process {
         id: afterProc
+
+        onExited: root._runNext()
 
         stderr: StdioCollector {
             onStreamFinished: {

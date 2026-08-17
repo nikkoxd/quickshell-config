@@ -165,7 +165,9 @@ Singleton {
             property bool enabled: true
             property bool autoMode: true
             property bool dark: true
-            property string after: ""
+            // Shell commands run in order after iris succeeds.
+            // e.g. emacsclient -e "(load-theme 'iris t)"
+            property list<string> after: []
         }
     }
 
