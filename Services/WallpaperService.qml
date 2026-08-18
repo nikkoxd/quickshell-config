@@ -19,7 +19,7 @@ Singleton {
     property bool generatingThumbnail: false
     property string _thumbnailSource: ""
     property string _pendingThumbnail: ""
-    property bool _irisWaitsForThumbnail: false
+    property bool _colorsWaitForThumbnail: false
 
     enum Type {
         Image,
@@ -31,18 +31,20 @@ Singleton {
     signal thumbnailReady(string path)
     signal thumbnailFailed(string source)
 
-    function getModel(type) {
-        if (type === WallpaperService.Type.Image) {
-            return imageWallpapersModel;
-        } else {
+    // What the selector browses: "image", "video" or "both". A plain string
+    // rather than a second enum — QML only exposes one enum per type here.
+    function getModel(filter) {
+        if (filter === "video") {
             return videoWallpapersModel;
+        } else if (filter === "both") {
+            return bothWallpapersModel;
+        } else {
+            return imageWallpapersModel;
         }
     }
 
-    function requestModelUpdate(type) {
-        if (type === WallpaperService.Type.Image) {
-            return;
-        } else {
+    function requestModelUpdate(filter) {
+        if (filter !== "image") {
             videoLister.running = true;
         }
     }
@@ -76,10 +78,24 @@ Singleton {
         setWallpaper(Config.wallpaper.current, type);
     }
 
+    // What is actually on screen. Every write to wallpaper.json reloads the
+    // file and calls setWallpaperToCurrent(), so without this a write that only
+    // touched an unrelated key (the selector filter) would re-run the color
+    // generators and the wallpaper transition.
+    property string _applied: ""
+    property int _appliedType: -1
+
     function setWallpaper(wallpaper, type) {
         if (!wallpaper || type === undefined) {
             return;
         }
+
+        if (wallpaper === root._applied && type === root._appliedType) {
+            return;
+        }
+
+        root._applied = wallpaper;
+        root._appliedType = type;
         console.log("[wallpaper] Setting wallpaper to", wallpaper);
         Config.wallpaper.current = wallpaper;
         Config.wallpaper.type = typeToString(type);
@@ -87,22 +103,47 @@ Singleton {
 
         if (type === WallpaperService.Type.Image) {
             generateThumbnail(wallpaper, type);
-            IrisService.generate(wallpaper);
+            generateColors(wallpaper);
         } else {
-            root._irisWaitsForThumbnail = true;
+            root._colorsWaitForThumbnail = true;
             generateThumbnail(wallpaper, type);
         }
     }
 
+    // Each backend is a no-op unless Config.theme.colorscheme names it.
+    function generateColors(wallpaper) {
+        IrisService.generate(wallpaper);
+        MatugenService.generate(wallpaper);
+    }
+
+    // What the generators read: the wallpaper itself, or a video's thumbnail.
+    function colorSource() {
+        if (toType(Config.wallpaper.type) === WallpaperService.Type.Mpvpaper) {
+            return root._thumbnailSource ? root.thumbnailPath : "";
+        }
+
+        return Config.wallpaper.current;
+    }
+
+    // Picking a generator theme regenerates from the wallpaper already set,
+    // instead of waiting for the next wallpaper change.
+    Connections {
+        target: Config.theme
+
+        function onColorschemeChanged() {
+            root.generateColors(root.colorSource());
+        }
+    }
+
     onThumbnailReady: path => {
-        if (root._irisWaitsForThumbnail) {
-            root._irisWaitsForThumbnail = false;
-            IrisService.generate(path);
+        if (root._colorsWaitForThumbnail) {
+            root._colorsWaitForThumbnail = false;
+            generateColors(path);
         }
     }
 
     onThumbnailFailed: {
-        root._irisWaitsForThumbnail = false;
+        root._colorsWaitForThumbnail = false;
     }
 
     function generateThumbnail(wallpaper, type) {
@@ -133,12 +174,29 @@ Singleton {
         thumbnailer.running = true;
     }
 
-    function getWallpaperPath(index, type) {
-        if (type === WallpaperService.Type.Image) {
-            return imageWallpapersModel.get(index, "filePath");
-        } else {
-            return videoWallpapersModel.get(index).filePath;
+    // Returns { path, type } — in Both mode the type comes from the row itself.
+    function getWallpaper(index, filter) {
+        if (index < 0) {
+            return undefined;
         }
+
+        if (filter !== "video" && filter !== "both") {
+            const path = imageWallpapersModel.get(index, "filePath");
+            return path ? {
+                path: path,
+                type: WallpaperService.Type.Image
+            } : undefined;
+        }
+
+        const row = getModel(filter).get(index);
+        if (!row) {
+            return undefined;
+        }
+
+        return {
+            path: row.filePath,
+            type: filter === "video" ? WallpaperService.Type.Mpvpaper : row.type
+        };
     }
 
     function expandPath(path) {
@@ -157,6 +215,7 @@ Singleton {
         sortField: FolderListModel.Time
         onStatusChanged: {
             if (status === FolderListModel.Ready) {
+                root._rebuildBoth();
                 Qt.callLater(root.modelUpdateDone);
             }
         }
@@ -164,6 +223,33 @@ Singleton {
 
     ListModel {
         id: videoWallpapersModel
+    }
+
+    // Images then videos; the video helper carries no mtime, so the two lists
+    // are concatenated rather than sorted together.
+    ListModel {
+        id: bothWallpapersModel
+    }
+
+    function _rebuildBoth() {
+        bothWallpapersModel.clear();
+
+        for (let i = 0; i < imageWallpapersModel.count; i++) {
+            bothWallpapersModel.append({
+                preview: "",
+                filePath: imageWallpapersModel.get(i, "filePath"),
+                type: WallpaperService.Type.Image
+            });
+        }
+
+        for (let i = 0; i < videoWallpapersModel.count; i++) {
+            const row = videoWallpapersModel.get(i);
+            bothWallpapersModel.append({
+                preview: row.preview,
+                filePath: row.filePath,
+                type: WallpaperService.Type.Mpvpaper
+            });
+        }
     }
 
     Connections {
@@ -202,6 +288,7 @@ Singleton {
                             filePath: data[i].file
                         });
                     }
+                    root._rebuildBoth();
                     Qt.callLater(root.modelUpdateDone);
                 } catch (e) {
                     console.log("[mpvpaper] Failed to parse video wallpapers:", e);

@@ -8,7 +8,8 @@ Item {
     id: root
     property string preview: model.preview || ""
     required property var model
-    signal clicked(string wallpaper)
+    required property int index
+    signal clicked(int index)
 
     width: 220
     height: 140
@@ -51,7 +52,7 @@ Item {
         TapHandler {
             gesturePolicy: TapHandler.WithinBounds
             onTapped: {
-                root.clicked(root.model.filePath);
+                root.clicked(root.index);
             }
         }
 

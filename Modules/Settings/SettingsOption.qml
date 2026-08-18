@@ -94,7 +94,8 @@ RowLayout {
             id: cboxControl
             visible: root.type === SettingsOption.Type.ComboBox
             model: root.options
-            onCurrentTextChanged: root.edited(currentText)
+            currentIndex: root.options ? root.options.indexOf(root.value) : -1
+            onActivated: root.edited(currentText)
             indicator: Item {}
             contentItem: ThemedText {
                 leftPadding: 20

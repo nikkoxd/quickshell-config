@@ -13,6 +13,7 @@ Singleton {
     property var wallpaper: wallpaperLoader.adapter
     property var recorder: recorderLoader.adapter
     property var iris: irisLoader.adapter
+    property var matugen: matugenLoader.adapter
     property var dock: dockLoader.adapter
     property var colorscheme: colorschemeLoader.adapter
 
@@ -125,6 +126,8 @@ Singleton {
             property string output: "ALL"
             property string current
             property string type: "image"
+            // What the wallpaper selector browses: image | video | both
+            property string selectorFilter: "image"
             property string staticWallpaperFolder: "$HOME/Pictures/Wallpapers/"
         }
     }
@@ -170,11 +173,38 @@ Singleton {
             }
         }
         adapter: JsonAdapter {
-            property bool enabled: true
             property bool autoMode: true
             property bool dark: true
             // Shell commands run in order after iris succeeds.
             // e.g. emacsclient -e "(load-theme 'iris t)"
+            property list<string> after: []
+        }
+    }
+
+    FileView {
+        id: matugenLoader
+        path: Qt.resolvedUrl("../Config/matugen.json")
+        watchChanges: true
+        onFileChanged: reload()
+        onAdapterUpdated: writeAdapter()
+        onLoadFailed: error => {
+            if (error === FileViewError.FileNotFound) {
+                writeAdapter();
+            }
+        }
+        adapter: JsonAdapter {
+            property bool autoMode: false
+            property bool dark: true
+            // matugen -t
+            property string scheme: "scheme-tonal-spot"
+            // matugen --prefer; required, matugen fails without a terminal otherwise
+            property string prefer: "saturation"
+            // matugen --contrast, -1..1; 0 leaves the flag off
+            property real contrast: 0
+            // Write Themes/Matugen.json from matugen's json output.
+            // Turn off to point a matugen template at that file instead.
+            property bool writeColorscheme: true
+            // Shell commands run in order after matugen succeeds.
             property list<string> after: []
         }
     }

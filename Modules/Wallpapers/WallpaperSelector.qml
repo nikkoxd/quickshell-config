@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 import Quickshell
 import Quickshell.Io
 import QtQuick
-import QtQuick.Controls
 import Qt.labs.folderlistmodel
 import qs.Core
 import qs.Services
@@ -15,10 +14,18 @@ View {
     dismissable: false
     displayInFullscreen: true
 
-    property var wallpaperType: WallpaperService.toType(Config.wallpaper.type)
-    onWallpaperTypeChanged: WallpaperService.requestModelUpdate(wallpaperType);
+    // What is being browsed ("image" | "video" | "both") — separate from
+    // Config.wallpaper.type, which is the type of the wallpaper that is set.
+    // Read-only: the pill writes the config, so a config reload is never fought
+    // by a write-back from here.
+    readonly property string filter: Config.wallpaper.selectorFilter
 
-    Component.onCompleted: syncCarouselIndex()
+    onFilterChanged: WallpaperService.requestModelUpdate(filter)
+
+    Component.onCompleted: {
+        WallpaperService.requestModelUpdate(filter);
+        syncCarouselIndex();
+    }
 
     function syncCarouselIndex() {
         let model = carousel.model;
@@ -29,8 +36,9 @@ View {
 
         let target = Config.wallpaper.current;
         for (let i = 0; i < model.count; i++) {
+            // FolderListModel needs a role name, ListModel returns the row.
             let item;
-            if (wallpaperType === WallpaperService.Type.Image) {
+            if (filter === "image") {
                 item = model.get(i, "filePath");
             } else {
                 item = model.get(i).filePath;
@@ -49,12 +57,18 @@ View {
         }
     }
 
+    function setWallpaperAt(index) {
+        const wallpaper = WallpaperService.getWallpaper(index, root.filter);
+        if (!wallpaper) {
+            return;
+        }
+
+        WallpaperService.setWallpaper(wallpaper.path, wallpaper.type);
+    }
+
     Shortcut {
         sequence: "Return"
-        onActivated: {
-            const wallpaper = WallpaperService.getWallpaperPath(carousel.currentIndex, root.wallpaperType);
-            WallpaperService.setWallpaper(wallpaper, root.wallpaperType);
-        }
+        onActivated: root.setWallpaperAt(carousel.currentIndex)
     }
 
     Shortcut {
@@ -92,7 +106,7 @@ View {
             PathView {
                 id: carousel
                 anchors.fill: parent
-                model: WallpaperService.getModel(root.wallpaperType)
+                model: WallpaperService.getModel(root.filter)
                 pathItemCount: 7
 
                 preferredHighlightBegin: 0.5
@@ -169,8 +183,8 @@ View {
                 }
 
                 delegate: WallpaperSelectorDelegate {
-                    onClicked: (wallpaper) => {
-                        WallpaperService.setWallpaper(wallpaper, root.wallpaperType);
+                    onClicked: index => {
+                        root.setWallpaperAt(index);
                         root.syncCarouselIndex();
                     }
                 }
@@ -195,33 +209,92 @@ View {
             }
         }
 
-        Row {
-            id: typeSwitchContainer
+        Item {
+            id: controls
+            width: carouselContainer.implicitWidth - Config.island.padding
             anchors.horizontalCenter: parent.horizontalCenter
-            spacing: 12
+            implicitHeight: Math.max(filterPill.height, themeSelector.height)
 
-            ThemedText {
-                text: "Image"
-                color: root.wallpaperType === WallpaperService.Type.Image ? Config.colorscheme.fg : Config.colorscheme.dim
-                font.bold: root.wallpaperType === WallpaperService.Type.Image
+            SegmentPill {
+                id: filterPill
+                anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
+                current: root.filter
+                options: [
+                    {
+                        label: "Image",
+                        value: "image"
+                    },
+                    {
+                        label: "Video",
+                        value: "video"
+                    },
+                    {
+                        label: "Both",
+                        value: "both"
+                    }
+                ]
+                onSelected: value => Config.wallpaper.selectorFilter = value
             }
 
-            Switch {
-                id: typeSwitch
+            Rectangle {
+                id: themeSelector
+                anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                checked: root.wallpaperType === WallpaperService.Type.Mpvpaper
+                width: themeRow.width + 40
+                height: filterPill.height
+                radius: 10
+                color: themeHover.hovered ? Config.colorscheme.accentAlt : Config.colorscheme.surface
 
-                onCheckedChanged: {
-                    root.wallpaperType = checked ? WallpaperService.Type.Mpvpaper : WallpaperService.Type.Image;
+                Behavior on color {
+                    ColorAnimation {
+                        duration: 100
+                        easing.type: Easing.InOutQuad
+                    }
                 }
-            }
 
-            ThemedText {
-                text: "Video"
-                color: root.wallpaperType === WallpaperService.Type.Mpvpaper ? Config.colorscheme.fg : Config.colorscheme.dim
-                font.bold: root.wallpaperType === WallpaperService.Type.Mpvpaper
-                anchors.verticalCenter: parent.verticalCenter
+                HoverHandler {
+                    id: themeHover
+                    cursorShape: Qt.PointingHandCursor
+                }
+
+                TapHandler {
+                    onTapped: themeMenu.showMenu()
+                }
+
+                Row {
+                    id: themeRow
+                    anchors.centerIn: parent
+                    spacing: 8
+
+                    ThemedText {
+                        text: Config.theme.colorscheme
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+
+                    ThemedText {
+                        icon: true
+                        text: "caret-down"
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+                }
+
+                PopupMenu {
+                    id: themeMenu
+                    anchor.item: themeSelector
+                    anchor.rect.y: themeSelector.height
+                    menu: ThemeService.names.map(name => ({
+                                text: name,
+                                isSeparator: false,
+                                triggered: () => Config.theme.colorscheme = name
+                            }))
+
+                    // Registered so the view's focus grab does not treat a
+                    // click in the menu as a click outside.
+                    onVisibleChanged: {
+                        root.popups = visible ? [...root.popups, themeMenu] : root.popups.filter(popup => popup !== themeMenu);
+                    }
+                }
             }
         }
     }
