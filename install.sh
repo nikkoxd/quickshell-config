@@ -4,6 +4,9 @@
 # Installs the dependencies listed in the README, puts the config where
 # Quickshell looks for it, and prints the Hyprland snippet needed to start it.
 #
+#   Can be run from a clone, or piped straight from the web:
+#     curl -fsSL https://raw.githubusercontent.com/nikkoxd/quickshell-config/main/install.sh | bash
+#
 #   ./install.sh                       # interactive, installs to ~/.config/quickshell/island
 #   ./install.sh --name mybar          # run alongside other configs as `qs -c mybar`
 #   ./install.sh --skip-deps           # only place the config
@@ -51,6 +54,13 @@ info() { printf '\033[1;34m::\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m!!\033[0m %s\n' "$*" >&2; }
 die() { printf '\033[1;31mxx\033[0m %s\n' "$*" >&2; exit 1; }
 
+# Empty when piped into bash (`curl ... | bash`): there is no script file on
+# disk, and no repo next to it to install from.
+SCRIPT_FILE=""
+if [ -f "${BASH_SOURCE[0]:-}" ]; then
+    SCRIPT_FILE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
+fi
+
 run() {
     if [ "$DRY_RUN" -eq 1 ]; then
         printf '\033[2m   would run:\033[0m %s\n' "$*"
@@ -59,16 +69,23 @@ run() {
     "$@"
 }
 
+# Piped into bash, stdin is the script itself, so prompts have to come from the
+# terminal. With no terminal at all (a pipe in a script), take the default.
 confirm() {
     [ "$ASSUME_YES" -eq 1 ] && return 0
+    [ -e /dev/tty ] || return 0
     local reply
-    read -r -p "$1 [Y/n] " reply
+    read -r -p "$1 [Y/n] " reply </dev/tty || return 0
     [[ -z "$reply" || "$reply" =~ ^[Yy] ]]
 }
 
 usage() {
-    # The header comment, minus the shebang, up to the first blank line.
-    sed -n '2,/^$/p' "$0" | sed 's/^# \{0,1\}//'
+    if [ -n "$SCRIPT_FILE" ]; then
+        # The header comment, minus the shebang, up to the first blank line.
+        sed -n '2,/^$/p' "$SCRIPT_FILE" | sed 's/^# \{0,1\}//'
+    else
+        echo "Options: --name NAME, --skip-deps, --skip-localsend, --dry-run, -y"
+    fi
     exit 0
 }
 
@@ -86,11 +103,16 @@ done
 
 [ "$(id -u)" -eq 0 ] && die "do not run this as root; it installs into your home directory"
 
-SRC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# The repo this script came with, if it came with one.
+SRC_DIR=""
+if [ -n "$SCRIPT_FILE" ] && [ -f "$(dirname "$SCRIPT_FILE")/shell.qml" ]; then
+    SRC_DIR="$(dirname "$SCRIPT_FILE")"
+fi
+
 DEST_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/$CONFIG_NAME"
 
 bold "Quickshell config installer"
-echo "  source:      $SRC_DIR"
+echo "  source:      ${SRC_DIR:-$REPO_URL}"
 echo "  destination: $DEST_DIR"
 echo "  run with:    qs -c $CONFIG_NAME"
 [ "$DRY_RUN" -eq 1 ] && warn "dry run: nothing will be changed"
@@ -133,22 +155,6 @@ else
 fi
 
 # --- fonts ----------------------------------------------------------------
-
-# Captured rather than piped into grep -q: under `set -o pipefail`, grep exiting
-# early kills fc-list with SIGPIPE and the whole check reads as a failure.
-fonts="$(fc-list 2>/dev/null || true)"
-
-if ! grep -qi phosphor <<<"$fonts"; then
-    warn "The Phosphor icon font is not installed — every icon in the shell will render as text."
-    warn "Install ttf-phosphor-icons, or grab the .ttf files from https://phosphoricons.com/,"
-    warn "drop them into ~/.local/share/fonts and run: fc-cache -f"
-fi
-
-font_family="$(grep -oP '"fontFamily"\s*:\s*"\K[^"]+' "$SRC_DIR/Config/theme.json" 2>/dev/null || true)"
-if [ -n "$font_family" ] && ! grep -qiF "$font_family" <<<"$fonts"; then
-    warn "The configured UI font \"$font_family\" is not installed; text will fall back to a default font."
-    warn "Install it, or change fontFamily in Config/theme.json (or the Settings view)."
-fi
 
 # --- localsend-cli --------------------------------------------------------
 
@@ -217,11 +223,13 @@ place_config() {
     run mkdir -p "$(dirname "$DEST_DIR")"
 
     # Running from a clone: symlink it, so `git pull` in the clone updates the
-    # live config. Running standalone (curl | bash): clone the repo instead.
-    if [ -f "$SRC_DIR/shell.qml" ]; then
+    # live config. Piped into bash: clone the repo straight into place, so the
+    # repo is only ever fetched once.
+    if [ -n "$SRC_DIR" ]; then
         info "Linking $SRC_DIR to $DEST_DIR"
         run ln -s "$SRC_DIR" "$DEST_DIR"
     else
+        command -v git >/dev/null 2>&1 || die "git is not installed, and it is needed to fetch the config"
         info "Cloning $REPO_URL into $DEST_DIR"
         run git clone "$REPO_URL" "$DEST_DIR"
     fi
@@ -231,6 +239,32 @@ place_config
 
 # Config/ is gitignored: every JSON file there is recreated from the defaults in
 # Core/Config.qml on first run, so there is nothing to copy.
+
+# --- fonts ----------------------------------------------------------------
+
+# Checked after the config is in place: the font name comes out of the defaults
+# in Core/Config.qml, since Config/theme.json only exists after the first run.
+check_fonts() {
+    # Captured rather than piped into grep -q: under `set -o pipefail`, grep
+    # exiting early kills fc-list with SIGPIPE and the check reads as a failure.
+    local fonts
+    fonts="$(fc-list 2>/dev/null || true)"
+
+    if ! grep -qi phosphor <<<"$fonts"; then
+        warn "The Phosphor icon font is not installed — every icon in the shell will render as text."
+        warn "Install ttf-phosphor-icons, or grab the .ttf files from https://phosphoricons.com/,"
+        warn "drop them into ~/.local/share/fonts and run: fc-cache -f"
+    fi
+
+    local family
+    family="$(grep -oP 'property string fontFamily:\s*"\K[^"]+' "$DEST_DIR/Core/Config.qml" 2>/dev/null || true)"
+    if [ -n "$family" ] && ! grep -qiF "$family" <<<"$fonts"; then
+        warn "The default UI font \"$family\" is not installed; text will fall back to another font."
+        warn "Install it, or change the font in Settings > Theme."
+    fi
+}
+
+check_fonts
 
 # --- done -----------------------------------------------------------------
 

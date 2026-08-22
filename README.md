@@ -5,9 +5,7 @@
 ## Installing
 
 ```bash
-git clone https://github.com/nikkoxd/quickshell-config.git
-cd quickshell-config
-./install.sh
+curl -fsSL https://raw.githubusercontent.com/nikkoxd/quickshell-config/main/install.sh | bash
 ```
 
 ## Features
