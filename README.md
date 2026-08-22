@@ -1,5 +1,7 @@
 # Quickshell Configuration
 
+![Shell](screenshot.png)
+
 ## Installing
 
 ```bash
