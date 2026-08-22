@@ -12,25 +12,19 @@ cd quickshell-config
 
 ## Features
 
-- App launcher - `qs ipc call bar toggle launcher` 
-    - Password manager (Using KeePassXC)
-    - Clipboard history
-    - Emoji picker
-    - MPRIS controls
-    - Theme selector
-    - Calculator
-- Control center - `qs ipc call bar toggle controlCenter`
-    - Audio mixer
-    - Bluetooth controls
-    - Notifications + mute toggle
-- Wallpaper picker - `qs ipc call bar toggle wallpaperSelector`
-    - Static wallpapers
-    - Video wallpapers /w Wallpaper Engine integration
-    - Fancy transitions
-- LocalSend integration
-    - Drag any file onto the dynamic island to send a file
-      to a device on the local network
-- Screenshots + screen recording - `qs ipc call bar toggle recorder`
-    - Screenshots (soon™)
-    - Video recording
-    - Replay recording
+- [x] Themes
+- [x] App launcher
+    - [x] Password management (using KeePassXC)
+    - [x] Clipboard history
+    - [x] Emoji picker
+    - [x] Calculator
+- [x] Audio mixer
+- [x] Bluetooth controls
+- [x] Notifications
+- [x] Wallpaper picker
+    - [x] Iris/Matugen support
+    - [x] Wallpaper Engine integration
+- [x] LocalSend integration
+- [ ] Screenshot tool
+- [x] Recording tool
+- [x] Replay tool
