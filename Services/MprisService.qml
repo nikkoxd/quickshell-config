@@ -17,7 +17,22 @@ Singleton {
         root.activePlayer.togglePlaying();
     }
     property var players: Mpris.players
-    property var activePlayer: players.values[0]
+
+    // Player picked in the UI. Falls back to the first available one when it is
+    // unset or the selected player goes away.
+    property var selectedPlayer: null
+    readonly property var activePlayer: {
+        const list = root.players.values;
+        if (list.length === 0)
+            return null;
+        if (root.selectedPlayer && list.indexOf(root.selectedPlayer) !== -1)
+            return root.selectedPlayer;
+        return list[0];
+    }
+
+    function selectPlayer(player) {
+        root.selectedPlayer = player;
+    }
     property var isPlaying: activePlayer && activePlayer.isPlaying
     property real position: activePlayer ? activePlayer.position : 0
     property real length: activePlayer ? activePlayer.length : 0

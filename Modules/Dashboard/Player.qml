@@ -16,6 +16,11 @@ Column {
     readonly property string trackArtUrl: player && player.trackArtUrl
     readonly property real progress: MprisService.length > 0 ? Math.max(0, Math.min(1, MprisService.position / MprisService.length)) : 0
 
+    PlayerSelect {
+        visible: MprisService.players.values.length > 1
+        width: art.width
+    }
+
     Item {
         id: art
         readonly property int artSize: 150
@@ -198,7 +203,7 @@ Column {
                     }
 
                     PlayerButton {
-                        text: MprisService.activePlayer.isPlaying ? "pause" : "play"
+                        text: root.playing ? "pause" : "play"
                         onClicked: root.player.togglePlaying()
                     }
 
