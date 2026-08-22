@@ -8,6 +8,8 @@
 curl -fsSL https://raw.githubusercontent.com/nikkoxd/quickshell-config/main/install.sh | bash
 ```
 
+This will install the Quickshell config and it's dependencies. You can then run the config with `qs -c island`. You can pass parameters after `bash -s --`.
+
 ## Features
 
 - [x] Themes
