@@ -61,9 +61,31 @@ Singletons in `Services/` wrap external systems and expose reactive properties/s
 - `WallpaperService` — drives `awww`/`awww-daemon` (images) and `mpvpaper` (video); folder models from `Config.wallpaper.staticWallpaperFolder`; video list via `Helpers/list_walls.py`.
 - `LyricsService` — fetches the whole timestamped LRC once per track via `Helpers/lyrics.py fetch` (lrclib.net, cached under `$XDG_CACHE_HOME/island/lyrics/`); exposes `state`, `lines`, `plain`, `currentIndex`, `currentText` and `seek()`. The active line is derived in QML from `MprisService.position`, not by re-spawning the helper.
 - `DockService` — builds the dock model: one item per application (`{ appId, entry, toplevels, pinned }`), pinned apps first in the order saved to `Config.dock.pinned`, then running-but-unpinned apps. Owns `move()`/`persistOrder()` (drag reorder; only pinned positions survive a restart), `setPinned()`/`togglePin()`, and `activate()`/`launch()`/`close()`.
+- `IrisService` / `MatugenService` — the two colorscheme generators, each a no-op unless `Config.theme.colorscheme` names it. Both are called from `WallpaperService.generateColors()`, and again whenever the colorscheme changes, so picking a generator re-themes from the wallpaper already on screen.
+- `TemplateService` — owns the app-theming templates shared by both generators (see below).
 - `LocalSendService`, `DateService`.
 
-External CLI tools these depend on (must be on PATH): `cava`, `awww` + `awww-daemon`, `mpvpaper`, `notify-send`, plus `python3` for helpers.
+External CLI tools these depend on (must be on PATH): `cava`, `awww` + `awww-daemon`, `mpvpaper`, `notify-send`, `iris`/`matugen` for colorscheme generation, plus `python3` for helpers.
+
+## Templates
+
+`Templates/` holds the theme files the shell renders for other apps (GTK, Qt, ghostty, Emacs, Discord, Telegram, and its own `Themes/<generator>.json`). `Templates/Iris/<file>` and `Templates/Matugen/<file>` are two renderings of the *same* target file — same output path, same theme name — so switching generators needs no change inside the apps themselves.
+
+`Config/templates.json` is the registry, keyed by template name:
+
+```json
+"gtk3": { "enabled": true, "template": "gtk.css", "output": "~/.config/gtk-3.0/colors.css", "postHook": "..." }
+```
+
+`template` is the file name looked up in `Templates/<generator>/` and defaults to the key (so two entries can share one source file, as gtk3/gtk4 do). `output` and `postHook` may contain `{generator}` (`Iris`/`Matugen`) and `{mode}` (`dark`/`light`). It is shaped too freely for a `JsonAdapter`, so `Core/Config.qml` parses it by hand and exposes `Config.templates` plus `Config.saveTemplates()`; `Modules/Settings/SettingsTemplates.qml` is the GUI. **To add a template:** drop the file in *both* `Templates/Iris/` and `Templates/Matugen/`, then add an entry — the iris copy is symlinked into `~/.config/iris/templates/` automatically.
+
+`Services/TemplateService.qml` drives it:
+
+- Matugen renders its own templates, so the service keeps `Config/matugen-config.toml` (generated: `Templates/matugen-base.toml` plus one `[templates.*]` per enabled entry) in sync with the registry, and `MatugenService` passes it with `-c`. Never put template sections in `matugen-base.toml`.
+- Iris hardcodes both ends — it renders `~/.config/iris/templates/<file>` into `~/.cache/iris/<file>` and nothing else — so `syncIris()` symlinks each enabled `Templates/Iris/<file>` into that directory, and `installIris()` copies the results out of the cache to the configured outputs afterwards. Iris does all the rendering; the shell only moves files, so none of its color logic is duplicated here. The sync prunes with `find -type l -lname`, which touches only links pointing into `Templates/Iris/` and never a real file the user put there.
+- `{mode}` for iris comes from the `dark` flag in `~/.cache/iris/colors.json`, watched by a `FileView`. It is read opportunistically and `installIris()` never waits on it: a `FileView` only signals when content actually changes, so gating a run on one silently stops after the first render (this was a real bug).
+- Post hooks are always run by the shell (not by matugen's `post_hook`), so an enabled template behaves identically under either generator. They run before the generator's own `Config.<generator>.after` commands.
+- `TemplateService` syncs on `Component.onCompleted` as well as on registry change. Singletons load lazily, and by the time anything first reaches for this one the registry has usually already loaded and its change signal is long gone.
 
 ## Conventions
 

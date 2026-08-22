@@ -17,6 +17,75 @@ Singleton {
     property var dock: dockLoader.adapter
     property var colorscheme: colorschemeLoader.adapter
 
+    // Template registry, keyed by template name. Each entry is
+    // { enabled, template, output, postHook }; `template` is the file name
+    // looked up in Templates/<generator>/ and defaults to the key. `output`
+    // and `postHook` may contain {generator} (Iris/Matugen) and {mode}
+    // (dark/light). Shaped too freely for a JsonAdapter, so it is parsed by
+    // hand. TemplateService is what consumes it.
+    property var templates: root.defaultTemplates
+
+    readonly property var defaultTemplates: ({
+            ghostty: {
+                enabled: true,
+                output: "~/.config/ghostty/themes/Island",
+                postHook: "pkill -SIGUSR2 ghostty"
+            },
+            gtk3: {
+                enabled: true,
+                template: "gtk.css",
+                output: "~/.config/gtk-3.0/colors.css",
+                postHook: "gsettings set org.gnome.desktop.interface gtk-theme \"\"; gsettings set org.gnome.desktop.interface gtk-theme adw-gtk3-{mode}"
+            },
+            gtk4: {
+                enabled: true,
+                template: "gtk.css",
+                output: "~/.config/gtk-4.0/colors.css",
+                postHook: "~/.config/quickshell/island/Helpers/gtk-themes-reload.sh"
+            },
+            emacs: {
+                enabled: true,
+                template: "emacs.el",
+                output: "~/.config/doom/themes/island-theme.el",
+                postHook: "emacsclient -e \"(load-theme 'island t)\""
+            },
+            discord: {
+                enabled: true,
+                template: "midnight-discord.css",
+                output: "~/.config/Vencord/themes/midnight.css",
+                postHook: ""
+            },
+            qt5ct: {
+                enabled: true,
+                template: "qtct.conf",
+                output: "~/.config/qt5ct/colors/island.conf",
+                postHook: ""
+            },
+            qt6ct: {
+                enabled: true,
+                template: "qtct.conf",
+                output: "~/.config/qt6ct/colors/island.conf",
+                postHook: ""
+            },
+            quickshell: {
+                enabled: true,
+                template: "quickshell.json",
+                output: "~/.config/quickshell/island/Themes/{generator}.json",
+                postHook: ""
+            },
+            telegram: {
+                enabled: true,
+                template: "telegram.tdesktop-theme",
+                output: "~/.config/telegram/island.tdesktop-theme",
+                postHook: ""
+            }
+        })
+
+    function saveTemplates(entries) {
+        root.templates = entries;
+        templatesLoader.setText(JSON.stringify(entries, null, 4) + "\n");
+    }
+
     Connections {
         target: themeLoader.adapter
         function onColorschemeChanged() {
@@ -201,11 +270,27 @@ Singleton {
             property string prefer: "saturation"
             // matugen --contrast, -1..1; 0 leaves the flag off
             property real contrast: 0
-            // Write Themes/Matugen.json from matugen's json output.
-            // Turn off to point a matugen template at that file instead.
-            property bool writeColorscheme: true
             // Shell commands run in order after matugen succeeds.
             property list<string> after: []
+        }
+    }
+
+    FileView {
+        id: templatesLoader
+        path: Qt.resolvedUrl("../Config/templates.json")
+        watchChanges: true
+        onFileChanged: reload()
+        onLoaded: {
+            try {
+                root.templates = JSON.parse(text());
+            } catch (e) {
+                console.warn("config: could not parse templates.json:", e);
+            }
+        }
+        onLoadFailed: error => {
+            if (error === FileViewError.FileNotFound) {
+                root.saveTemplates(root.defaultTemplates);
+            }
         }
     }
 

@@ -107,13 +107,6 @@ ColumnLayout {
         type: SettingsOption.Type.TextField
     }
 
-    SettingsOption {
-        title: "Write colorscheme"
-        value: Config.matugen.writeColorscheme
-        onChecked: value => Config.matugen.writeColorscheme = value
-        type: SettingsOption.Type.Switch
-    }
-
     SettingsListOption {
         title: "Commands to run after"
         placeholder: "makoctl reload"

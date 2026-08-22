@@ -60,6 +60,13 @@ Column {
         }
 
         SettingsTab {
+            text: "Templates"
+            icon: "file-code"
+            selected: root.currentTab === Settings.Tab.Templates
+            onTapped: root.currentTab = Settings.Tab.Templates
+        }
+
+        SettingsTab {
             text: "Wallpaper"
             icon: "image"
             selected: root.currentTab === Settings.Tab.Wallpaper

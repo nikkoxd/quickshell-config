@@ -1,0 +1,18 @@
+# Static prelude for matugen. TemplateService copies this verbatim into
+# Config/matugen-config.toml and appends one [templates.*] section per enabled
+# template, so do not put template sections here — they would be duplicated.
+
+[config]
+
+# Hue anchors for the ANSI-ish accent colors. matugen's own base16 mapping
+# locks every color to the source hue, which collapses red/green/yellow into
+# the same tint and makes syntax and diff colors unreadable. These keep their
+# own hue and are only harmonized toward the wallpaper (blend = true).
+[config.custom_colors]
+red     = { color = '#e34f4f', blend = true }
+orange  = { color = '#e08b3a', blend = true }
+yellow  = { color = '#d8b830', blend = true }
+green   = { color = '#4bb556', blend = true }
+cyan    = { color = '#3ab5b0', blend = true }
+blue    = { color = '#4a8fe0', blend = true }
+magenta = { color = '#c05fd0', blend = true }

@@ -18,6 +18,7 @@ FloatingWindow {
         Recording,
         Visualizer,
         Theme,
+        Templates,
         Wallpaper
     }
 
@@ -52,6 +53,10 @@ FloatingWindow {
 
         SettingsTheme {
             visible: root.currentTab === Settings.Tab.Theme
+        }
+
+        SettingsTemplates {
+            visible: root.currentTab === Settings.Tab.Templates
         }
 
         SettingsWallpaper {

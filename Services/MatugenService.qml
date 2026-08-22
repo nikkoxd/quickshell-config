@@ -11,6 +11,9 @@ Singleton {
     // Wallpaper the luminance probe is running for, when autoMode is on.
     property string _probing: ""
 
+    // Mode the last successful run rendered with, for {mode} in post hooks.
+    property string _mode: "dark"
+
     function generate(wallpaper) {
         if (!wallpaper || Config.theme.colorscheme !== "Matugen") {
             return;
@@ -40,12 +43,15 @@ Singleton {
     function _start(wallpaper, mode) {
         console.log("[matugen] Generating", mode, "colors from", wallpaper);
         root._pending = "";
+        root._mode = mode;
         matugenProc.command = _command(wallpaper, mode);
         matugenProc.running = true;
     }
 
     function _command(wallpaper, mode) {
-        const cmd = ["matugen", "image", root._toPath(wallpaper), "-m", mode, "-t", Config.matugen.scheme, "--prefer", Config.matugen.prefer, "-j", "hex", "-q"];
+        // -c points at the config TemplateService generates from the shared
+        // template registry, so matugen and iris write the same files.
+        const cmd = ["matugen", "image", root._toPath(wallpaper), "-c", TemplateService.matugenConfigPath, "-m", mode, "-t", Config.matugen.scheme, "--prefer", Config.matugen.prefer, "-j", "hex", "-q"];
 
         // matugen treats any --contrast as an override, so only pass a non-default one.
         if (Config.matugen.contrast !== 0) {
@@ -80,42 +86,6 @@ Singleton {
         const g = parseInt(c.substring(2, 4), 16) / 255;
         const b = parseInt(c.substring(4, 6), 16) / 255;
         return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-    }
-
-    function _writeColorscheme(json) {
-        var parsed;
-        try {
-            parsed = JSON.parse(json);
-        } catch (e) {
-            console.warn("matugen: could not parse color json:", e);
-            return;
-        }
-
-        const colors = parsed.colors;
-        if (!colors) {
-            console.warn("matugen: color json has no colors object");
-            return;
-        }
-
-        const bg = root._color(colors, "surface");
-        const surface = root._color(colors, "surface_container_high");
-        const fg = root._color(colors, "on_surface");
-        const dim = root._color(colors, "outline");
-        const accent = root._color(colors, "primary");
-        const accentAlt = root._color(colors, "primary_container");
-
-        if (!bg || !surface || !fg || !dim || !accent || !accentAlt) {
-            console.warn("matugen: color json is missing expected colors");
-            return;
-        }
-
-        colorschemeFile.adapter.bg = bg;
-        colorschemeFile.adapter.surface = surface;
-        colorschemeFile.adapter.fg = fg;
-        colorschemeFile.adapter.dim = dim;
-        colorschemeFile.adapter.accent = accent;
-        colorschemeFile.adapter.accentAlt = accentAlt;
-        colorschemeFile.writeAdapter();
     }
 
     // Commands run after a successful matugen run.
@@ -164,10 +134,6 @@ Singleton {
     Process {
         id: matugenProc
 
-        stdout: StdioCollector {
-            id: matugenOutput
-        }
-
         onExited: exitCode => {
             if (root._pending) {
                 // Clear first: generate() re-queues into _pending otherwise.
@@ -181,10 +147,7 @@ Singleton {
                 return;
             }
 
-            if (Config.matugen.writeColorscheme) {
-                root._writeColorscheme(matugenOutput.text);
-            }
-
+            TemplateService.runPostHooks("Matugen", root._mode);
             root.after.run(Config.matugen.after);
         }
 
@@ -194,21 +157,6 @@ Singleton {
                     console.warn("matugen:", text);
                 }
             }
-        }
-    }
-
-    FileView {
-        id: colorschemeFile
-
-        path: Qt.resolvedUrl("../Themes/Matugen.json")
-
-        adapter: JsonAdapter {
-            property string bg: "#080808"
-            property string surface: "#313131"
-            property string fg: "#dadada"
-            property string dim: "#555555"
-            property string accent: "#bfad9e"
-            property string accentAlt: "#5f4d3e"
         }
     }
 }

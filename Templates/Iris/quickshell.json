@@ -1,0 +1,8 @@
+{
+    "bg": "{bg}",
+    "surface": "{surface}",
+    "fg": "{fg}",
+    "dim": "{dim}",
+    "accent": "{accent}",
+    "accentAlt": "{accent}"
+}
