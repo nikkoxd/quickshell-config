@@ -10,17 +10,6 @@ View {
     dismissable: false
     displayInFullscreen: true
 
-    TapHandler {
-        acceptedButtons: Qt.LeftButton | Qt.RightButton
-        onTapped: (eventPoint, button) => {
-            if (button === Qt.LeftButton) {
-                root.viewChangeRequested("dashboard");
-            } else {
-                root.viewChangeRequested("controlCenter");
-            }
-        }
-    }
-
     PwNodeLinkTracker {
         id: linkTracker
         node: Pipewire.defaultAudioSink
