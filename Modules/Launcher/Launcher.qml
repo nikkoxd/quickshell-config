@@ -1,6 +1,5 @@
 import Quickshell
 import QtQuick
-import QtQuick.Controls
 import qs.Core
 import qs.Services
 import qs.Modules.Launcher.Providers
@@ -99,16 +98,11 @@ View {
                 activeFocusOnTab: true
                 placeholderText: LauncherService.activeProvider()?.placeholder ?? "Search..."
                 echoMode: LauncherService.activeProvider()?.hideQuery ? TextInput.Password : TextInput.Normal
-                color: Config.colorscheme.fg
+                borderless: true
                 placeholderTextColor: Config.colorscheme.fg
-                selectionColor: Config.colorscheme.accent
-                selectedTextColor: Config.colorscheme.bg
-                font.family: Config.theme.fontFamily
-                font.pixelSize: Config.theme.fontSize
-                background: Item {
-                    implicitWidth: 400
-                    implicitHeight: 20
-                }
+                horizontalPadding: 6
+                backgroundImplicitWidth: 400
+                backgroundImplicitHeight: 20
                 onTextChanged: LauncherService.query = text
                 Component.onCompleted: forceActiveFocus()
                 Keys.onEscapePressed: root.closeRequested()

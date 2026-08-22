@@ -37,10 +37,11 @@ Column {
         }
     }
 
-    MixerSlider {
+    Slider {
         id: slider
         value: root.node.audio.volume
         icon: "speaker-high"
+        trackColor: Config.colorscheme.bg
         onValueChanged: root.node.audio.volume = value
     }
 }

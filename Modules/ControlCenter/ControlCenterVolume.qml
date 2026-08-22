@@ -1,5 +1,6 @@
 import Quickshell.Services.Pipewire
 import QtQuick
+import qs.Core
 
 Row {
     id: root
@@ -7,7 +8,7 @@ Row {
 
     required property int contentHeight
 
-    ControlCenterSlider {
+    Slider {
         icon: "speaker-high"
         vertical: true
         height: root.contentHeight
@@ -19,7 +20,7 @@ Row {
         }
     }
 
-    ControlCenterSlider {
+    Slider {
         icon: "microphone"
         vertical: true
         height: root.contentHeight

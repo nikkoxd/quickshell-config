@@ -1,7 +1,6 @@
 import Quickshell.Wayland
 import QtQuick
 import QtQuick.Effects
-import QtQuick.Controls
 import QtQuick.Layouts
 import qs.Core
 import qs.Services
@@ -162,22 +161,15 @@ WlSessionLockSurface {
                     }
                     onTextChanged: root.context.currentText = text
                     onAccepted: root.context.tryUnlock()
-                    implicitWidth: 300
-                    implicitHeight: 40
+                    pill: true
+                    backgroundImplicitWidth: 300
                     padding: 10
-                    leftPadding: 15
-                    rightPadding: 15
-                    color: Config.colorscheme.fg
-                    font.family: Config.theme.fontFamily
+                    horizontalPadding: 15
                     font.pixelSize: 14
-                    echoMode: TextField.Password
+                    echoMode: TextInput.Password
                     inputMethodHints: Qt.ImhSensitiveData
                     placeholderText: "Password"
                     placeholderTextColor: Config.colorscheme.fg
-                    background: Rectangle {
-                        color: Config.colorscheme.surface
-                        radius: height / 2
-                    }
                 }
             }
         }

@@ -1,6 +1,5 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
 import qs.Core
 
@@ -81,19 +80,7 @@ ColumnLayout {
                 text: entry.modelData
                 placeholderText: root.placeholder
                 onEditingFinished: root._set(entry.index, text)
-                background: Rectangle {
-                    anchors.fill: parent
-                    color: Config.colorscheme.surface
-                    radius: 10
-                }
-                color: Config.colorscheme.fg
-                placeholderTextColor: Qt.alpha(Config.colorscheme.fg, 0.5)
-                selectionColor: Config.colorscheme.accent
-                selectedTextColor: Config.colorscheme.bg
-                font.family: Config.theme.fontFamily
                 font.pixelSize: 16
-                leftPadding: 20
-                rightPadding: 20
                 Layout.preferredHeight: 40
                 Layout.fillWidth: true
             }

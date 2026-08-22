@@ -9,7 +9,10 @@ import qs.Services
 View {
     id: root
     implicitWidth: carouselContainer.implicitWidth
-    implicitHeight: 280
+    // The theme list expands inside the island window rather than in a popup
+    // of its own, so the view has to make room for it. Bar.qml animates the
+    // resize.
+    implicitHeight: 280 + (themeSelector.expanded ? themeSelector.listHeight : 0)
     focused: true
     dismissable: false
     displayInFullscreen: true
@@ -237,64 +240,15 @@ View {
                 onSelected: value => Config.wallpaper.selectorFilter = value
             }
 
-            Rectangle {
+            Dropdown {
                 id: themeSelector
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                width: themeRow.width + 40
                 height: filterPill.height
-                radius: 10
-                color: themeHover.hovered ? Config.colorscheme.accentAlt : Config.colorscheme.surface
-
-                Behavior on color {
-                    ColorAnimation {
-                        duration: 100
-                        easing.type: Easing.InOutQuad
-                    }
-                }
-
-                HoverHandler {
-                    id: themeHover
-                    cursorShape: Qt.PointingHandCursor
-                }
-
-                TapHandler {
-                    onTapped: themeMenu.showMenu()
-                }
-
-                Row {
-                    id: themeRow
-                    anchors.centerIn: parent
-                    spacing: 8
-
-                    ThemedText {
-                        text: Config.theme.colorscheme
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-
-                    ThemedText {
-                        icon: true
-                        text: "caret-down"
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-                }
-
-                PopupMenu {
-                    id: themeMenu
-                    anchor.item: themeSelector
-                    anchor.rect.y: themeSelector.height
-                    menu: ThemeService.names.map(name => ({
-                                text: name,
-                                isSeparator: false,
-                                triggered: () => Config.theme.colorscheme = name
-                            }))
-
-                    // Registered so the view's focus grab does not treat a
-                    // click in the menu as a click outside.
-                    onVisibleChanged: {
-                        root.popups = visible ? [...root.popups, themeMenu] : root.popups.filter(popup => popup !== themeMenu);
-                    }
-                }
+                horizontalPadding: 16
+                options: ThemeService.names
+                current: Config.theme.colorscheme
+                onSelected: value => Config.theme.colorscheme = value
             }
         }
     }

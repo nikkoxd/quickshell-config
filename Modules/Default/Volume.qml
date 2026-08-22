@@ -1,8 +1,6 @@
-import Quickshell.Widgets
 import Quickshell.Services.Pipewire
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Controls
 import qs.Core
 
 View {
@@ -54,28 +52,10 @@ View {
 
         Slider {
             id: volumeSlider
-            height: 5
+            implicitHeight: 5
             implicitWidth: 200
-            handle: Item {}
-            background: ClippingRectangle {
-                color: Config.colorscheme.surface
-                width: volumeSlider.availableWidth
-                radius: 100
-                clip: true
-                Rectangle {
-                    color: Config.colorscheme.accent
-                    height: parent.height
-                    width: volumeSlider.visualPosition * volumeSlider.width
-                    radius: 100
-
-                    Behavior on width {
-                        NumberAnimation {
-                            duration: 150
-                            easing.type: Easing.OutQuad
-                        }
-                    }
-                }
-            }
+            radius: 100
+            trackColor: Config.colorscheme.surface
             value: Pipewire.defaultAudioSink.audio.volume
             onValueChanged: {
                 if (Pipewire.defaultAudioSink) {

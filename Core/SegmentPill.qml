@@ -6,6 +6,7 @@ import QtQuick
 Rectangle {
     id: root
 
+    property bool icons: false
     property var options: []
     property var current
     property int horizontalPadding: 16
@@ -98,6 +99,7 @@ Rectangle {
 
                 ThemedText {
                     id: label
+                    icon: root.icons
                     anchors.centerIn: parent
                     text: segment.modelData.label
                     color: root.current === segment.modelData.value ? Config.colorscheme.bg : Config.colorscheme.fg

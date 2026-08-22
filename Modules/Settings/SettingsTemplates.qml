@@ -18,12 +18,6 @@ ColumnLayout {
     Layout.alignment: Qt.AlignTop
 
     function setEnabled(name, enabled) {
-        // Switch.onCheckedChanged also fires when the binding first resolves,
-        // so ignore anything that is not a real change.
-        if (TemplateService.entry(name).enabled === enabled) {
-            return;
-        }
-
         const entries = JSON.parse(JSON.stringify(Config.templates));
         entries[name] = Object.assign({
             output: "",
