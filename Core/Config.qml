@@ -225,6 +225,7 @@ Singleton {
             property string screenshotsFolder: "$HOME/Pictures/Screenshots/"
             property bool replayAutostart: false
             property bool recordingAudio: true
+            property bool recordingMicrophone: false
             property int recordingFramerate: 60
             property int replayDuration: 60
         }

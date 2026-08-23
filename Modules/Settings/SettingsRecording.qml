@@ -36,6 +36,13 @@ ColumnLayout {
             onChecked: value => Config.recorder.recordingAudio = value
             type: SettingsOption.Type.Switch
         }
+
+        SettingsOption {
+            title: "Microphone in recordings"
+            value: Config.recorder.recordingMicrophone
+            onChecked: value => Config.recorder.recordingMicrophone = value
+            type: SettingsOption.Type.Switch
+        }
     }
 
     ColumnLayout {

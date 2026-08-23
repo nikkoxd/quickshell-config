@@ -37,8 +37,18 @@ Singleton {
     function screenshot() {
     }
 
+    // Sources joined with "|" so they land in a single audio track; passing
+    // them as separate -a flags would make separate tracks instead, which not
+    // every player plays back.
     function audioArgs() {
-        return Config.recorder.recordingAudio ? ["-a", "default_output"] : [];
+        const sources = [];
+        if (Config.recorder.recordingAudio) {
+            sources.push("default_output");
+        }
+        if (Config.recorder.recordingMicrophone) {
+            sources.push("default_input");
+        }
+        return sources.length > 0 ? ["-a", sources.join("|")] : [];
     }
 
     function toggleRecording() {
