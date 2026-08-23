@@ -231,12 +231,20 @@ Column {
         anchors.left: parent.left
         anchors.right: parent.right
 
-        ScrollingText {
-            text: root.trackTitle
-            isHeading: true
-            bold: true
+        Row {
+            spacing: 8
             anchors.horizontalCenter: parent.horizontalCenter
-            maxWidth: 150
+
+            CavaBars {
+                anchors.verticalCenter: parent.verticalCenter
+            }
+
+            ScrollingText {
+                text: root.trackTitle
+                isHeading: true
+                bold: true
+                maxWidth: 150
+            }
         }
 
         ScrollingText {

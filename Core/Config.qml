@@ -150,9 +150,15 @@ Singleton {
         }
         adapter: JsonAdapter {
             property bool displayVisualizer: true
+            // "background" paints the curve behind every view; "bars" draws a
+            // handful of discrete bars inline in the default/lyrics view.
+            property string mode: "background"
             property real visualizerHeight: 1
             property real topOpacity: 0.8
             property real bottomOpacity: 0
+            property int barCount: 4
+            property real barWidth: 3
+            property real barMaxHeight: 16
         }
     }
 

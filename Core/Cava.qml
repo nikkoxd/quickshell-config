@@ -7,12 +7,13 @@ ClippingRectangle {
     id: cava
     anchors.verticalCenter: parent.verticalCenter
     visible: Config.visualizer.displayVisualizer
+             && Config.visualizer.mode === "background"
              && MprisService.activePlayer !== undefined 
              && MprisService.activePlayer.isPlaying
     color: "transparent"
     radius: Config.island.radius
     property real maxHeight: Config.visualizer.visualizerHeight
-    property color visualizerColor: Config.colorscheme.fg
+    property color visualizerColor: Config.colorscheme.accent
     property real topOpacity: Config.visualizer.topOpacity
     property real bottomOpacity: Config.visualizer.bottomOpacity
 

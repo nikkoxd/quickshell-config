@@ -7,6 +7,8 @@ View {
     implicitWidth: row.implicitWidth + Config.island.padding * 2
     implicitHeight: Config.island.height
 
+    readonly property bool barsVisualizer: Config.visualizer.mode === "bars"
+
     TapHandler {
         acceptedButtons: Qt.LeftButton | Qt.RightButton
         onTapped: (eventPoint, button) => {
@@ -28,39 +30,26 @@ View {
 
     Row {
         id: row
-        spacing: 6
+        spacing: 8
         anchors.centerIn: parent
 
-        Rectangle {
-            id: dot
-            width: 8
-            height: 8
-            radius: width / 2
-            color: "#ff5555"
-            visible: RecordingService.recording
+        CavaBars {
             anchors.verticalCenter: parent.verticalCenter
+        }
 
-            SequentialAnimation on opacity {
-                running: dot.visible
-                loops: Animation.Infinite
-                NumberAnimation {
-                    from: 1
-                    to: 0.2
-                    duration: 600
-                    easing.type: Easing.InOutQuad
-                }
-                NumberAnimation {
-                    from: 0.2
-                    to: 1
-                    duration: 600
-                    easing.type: Easing.InOutQuad
-                }
-            }
+        RecordingIndicator {
+            shown: !root.barsVisualizer
+            anchors.verticalCenter: parent.verticalCenter
         }
 
         ThemedText {
             id: text
             text: DateService.hours + ":" + DateService.minutes
+            anchors.verticalCenter: parent.verticalCenter
+        }
+
+        RecordingIndicator {
+            shown: root.barsVisualizer
             anchors.verticalCenter: parent.verticalCenter
         }
     }
