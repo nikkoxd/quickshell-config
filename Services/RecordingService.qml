@@ -8,6 +8,7 @@ Singleton {
     id: root
     property bool recording: false
     property bool replayRunning: false
+    property string recordingPath: ""
 
     function expandPath(path) {
         const home = Quickshell.env("HOME");
@@ -29,6 +30,7 @@ Singleton {
         const folder = expandPath(Config.recorder.recordingsFolder).replace(/\/+$/, "");
         const final = folder + "/recording_" + stamp + ".mp4";
         console.log("[Recording] Recording to:", final);
+        root.recordingPath = final;
         return final;
     }
 
@@ -50,7 +52,10 @@ Singleton {
                 "-o", outputFileName()
             ]
             recordingStartProc.running = true;
-        } else {
+        } else if (recordingStartProc.processId) {
+            // Signal by pid, not `pkill -f gpu-screen-recorder`: a replay buffer
+            // is a second gpu-screen-recorder process and would be killed too.
+            recordingStopProc.command = ["kill", "-SIGINT", String(recordingStartProc.processId)];
             recordingStopProc.running = true;
         }
     }
@@ -76,6 +81,11 @@ Singleton {
     }
 
     function saveReplay() {
+        if (!root.replayRunning || !replayProc.processId) {
+            NotificationService.notify("Replay not saved", "The replay buffer is not running");
+            return;
+        }
+        replaySaveProc.command = ["kill", "-SIGUSR1", String(replayProc.processId)];
         replaySaveProc.running = true;
     }
 
@@ -105,12 +115,18 @@ Singleton {
     Process {
         id: recordingStartProc
         onStarted: console.log("[Recorder] gpu-screen-recorder started recording")
-        onExited: (exitCode, exitStatus) => console.log("[Recorder] gpu-screen-recorder exited with code:", exitCode);
+        onExited: (exitCode, exitStatus) => {
+            console.log("[Recorder] gpu-screen-recorder exited with code:", exitCode);
+            if (exitCode === 0) {
+                NotificationService.notify("Recording finished", "Saved to: " + root.recordingPath);
+            } else {
+                NotificationService.notify("Recording failed", "gpu-screen-recorder exited with code " + exitCode);
+            }
+        }
     }
 
     Process {
         id: recordingStopProc
-        command: ["pkill", "-SIGINT", "-f", "gpu-screen-recorder"]
     }
 
     Process {
@@ -131,6 +147,12 @@ Singleton {
 
     Process {
         id: replaySaveProc
-        command: ["pkill", "-SIGUSR1", "-f", "gpu-screen-recorder"]
+        onExited: (exitCode) => {
+            if (exitCode === 0) {
+                NotificationService.notify("Replay saved", "Saved to: " + root.expandPath(Config.recorder.replaysFolder));
+            } else {
+                NotificationService.notify("Replay not saved", "kill exited with code " + exitCode);
+            }
+        }
     }
 }

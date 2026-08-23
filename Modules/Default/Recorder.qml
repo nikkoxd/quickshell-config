@@ -74,7 +74,13 @@ View {
             RecorderButton {
                 icon: "video-camera"
                 active: RecordingService.recording
-                onTapped: RecordingService.toggleRecording()
+                // Close either way: out of the way of what's being recorded when
+                // starting, and so the "finished" notification isn't suppressed
+                // (this view is not dismissable) when stopping.
+                onTapped: {
+                    RecordingService.toggleRecording();
+                    root.closeRequested();
+                }
             }
             RecorderButton {
                 icon: "arrows-clockwise"
@@ -84,7 +90,12 @@ View {
             RecorderButton {
                 icon: "floppy-disk"
                 visible: RecordingService.replayRunning
-                onTapped: RecordingService.saveReplay()
+                // Same reason as above: the panel has to go for the notification
+                // to be shown.
+                onTapped: {
+                    RecordingService.saveReplay();
+                    root.closeRequested();
+                }
             }
         }
     }
