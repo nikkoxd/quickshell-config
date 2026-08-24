@@ -34,6 +34,13 @@ ColumnLayout {
         }
 
         SettingsOption {
+            title: "Show when workspace is clear"
+            value: Config.dock.showWhenWorkspaceClear
+            onChecked: value => Config.dock.showWhenWorkspaceClear = value
+            type: SettingsOption.Type.Switch
+        }
+
+        SettingsOption {
             title: "Hover hotzone height"
             units: "px"
             value: Config.dock.hotzoneHeight

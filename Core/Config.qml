@@ -317,6 +317,7 @@ Singleton {
         adapter: JsonAdapter {
             property bool enabled: true
             property bool onlyOnHover: true
+            property bool showWhenWorkspaceClear: true
             property bool coloredIcons: true
             property int hotzoneHeight: 40
             property int iconSize: 40

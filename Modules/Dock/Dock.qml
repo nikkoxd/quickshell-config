@@ -36,7 +36,7 @@ LazyLoader {
 
         anchors.bottom: true
 
-        readonly property bool revealed: !Config.dock.onlyOnHover || workspaceClear || dockHover.hovered || hotzoneHover.hovered || menu.visible || dragging
+        readonly property bool revealed: !Config.dock.onlyOnHover || (Config.dock.showWhenWorkspaceClear && workspaceClear) || dockHover.hovered || hotzoneHover.hovered || menu.visible || dragging
         property bool dragging: false
 
         // Nothing on the workspace claims the bottom of the screen: either no
