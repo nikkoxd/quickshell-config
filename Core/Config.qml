@@ -206,6 +206,9 @@ Singleton {
             // What the wallpaper selector browses: image | video | both
             property string selectorFilter: "image"
             property string staticWallpaperFolder: "$HOME/Pictures/Wallpapers/"
+            property string transition: "doom"
+            // Pick a random transition on every wallpaper change instead.
+            property bool randomTransition: false
         }
     }
 

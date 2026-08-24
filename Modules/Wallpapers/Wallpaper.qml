@@ -44,7 +44,18 @@ PanelWindow {
         if (anim.running) return;
         waiter.target = null;
         effect.seed = Math.random() * 1000.0;
+        // Picked here rather than bound to the config so the random roll happens
+        // once per wallpaper change and can never swap the shader mid-animation.
+        effect.fragmentShader = Qt.resolvedUrl("./Shaders/" + pickTransition() + ".frag.qsb");
         anim.start();
+    }
+
+    function pickTransition() {
+        var all = WallpaperService.transitions;
+        if (Config.wallpaper.randomTransition)
+            return all[Math.floor(Math.random() * all.length)];
+        var name = Config.wallpaper.transition;
+        return all.indexOf(name) === -1 ? "doom" : name;
     }
 
     anchors {
@@ -133,12 +144,16 @@ PanelWindow {
         property variant source: root.frontSlot === 0 ? slotA : slotB
         property variant dest:   root.frontSlot === 0 ? slotB : slotA
 
+        // The union of every transition shader's uniforms: a shader ignores the
+        // properties it does not declare, but a uniform with no matching
+        // property warns and reads zero.
         property real progress: 0.0
         property real sectionWidth: 0.02
         property real maxOffset: 0.75
         property real seed: 0.0
-
-        fragmentShader: Qt.resolvedUrl("./Shaders/doom.frag.qsb")
+        property real aspect: width / height
+        property real waveAmplitude: 0.04
+        property real waveCount: 3.0
     }
 
     NumberAnimation {

@@ -26,6 +26,10 @@ Singleton {
         Mpvpaper
     }
 
+    // Available wallpaper transitions. Each name maps to
+    // Modules/Wallpapers/Shaders/<name>.frag.qsb.
+    readonly property var transitions: ["doom", "diagonal", "diagonalWave", "circleRandom"]
+
     signal wallpaperChanged(string path, int type)
     signal modelUpdateDone
     signal thumbnailReady(string path)
