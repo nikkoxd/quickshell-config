@@ -9,6 +9,7 @@ View {
     focused: true
     dismissable: false
     displayInFullscreen: true
+    closeOnUnhover: true
 
     PwNodeLinkTracker {
         id: linkTracker

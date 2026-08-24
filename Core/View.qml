@@ -9,6 +9,7 @@ FocusScope {
     property bool focused: false
     property var popups: []
     property bool displayInFullscreen: false
+    property bool closeOnUnhover: false
 
     Shortcut {
         sequence: "Escape"
@@ -18,5 +19,4 @@ FocusScope {
     /* legacy stuff */
     signal closeRequested()
     signal viewChangeRequested(view: string)
-    signal defaultViewChangeRequested(view: string)
 }

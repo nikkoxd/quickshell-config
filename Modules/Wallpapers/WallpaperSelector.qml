@@ -16,6 +16,7 @@ View {
     focused: true
     dismissable: false
     displayInFullscreen: true
+    closeOnUnhover: true
 
     // What is being browsed ("image" | "video" | "both") — separate from
     // Config.wallpaper.type, which is the type of the wallpaper that is set.

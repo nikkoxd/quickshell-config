@@ -9,6 +9,7 @@ View {
     dismissable: false
     focused: true
     displayInFullscreen: true
+    closeOnUnhover: true
 
     component RecorderButton: Rectangle {
         id: button

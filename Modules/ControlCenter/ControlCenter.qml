@@ -9,20 +9,15 @@ View {
     focused: true
     dismissable: false
     displayInFullscreen: true
+    closeOnUnhover: true
 
     // Every column is this tall, so showing or hiding the notification column
     // only animates the island's width.
     readonly property int contentHeight: 220
 
     TapHandler {
-        acceptedButtons: Qt.LeftButton | Qt.RightButton
-        onTapped: (eventPoint, button) => {
-            if (button === Qt.LeftButton) {
-                root.viewChangeRequested("dashboard");
-            } else {
-                root.closeRequested();
-            }
-        }
+        acceptedButtons: Qt.LeftButton
+        onTapped: root.viewChangeRequested("dashboard")
     }
 
     RowLayout {

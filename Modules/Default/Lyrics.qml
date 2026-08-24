@@ -27,25 +27,6 @@ View {
         textChangeAnim.restart();
     }
 
-    TapHandler {
-        acceptedButtons: Qt.LeftButton | Qt.RightButton
-        onTapped: (eventPoint, button) => {
-            if (button === Qt.LeftButton) {
-                root.viewChangeRequested("dashboard");
-            } else {
-                root.viewChangeRequested("controlCenter");
-            }
-        }
-    }
-
-    WheelHandler {
-        acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
-        onWheel: {
-            root.defaultViewChangeRequested("clock");
-            root.viewChangeRequested("clock");
-        }
-    }
-
     Row {
         id: row
         spacing: 8

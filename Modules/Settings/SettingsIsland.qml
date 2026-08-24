@@ -42,6 +42,22 @@ ColumnLayout {
     }
 
     SettingsOption {
+        title: "Hover open delay"
+        units: "ms"
+        value: Config.island.hoverOpenDelay
+        onEdited: value => Config.island.hoverOpenDelay = parseInt(value)
+        type: SettingsOption.Type.TextField
+    }
+
+    SettingsOption {
+        title: "Hover close delay"
+        units: "ms"
+        value: Config.island.hoverCloseDelay
+        onEdited: value => Config.island.hoverCloseDelay = parseInt(value)
+        type: SettingsOption.Type.TextField
+    }
+
+    SettingsOption {
         title: "KeePassXC vault path"
         value: Config.island.keepassVault
         onEdited: value => Config.island.keepassVault = value

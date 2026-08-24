@@ -12,17 +12,12 @@ View {
     focused: true
     dismissable: false
     displayInFullscreen: true
+    closeOnUnhover: true
     popups: tray.popups
 
     TapHandler {
-        acceptedButtons: Qt.LeftButton | Qt.RightButton
-        onTapped: (eventPoint, button) => {
-            if (button === Qt.LeftButton) {
-                root.closeRequested();
-            } else {
-                root.viewChangeRequested("controlCenter");
-            }
-        }
+        acceptedButtons: Qt.RightButton
+        onTapped: root.viewChangeRequested("controlCenter")
     }
 
     function switchTab(tab) {
@@ -45,10 +40,9 @@ View {
             property Component cal: Calendar {}
             property Component lyrics: Lyrics {}
 
-            WheelHandler {
-                acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
-                acceptedModifiers: Qt.ControlModifier
-                onWheel: DashboardService.togglePanel()
+            TapHandler {
+                acceptedButtons: Qt.MiddleButton
+                onTapped: DashboardService.togglePanel()
             }
 
             sourceComponent: DashboardService.panel === 0 ? cal : lyrics

@@ -10,21 +10,17 @@ View {
     implicitWidth: row.implicitWidth + 20
     implicitHeight: row.implicitHeight + 20
     displayInFullscreen: true
+    closeOnUnhover: true
 
     property Notification notification
 
     TapHandler {
         gesturePolicy: TapHandler.WithinBounds
-        acceptedButtons: Qt.LeftButton | Qt.RightButton
-        onTapped: (eventPoint, button) => {
-            if (button === Qt.LeftButton) {
-                var defaultAction = root.notification.actions.find(a => a.identifier === "default");
-                if (defaultAction) {
-                    defaultAction.invoke();
-                    root.closeRequested();
-                }
-            } else {
-                root.viewChangeRequested("controlCenter");
+        onTapped: {
+            var defaultAction = root.notification.actions.find(a => a.identifier === "default");
+            if (defaultAction) {
+                defaultAction.invoke();
+                root.closeRequested();
             }
         }
     }

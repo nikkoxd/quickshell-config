@@ -29,17 +29,6 @@ View {
         }
     }
 
-    TapHandler {
-        acceptedButtons: Qt.LeftButton | Qt.RightButton
-        onTapped: (eventPoint, button) => {
-            if (button === Qt.LeftButton) {
-                root.viewChangeRequested("dashboard");
-            } else {
-                root.viewChangeRequested("controlCenter");
-            }
-        }
-    }
-
     RowLayout {
         id: volume
         spacing: 15

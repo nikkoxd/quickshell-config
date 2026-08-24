@@ -24,7 +24,22 @@ Item {
     implicitHeight: content.currentView.implicitHeight
 
     property string currentItem: "clock"
-    property string defaultItem: "clock"
+    // The dashboard's middle panel and the island's default view are one
+    // choice, made in DashboardService.
+    readonly property string defaultItem: DashboardService.panel === 1 ? "lyrics" : "clock"
+
+    onDefaultItemChanged: {
+        // This binding is first evaluated while the StackView is still empty,
+        // and replace() there pushes a stray item that initialItem then stacks
+        // on top of - visible under every later view, since they are all
+        // transparent.
+        if (content.depth === 0)
+            return;
+        // Swap under the user only while the island is already showing the
+        // other default; anything else (an OSD, an open menu) is left alone.
+        if (root.currentItem === "clock" || root.currentItem === "lyrics")
+            root.openDefaultView();
+    }
     property alias content: content
 
     property Component clock: DefaultModule.Clock {}
@@ -54,6 +69,10 @@ Item {
 
     function openDefaultView() {
         console.log("[bar] Opening default view");
+        hoverOpenTimer.stop();
+        // Closing a view while still pointing at the island would immediately
+        // re-arm the open timer. Stay closed until the pointer leaves.
+        root.hoverSuppressed = islandHover.hovered;
         root.currentItem = root.defaultItem;
         content.replace(root[root.defaultItem]);
     }
@@ -62,11 +81,56 @@ Item {
         console.log("[bar] Opening", view, "view");
         if (view === root.currentItem)
             return;
+        hoverOpenTimer.stop();
         root.currentItem = view;
         if (params !== undefined) {
             content.replace(root[view], params);
         } else {
             content.replace(root[view]);
+        }
+    }
+
+    // Hover-to-open. Pointing at a compact view swaps in `hoverItem`, and
+    // leaving the island swaps out any view marked `closeOnUnhover`. Views
+    // without that flag are closed by Escape, a focus grab, or their own UI.
+    readonly property string hoverItem: "dashboard"
+    readonly property bool hoverClosable: content.currentView?.closeOnUnhover ?? false
+    property bool hoverSuppressed: false
+
+    HoverHandler {
+        id: islandHover
+
+        onHoveredChanged: {
+            if (hovered) {
+                hoverCloseTimer.stop();
+                if (content.currentView.dismissable && !root.hoverSuppressed)
+                    hoverOpenTimer.restart();
+            } else {
+                hoverOpenTimer.stop();
+                root.hoverSuppressed = false;
+                if (root.hoverClosable)
+                    hoverCloseTimer.restart();
+            }
+        }
+    }
+
+    Timer {
+        id: hoverOpenTimer
+        interval: Config.island.hoverOpenDelay
+        onTriggered: root.openView(root.hoverItem)
+    }
+
+    Timer {
+        id: hoverCloseTimer
+        interval: Config.island.hoverCloseDelay
+        onTriggered: {
+            // A popup (tray menu, dropdown) is its own window, so the island
+            // reads as unhovered while the pointer is inside one. Wait it out.
+            if (content.currentView.popups.length > 0) {
+                hoverCloseTimer.restart();
+                return;
+            }
+            root.openDefaultView();
         }
     }
 
@@ -105,9 +169,6 @@ Item {
         }
         function onViewChangeRequested(view) {
             root.openView(view);
-        }
-        function onDefaultViewChangeRequested(view) {
-            root.defaultItem = view;
         }
     }
 

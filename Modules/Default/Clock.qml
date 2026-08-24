@@ -9,25 +9,6 @@ View {
 
     readonly property bool barsVisualizer: Config.visualizer.mode === "bars"
 
-    TapHandler {
-        acceptedButtons: Qt.LeftButton | Qt.RightButton
-        onTapped: (eventPoint, button) => {
-            if (button === Qt.LeftButton) {
-                root.viewChangeRequested("dashboard");
-            } else {
-                root.viewChangeRequested("controlCenter");
-            }
-        }
-    }
-
-    WheelHandler {
-        acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
-        onWheel: {
-            root.defaultViewChangeRequested("lyrics");
-            root.viewChangeRequested("lyrics");
-        }
-    }
-
     Row {
         id: row
         spacing: 8
