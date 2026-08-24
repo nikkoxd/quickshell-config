@@ -18,8 +18,7 @@ Row {
     height: root.maxHeight
     visible: Config.visualizer.displayVisualizer
              && Config.visualizer.mode === "bars"
-             && MprisService.activePlayer !== undefined
-             && MprisService.activePlayer.isPlaying
+             && MprisService.isPlaying
 
     // CavaService emits more bars than fit inline, so each output bar averages
     // the slice of the raw values it covers.

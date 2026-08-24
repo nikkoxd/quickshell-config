@@ -8,8 +8,7 @@ ClippingRectangle {
     anchors.verticalCenter: parent.verticalCenter
     visible: Config.visualizer.displayVisualizer
              && Config.visualizer.mode === "background"
-             && MprisService.activePlayer !== undefined 
-             && MprisService.activePlayer.isPlaying
+             && MprisService.isPlaying
     color: "transparent"
     radius: Config.island.radius
     property real maxHeight: Config.visualizer.visualizerHeight
