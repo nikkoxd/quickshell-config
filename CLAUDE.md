@@ -19,7 +19,7 @@ Quickshell maps the config root to the `qs` import namespace. Directories become
 
 - `qs.Core` → `Core/` — base components + the `Config` singleton
 - `qs.Services` → `Services/` — singletons wrapping system state
-- `qs.Modules`, `qs.Modules.ControlCenter`, etc. → `Modules/` and its subfolders (imported `as` an alias when nested)
+- `qs.Modules`, `qs.Modules.Notifications`, etc. → `Modules/` and its subfolders (imported `as` an alias when nested)
 
 Singletons are declared with `Singleton {}` imported from `Quickshell` and `pragma Singleton` at the top of the file and used by type name (e.g. `Config.island.height`, `MprisService.onTrackChanged`). Reusable QML types just live as `.qml` files and are referenced by filename.
 
@@ -33,7 +33,7 @@ The island is a `StackView` of **views** that replace each other with a blur/sca
   - `displayInFullscreen` — promotes the layershell to `WlrLayer.Overlay`.
   - `popups`, and legacy signals `closeRequested` / `viewChangeRequested(view)` / `defaultViewChangeRequested(view)`. Views emit these; `Bar.qml` wires them up.
 
-- **`Bar.qml`** owns the StackView and holds every view as a `Component` property (`clock`, `player`, `controlCenter`, `launcher`, …). Navigation goes through `openView(view, params)` / `openDefaultView()`, which `content.replace(...)` into the stack. **To add a view:** create `Modules/<Name>.qml` (or a subfolder) extending `View`, add a `property Component <name>: <Name> {}` line in `Bar.qml`, and reference it by the string key `"<name>"`.
+- **`Bar.qml`** owns the StackView and holds every view as a `Component` property (`clock`, `player`, `notifications`, `launcher`, …). Navigation goes through `openView(view, params)` / `openDefaultView()`, which `content.replace(...)` into the stack. **To add a view:** create `Modules/<Name>.qml` (or a subfolder) extending `View`, add a `property Component <name>: <Name> {}` line in `Bar.qml`, and reference it by the string key `"<name>"`.
 
 - **Ambient triggers** live in `Bar.qml` as `Connections` blocks: track change → `player`, volume → `volume`, workspace focus → `workspaces`, `NotificationService` notification → `notification`, LocalSend upload → `localsend`, file drag → `localsend`. Each is gated on `content.currentView.dismissable` so it won't interrupt an interactive view.
 

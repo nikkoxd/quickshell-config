@@ -17,7 +17,7 @@ View {
 
     TapHandler {
         acceptedButtons: Qt.RightButton
-        onTapped: root.viewChangeRequested("controlCenter")
+        onTapped: root.viewChangeRequested("notifications")
     }
 
     function switchTab(tab) {

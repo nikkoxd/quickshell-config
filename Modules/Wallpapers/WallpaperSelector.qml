@@ -9,14 +9,35 @@ import qs.Services
 View {
     id: root
     implicitWidth: carouselContainer.implicitWidth
-    // The theme list expands inside the island window rather than in a popup
-    // of its own, so the view has to make room for it. Bar.qml animates the
-    // resize.
-    implicitHeight: 280 + (themeSelector.expanded ? themeSelector.listHeight : 0)
+    implicitHeight: {
+        const base = root.padding * 2 + mainLayout.implicitHeight;
+        if (!themeSelector.expanded)
+            return base;
+        return Math.max(base, root.padding * 2 + header.height + themeSelector.listHeight);
+    }
     focused: true
     dismissable: false
     displayInFullscreen: true
     closeOnUnhover: true
+
+    readonly property real padding: Config.island.padding / 2
+
+    // The generator the colorscheme names, if any: only those have a mode.
+    readonly property string generator: {
+        const name = Config.theme.colorscheme;
+        return ThemeService.generators.includes(name) ? name : "";
+    }
+    readonly property bool generatorDark: root.generator === "Iris" ? Config.iris.dark : Config.matugen.dark
+
+    // Auto mode picks the mode from the wallpaper, so asking for one explicitly
+    // has to turn it off, and the colors have to be generated again: nothing
+    // watches these two flags the way it watches the colorscheme.
+    function toggleMode() {
+        const settings = root.generator === "Iris" ? Config.iris : Config.matugen;
+        settings.autoMode = false;
+        settings.dark = !settings.dark;
+        WallpaperService.generateColors(WallpaperService.colorSource());
+    }
 
     // What is being browsed ("image" | "video" | "both") — separate from
     // Config.wallpaper.type, which is the type of the wallpaper that is set.
@@ -97,8 +118,39 @@ View {
 
     Column {
         id: mainLayout
-        y: Config.island.padding
-        spacing: 24
+        y: root.padding
+
+        ViewHeader {
+            id: header
+            width: carouselContainer.implicitWidth - Config.island.padding
+            anchors.horizontalCenter: parent.horizontalCenter
+            // Above the carousel, which is painted after it, so the open theme
+            // list is not covered by the wallpaper thumbnails.
+            z: 1
+            text: "Wallpapers"
+
+            // Only the generators render a light and a dark variant; a static
+            // theme is whatever its file says it is.
+            IconButton {
+                icon: "sun"
+                activeIcon: "moon"
+                active: root.generatorDark
+                visible: root.generator !== ""
+                width: height
+                height: themeSelector.height
+                onClicked: root.toggleMode()
+            }
+
+            Dropdown {
+                id: themeSelector
+                // Matches the header buttons in the other views.
+                height: 30
+                horizontalPadding: 16
+                options: ThemeService.names
+                current: Config.theme.colorscheme
+                onSelected: value => Config.theme.colorscheme = value
+            }
+        }
 
         Item {
             id: carouselContainer
@@ -120,17 +172,24 @@ View {
 
                 onCurrentIndexChanged: console.log("Current index:", currentIndex)
 
+                // Every wallpaper is drawn at the same size except the one in
+                // focus. The extra points at a quarter and three quarters of the
+                // width sit exactly where the neighbouring items rest, so the
+                // scale only rises over the last step into the centre.
+                readonly property real restScale: 0.8
+                readonly property real focusScale: 1.2
+
                 path: Path {
                     startX: -carousel.width / 4
                     startY: carousel.height / 2
 
                     PathAttribute {
                         name: "iconScale"
-                        value: 0
+                        value: carousel.restScale
                     }
                     PathAttribute {
                         name: "iconZ"
-                        value: 0
+                        value: 1
                     }
 
                     PathLine {
@@ -139,7 +198,20 @@ View {
                     }
                     PathAttribute {
                         name: "iconScale"
-                        value: 0.6
+                        value: carousel.restScale
+                    }
+                    PathAttribute {
+                        name: "iconZ"
+                        value: 1
+                    }
+
+                    PathLine {
+                        x: carousel.width / 4
+                        y: carousel.height / 2
+                    }
+                    PathAttribute {
+                        name: "iconScale"
+                        value: carousel.restScale
                     }
                     PathAttribute {
                         name: "iconZ"
@@ -152,11 +224,24 @@ View {
                     }
                     PathAttribute {
                         name: "iconScale"
-                        value: 1.2
+                        value: carousel.focusScale
                     }
                     PathAttribute {
                         name: "iconZ"
                         value: 10
+                    }
+
+                    PathLine {
+                        x: carousel.width * 3 / 4
+                        y: carousel.height / 2
+                    }
+                    PathAttribute {
+                        name: "iconScale"
+                        value: carousel.restScale
+                    }
+                    PathAttribute {
+                        name: "iconZ"
+                        value: 1
                     }
 
                     PathLine {
@@ -165,7 +250,7 @@ View {
                     }
                     PathAttribute {
                         name: "iconScale"
-                        value: 0.6
+                        value: carousel.restScale
                     }
                     PathAttribute {
                         name: "iconZ"
@@ -178,11 +263,11 @@ View {
                     }
                     PathAttribute {
                         name: "iconScale"
-                        value: 0
+                        value: carousel.restScale
                     }
                     PathAttribute {
                         name: "iconZ"
-                        value: 0
+                        value: 1
                     }
                 }
 
@@ -214,43 +299,30 @@ View {
         }
 
         Item {
-            id: controls
-            width: carouselContainer.implicitWidth - Config.island.padding
+            width: 1
+            height: 24
+        }
+
+        SegmentPill {
+            id: filterPill
+            verticalPadding: 6
             anchors.horizontalCenter: parent.horizontalCenter
-            implicitHeight: Math.max(filterPill.height, themeSelector.height)
-
-            SegmentPill {
-                id: filterPill
-                anchors.left: parent.left
-                anchors.verticalCenter: parent.verticalCenter
-                current: root.filter
-                options: [
-                    {
-                        label: "Image",
-                        value: "image"
-                    },
-                    {
-                        label: "Video",
-                        value: "video"
-                    },
-                    {
-                        label: "Both",
-                        value: "both"
-                    }
-                ]
-                onSelected: value => Config.wallpaper.selectorFilter = value
-            }
-
-            Dropdown {
-                id: themeSelector
-                anchors.right: parent.right
-                anchors.verticalCenter: parent.verticalCenter
-                height: filterPill.height
-                horizontalPadding: 16
-                options: ThemeService.names
-                current: Config.theme.colorscheme
-                onSelected: value => Config.theme.colorscheme = value
-            }
+            current: root.filter
+            options: [
+                {
+                    label: "Image",
+                    value: "image"
+                },
+                {
+                    label: "Video",
+                    value: "video"
+                },
+                {
+                    label: "Both",
+                    value: "both"
+                }
+            ]
+            onSelected: value => Config.wallpaper.selectorFilter = value
         }
     }
 }

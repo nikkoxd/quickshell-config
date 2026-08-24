@@ -10,14 +10,17 @@ Column {
     required property PwNode node
     property string appName: node.properties["application.name"]
         ?? (node.description !== "" ? node.description : node.name)
-    property string mediaName: node.properties["media.name"]
+    property string mediaName: node.properties["media.name"] ?? ""
 
     PwObjectTracker {
         objects: [root.node]
     }
 
     Row {
+        id: label
+        width: root.width
         spacing: 5
+        clip: true
 
         IconImage {
             source: Quickshell.iconPath(root.appName.toLowerCase(), true)
@@ -28,17 +31,23 @@ Column {
         }
 
         ThemedText {
+            id: appLabel
             text: root.appName
         }
 
+        // Whatever is left of the row, so a long track title is cut off instead
+        // of pushing the island wider.
         ThemedText {
+            width: Math.max(0, label.width - appLabel.width - x)
             text: root.mediaName
+            elide: Text.ElideRight
             opacity: 0.5
         }
     }
 
     Slider {
         id: slider
+        width: root.width
         value: root.node.audio.volume
         icon: "speaker-high"
         trackColor: Config.colorscheme.bg

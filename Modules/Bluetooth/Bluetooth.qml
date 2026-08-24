@@ -43,6 +43,18 @@ View {
         anchors.centerIn: parent
         spacing: 10
 
+        ViewHeader {
+            Layout.fillWidth: true
+            text: "Bluetooth"
+
+            IconButton {
+                icon: "bluetooth-x"
+                activeIcon: "bluetooth"
+                active: Bluetooth.defaultAdapter.enabled
+                onClicked: Bluetooth.defaultAdapter.enabled = !Bluetooth.defaultAdapter.enabled
+            }
+        }
+
         ThemedText {
             Layout.fillWidth: true
             opacity: 0.5

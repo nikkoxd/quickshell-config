@@ -279,7 +279,7 @@ echo "  exec-once = qs -c $CONFIG_NAME"
 echo
 echo "Suggested binds:"
 echo "  bind = SUPER, SPACE, exec, qs -c $CONFIG_NAME ipc call bar toggle launcher"
-echo "  bind = SUPER, C, exec, qs -c $CONFIG_NAME ipc call bar toggle controlCenter"
+echo "  bind = SUPER, C, exec, qs -c $CONFIG_NAME ipc call bar toggle notifications"
 echo "  bind = SUPER, W, exec, qs -c $CONFIG_NAME ipc call bar toggle wallpaperSelector"
 echo "  bind = SUPER, R, exec, qs -c $CONFIG_NAME ipc call bar toggle recorder"
 echo

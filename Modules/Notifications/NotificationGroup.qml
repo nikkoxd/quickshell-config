@@ -37,7 +37,7 @@ Item {
     // No Behavior here: the cards, the header and the Column spacing all animate
     // on their own, and smoothing this on top of that makes the height settle
     // well after those animations end (which the expand pin in
-    // ControlCenterNotifications waits on).
+    // Notifications waits on).
     height: column.implicitHeight
 
     DragHandler {
@@ -237,7 +237,7 @@ Item {
         Repeater {
             model: group.notifications
 
-            delegate: ControlCenterNotification {
+            delegate: NotificationCard {
                 required property int index
 
                 fullWidth: group.fullWidth

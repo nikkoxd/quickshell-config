@@ -135,7 +135,7 @@ View {
 
         StateLoader {
             sourceComponent: StateDisplay {
-                icon: "sync"
+                icon: "arrows-clockwise"
                 text: "Downloading " + root.transferData.files.length + " file(s) from " + root.transferData.alias
                 animated: true
             }
@@ -152,7 +152,7 @@ View {
 
         StateLoader {
             sourceComponent: StateDisplay {
-                icon: "error"
+                icon: "wifi-x"
                 text: "Transfer cancelled"
             }
             active: root.currentState === LocalSend.State.ReceiveCancelled
@@ -160,7 +160,7 @@ View {
 
         StateLoader {
             sourceComponent: StateDisplay {
-                icon: "attach_file"
+                icon: "paper-plane-tilt"
                 text: "Send elsewhere"
                 subText: "Drop your stuff here"
             }
@@ -169,7 +169,7 @@ View {
 
         StateLoader {
             sourceComponent: StateDisplay {
-                icon: "explore"
+                icon: "binoculars"
                 text: "Discovering devices"
                 animated: true
             }
@@ -178,7 +178,7 @@ View {
 
         StateLoader {
             sourceComponent: StateDisplay {
-                icon: "error"
+                icon: "wifi-x"
                 text: "Nothing found!"
                 subText: "Click to retry"
                 onComponentClicked: root.discoverDevices()
@@ -198,7 +198,7 @@ View {
 
         StateLoader {
             sourceComponent: StateDisplay {
-                icon: "sync"
+                icon: "arrows-clockwise"
                 text: "Sending files to " + root.selectedDevice.alias
                 animated: true
             }
@@ -207,7 +207,7 @@ View {
 
         StateLoader {
             sourceComponent: StateDisplay {
-                icon: "error"
+                icon: "wifi-x"
                 text: "Failed to send files"
             }
             active: root.currentState === LocalSend.State.Error

@@ -1,15 +1,13 @@
 import QtQuick
-import QtQuick.Layouts
-import qs.Core
 
+// Square icon button that can also read as a toggle: `active` swaps in
+// `activeIcon` and the accent background.
 Rectangle {
     id: root
-    implicitWidth: 40
-    implicitHeight: 40
+    implicitWidth: 30
+    implicitHeight: 30
     color: getColor()
     radius: Config.island.radius / 2
-    Layout.fillWidth: true
-    Layout.fillHeight: true
 
     required property string icon
     property bool active: false

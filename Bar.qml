@@ -8,7 +8,7 @@ import QtQuick
 import QtQuick.Controls
 import qs.Core
 import qs.Modules.Default as DefaultModule
-import qs.Modules.ControlCenter as ControlCenterModule
+import qs.Modules.Notifications as NotificationsModule
 import qs.Modules.Dashboard as DashboardModule
 import qs.Modules.Launcher as LauncherModule
 import qs.Modules.LocalSend as LocalSendModule
@@ -49,7 +49,7 @@ Item {
     property Component workspaces: DefaultModule.Workspaces {}
     property Component volume: DefaultModule.Volume {}
     property Component recorder: DefaultModule.Recorder {}
-    property Component controlCenter: ControlCenterModule.ControlCenter {}
+    property Component notifications: NotificationsModule.Notifications {}
     property Component dashboard: DashboardModule.Dashboard {}
     property Component launcher: LauncherModule.Launcher {}
     property Component wallpaperSelector: WallpapersModule.WallpaperSelector {}

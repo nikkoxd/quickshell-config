@@ -20,7 +20,7 @@ Rectangle {
     property real swipeOpacity: 1
     // Swipe offset, added on top of the resting `x` so the gesture never breaks
     // the binding that insets cards inside a stack. A collapsed stack is swiped
-    // as a whole by ControlCenterNotificationGroup instead.
+    // as a whole by NotificationGroup instead.
     property real swipeX: 0
 
     signal dismissRequested
@@ -28,7 +28,7 @@ Rectangle {
 
     readonly property real stackInset: 8
     // Cards behind the front one slide up under it by `stackOverlap` (see the
-    // negative Column spacing in ControlCenterNotificationGroup) so only their
+    // negative Column spacing in NotificationGroup) so only their
     // rounded bottom edge shows.
     readonly property real stackOverlap: radius
     readonly property real stackPeek: 6
