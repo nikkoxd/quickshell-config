@@ -31,7 +31,8 @@ LazyLoader {
                 item: catcher
             }
         }
-        exclusionMode: ExclusionMode.Ignore
+        exclusionMode: ExclusionMode.Normal
+        exclusiveZone: Config.dock.onlyOnHover ? 0 : dock.implicitHeight + Config.island.margins
 
         anchors.bottom: true
 
