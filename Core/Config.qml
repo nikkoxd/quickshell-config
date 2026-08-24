@@ -110,8 +110,8 @@ Singleton {
             property int padding: 40
             property int radius: 20
             property string keepassVault: ""
-            property int hoverOpenDelay: 200
-            property int hoverCloseDelay: 400
+            property int hoverOpenDelay: 100
+            property int hoverCloseDelay: 200
         }
     }
 
