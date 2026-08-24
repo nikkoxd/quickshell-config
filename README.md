@@ -31,6 +31,6 @@ This will install the Quickshell config and it's dependencies. You can then run 
     - [x] Iris/Matugen support
     - [x] Wallpaper Engine integration
 - [x] LocalSend integration
-- [ ] Screenshot tool
+- [x] Screenshot tool
 - [x] Recording tool
 - [x] Replay tool

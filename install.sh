@@ -36,6 +36,8 @@ PACMAN_PKGS=(
     cava
     cliphist
     wl-clipboard
+    grim
+    slurp
     matugen
     git
     go

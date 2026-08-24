@@ -160,6 +160,80 @@ Item {
         }
     }
 
+    function screenshotKind(name) {
+        switch (name) {
+        case "region":
+            return RecordingService.Kind.Region;
+        case "window":
+            return RecordingService.Kind.Window;
+        case "fullscreen":
+        case "screen":
+            return RecordingService.Kind.Fullscreen;
+        default:
+            return -1;
+        }
+    }
+
+    IpcHandler {
+        target: "recorder"
+
+        function screenshot(kind: string): string {
+            const resolved = root.screenshotKind(kind === "" ? "region" : kind);
+            if (resolved === -1) {
+                return "unknown kind: " + kind + " (region, window, fullscreen)";
+            }
+            RecordingService.screenshot(resolved);
+            return "ok";
+        }
+
+        function toggleRecording(): string {
+            RecordingService.toggleRecording();
+            return RecordingService.recording ? "recording" : "stopped";
+        }
+
+        function startRecording(): string {
+            RecordingService.setRecording(true);
+            return "recording";
+        }
+
+        function stopRecording(): string {
+            RecordingService.setRecording(false);
+            return "stopped";
+        }
+
+        function toggleReplay(): string {
+            RecordingService.toggleReplay();
+            return RecordingService.replayRunning ? "running" : "stopped";
+        }
+
+        function startReplay(): string {
+            RecordingService.setReplay(true);
+            return "running";
+        }
+
+        function stopReplay(): string {
+            RecordingService.setReplay(false);
+            return "stopped";
+        }
+
+        function saveReplay(): string {
+            if (!RecordingService.replayRunning) {
+                return "the replay buffer is not running";
+            }
+            RecordingService.saveReplay();
+            return "ok";
+        }
+
+        function status(): string {
+            return JSON.stringify({
+                recording: RecordingService.recording,
+                recordingPath: RecordingService.recordingPath,
+                replayRunning: RecordingService.replayRunning,
+                screenshotPath: RecordingService.screenshotPath
+            });
+        }
+    }
+
     Connections {
         target: content.currentItem
         enabled: content.currentItem !== null

@@ -11,6 +11,11 @@ View {
     displayInFullscreen: true
     closeOnUnhover: true
 
+    function capture(kind) {
+        RecordingService.screenshot(kind);
+        root.closeRequested();
+    }
+
     component RecorderButton: Rectangle {
         id: button
         color: active ? Config.colorscheme.accent : hoverHandler.hovered ? Config.colorscheme.surface : "transparent"
@@ -61,12 +66,15 @@ View {
             spacing: 5
             RecorderButton {
                 icon: "selection"
+                onTapped: root.capture(RecordingService.Kind.Region)
             }
             RecorderButton {
                 icon: "app-window"
+                onTapped: root.capture(RecordingService.Kind.Window)
             }
             RecorderButton {
                 icon: "monitor"
+                onTapped: root.capture(RecordingService.Kind.Fullscreen)
             }
         }
 

@@ -74,4 +74,33 @@ ColumnLayout {
             type: SettingsOption.Type.Switch
         }
     }
+
+    ColumnLayout {
+        spacing: 10
+
+        SettingsSection {
+            text: "Screenshots"
+        }
+
+        SettingsOption {
+            title: "Screenshots folder"
+            value: Config.recorder.screenshotsFolder
+            onEdited: value => Config.recorder.screenshotsFolder = value
+            type: SettingsOption.Type.TextField
+        }
+
+        SettingsOption {
+            title: "Save screenshots to disk"
+            value: Config.recorder.screenshotSave
+            onChecked: value => Config.recorder.screenshotSave = value
+            type: SettingsOption.Type.Switch
+        }
+
+        SettingsOption {
+            title: "Copy screenshots to clipboard"
+            value: Config.recorder.screenshotCopy
+            onChecked: value => Config.recorder.screenshotCopy = value
+            type: SettingsOption.Type.Switch
+        }
+    }
 }

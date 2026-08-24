@@ -234,6 +234,8 @@ Singleton {
             property string recordingsFolder: "$HOME/Videos/"
             property string replaysFolder: "$HOME/Videos/Replays/"
             property string screenshotsFolder: "$HOME/Pictures/Screenshots/"
+            property bool screenshotSave: true
+            property bool screenshotCopy: true
             property bool replayAutostart: false
             property bool recordingAudio: true
             property bool recordingMicrophone: false
