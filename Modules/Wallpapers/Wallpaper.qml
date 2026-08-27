@@ -13,6 +13,12 @@ PanelWindow {
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayer.Background
 
+    // wallpiper puts its scene on the background layer too, so which one is on
+    // top comes down to surface creation order — and this window wins after a
+    // shell restart. Hiding it instead of relying on the stacking is the only
+    // way a scene stays visible across a reload.
+    visible: !SceneWallpaperService.active
+
     property int frontSlot: 0
     property bool transitionRunning: false
 
@@ -28,6 +34,13 @@ PanelWindow {
 
     function setWallpaper(url, type) {
         if (!url || transitionRunning) return;
+
+        // A scene is drawn by wallpiper onto its own surface and this window is
+        // hidden for it, so there is nothing to render. What it still holds is
+        // left alone rather than replaced with the scene's Workshop preview, so
+        // that switching back does not flash the preview first.
+        if (type === WallpaperService.Type.Scene) return;
+
         var back = frontSlot === 0 ? slotB : slotA;
         transitionRunning = true;
         back.isVideo = type === WallpaperService.Type.Mpvpaper;

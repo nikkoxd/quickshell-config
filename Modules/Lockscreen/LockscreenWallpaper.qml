@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import QtMultimedia
 import qs.Core
@@ -8,6 +9,12 @@ Item {
 
     property url wallpaper: Config.wallpaper.current
     property int wallpaperType: WallpaperService.toType(Config.wallpaper.type)
+
+    // The lockscreen paints into the shell's own window, which a scene's
+    // external surface never reaches — so a scene falls back to its preview.
+    readonly property url displaySource: root.wallpaperType === WallpaperService.Type.Scene
+        ? WallpaperService.scenePreview(root.wallpaper)
+        : root.wallpaper
 
     Connections {
         target: WallpaperService
@@ -29,7 +36,7 @@ Item {
             anchors.fill: parent
             fillMode: Image.PreserveAspectCrop
             asynchronous: true
-            source: root.wallpaper
+            source: root.displaySource
         }
     }
 

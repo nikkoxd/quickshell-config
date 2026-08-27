@@ -18,6 +18,7 @@ PREVIEW_NAMES = [
     "thumb.jpg", "thumb.png", "thumb.gif",
     "thumbnail.jpg", "thumbnail.png", "thumbnail.gif",
 ]
+SUPPORTED_TYPES = {"video", "scene"}
 
 
 def find_workshop_dir() -> Path:
@@ -29,15 +30,14 @@ def find_workshop_dir() -> Path:
     sys.exit(1)
 
 
-def get_title(wall_dir: Path) -> str:
+def read_project(wall_dir: Path) -> dict:
     proj = wall_dir / "project.json"
     if proj.is_file():
         try:
-            data = json.loads(proj.read_text(encoding="utf-8"))
-            return data.get("title", "")
+            return json.loads(proj.read_text(encoding="utf-8", errors="replace"))
         except (json.JSONDecodeError, OSError):
             pass
-    return ""
+    return {}
 
 
 def get_video(wall_dir: Path) -> Path | None:
@@ -67,21 +67,38 @@ def main() -> None:
         if not wall_dir.is_dir():
             continue
 
-        video = get_video(wall_dir)
-        if video is None:
+        project = read_project(wall_dir)
+        type_ = str(project.get("type", "")).lower()
+
+        # Older video items predate the type field; a video file in the folder
+        # is enough to classify them.
+        if not type_ and get_video(wall_dir) is not None:
+            type_ = "video"
+
+        if type_ not in SUPPORTED_TYPES:
             continue
 
+        if type_ == "video":
+            target = get_video(wall_dir)
+            if target is None:
+                continue
+            file = str(target)
+        else:
+            # A scene has no single playable file. The shell keys wallpapers by
+            # path, so the item folder is the identity and the Workshop ID that
+            # wallpiper wants is its name.
+            file = str(wall_dir)
+
         id_ = wall_dir.name
-        title = get_title(wall_dir) or id_
+        title = project.get("title") or id_
         preview = get_preview(wall_dir)
-        if preview is None:
-            preview = video
 
         wallpapers.append({
             "id": id_,
             "title": title,
-            "preview": str(preview),
-            "file": str(video),
+            "type": type_,
+            "preview": str(preview) if preview is not None else "",
+            "file": file,
             "path": str(wall_dir),
         })
 

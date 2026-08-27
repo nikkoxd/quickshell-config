@@ -318,8 +318,12 @@ View {
                     value: "video"
                 },
                 {
-                    label: "Both",
-                    value: "both"
+                    label: "Scene",
+                    value: "scene"
+                },
+                {
+                    label: "All",
+                    value: "all"
                 }
             ]
             onSelected: value => Config.wallpaper.selectorFilter = value

@@ -203,12 +203,13 @@ Singleton {
             property string output: "ALL"
             property string current
             property string type: "image"
-            // What the wallpaper selector browses: image | video | both
-            property string selectorFilter: "image"
+            property string selectorFilter: "image" // image | video | scene | both (image+video) | all
             property string staticWallpaperFolder: "$HOME/Pictures/Wallpapers/"
             property string transition: "doom"
-            // Pick a random transition on every wallpaper change instead.
             property bool randomTransition: false
+
+            property bool sceneMuted: true
+            property int sceneVolume: 50
         }
     }
 

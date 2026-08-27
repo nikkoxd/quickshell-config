@@ -45,4 +45,23 @@ ColumnLayout {
         onChecked: value => Config.wallpaper.randomTransition = value
         type: SettingsOption.Type.Switch
     }
+
+    SettingsOption {
+        title: "Mute scenes"
+        value: Config.wallpaper.sceneMuted
+        onChecked: value => Config.wallpaper.sceneMuted = value
+        type: SettingsOption.Type.Switch
+    }
+
+    SettingsOption {
+        title: "Scene volume"
+        value: Config.wallpaper.sceneVolume
+        enabled: !Config.wallpaper.sceneMuted
+        onEdited: value => {
+            const volume = parseInt(value, 10);
+            if (!isNaN(volume) && volume >= 0 && volume <= 100)
+                Config.wallpaper.sceneVolume = volume;
+        }
+        type: SettingsOption.Type.TextField
+    }
 }

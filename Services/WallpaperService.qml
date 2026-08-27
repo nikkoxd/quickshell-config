@@ -23,7 +23,8 @@ Singleton {
 
     enum Type {
         Image,
-        Mpvpaper
+        Mpvpaper,
+        Scene
     }
 
     // Available wallpaper transitions. Each name maps to
@@ -35,11 +36,16 @@ Singleton {
     signal thumbnailReady(string path)
     signal thumbnailFailed(string source)
 
-    // What the selector browses: "image", "video" or "both". A plain string
-    // rather than a second enum — QML only exposes one enum per type here.
+    // What the selector browses: "image", "video", "scene", "both"
+    // (image+video) or "all". A plain string rather than a second enum — QML
+    // only exposes one enum per type here.
     function getModel(filter) {
         if (filter === "video") {
             return videoWallpapersModel;
+        } else if (filter === "scene") {
+            return sceneWallpapersModel;
+        } else if (filter === "all") {
+            return allWallpapersModel;
         } else if (filter === "both") {
             return bothWallpapersModel;
         } else {
@@ -47,6 +53,8 @@ Singleton {
         }
     }
 
+    // Both live in the same Workshop folder and come from one run of the
+    // helper, so anything that is not purely images needs the lister.
     function requestModelUpdate(filter) {
         if (filter !== "image") {
             videoLister.running = true;
@@ -58,6 +66,8 @@ Singleton {
             return WallpaperService.Type.Image;
         } else if (str === "mpvpaper") {
             return WallpaperService.Type.Mpvpaper;
+        } else if (str === "scene") {
+            return WallpaperService.Type.Scene;
         } else {
             return undefined;
         }
@@ -68,6 +78,8 @@ Singleton {
             return "image";
         } else if (type === WallpaperService.Type.Mpvpaper) {
             return "mpvpaper";
+        } else if (type === WallpaperService.Type.Scene) {
+            return "scene";
         } else {
             return undefined;
         }
@@ -77,6 +89,12 @@ Singleton {
         const type = toType(Config.wallpaper.type);
         if (type === undefined) {
             return;
+        }
+
+        // A scene is represented by its preview image everywhere outside the
+        // external renderer, and only the helper knows where that preview is.
+        if (type === WallpaperService.Type.Scene) {
+            requestModelUpdate("scene");
         }
 
         setWallpaper(Config.wallpaper.current, type);
@@ -94,9 +112,15 @@ Singleton {
             return;
         }
 
-        if (wallpaper === root._applied && type === root._appliedType) {
+        // A scene whose renderer died is still the applied wallpaper but is no
+        // longer on screen, so picking it again has to be allowed to relaunch.
+        const staleScene = type === WallpaperService.Type.Scene && !SceneWallpaperService.active;
+
+        if (wallpaper === root._applied && type === root._appliedType && !staleScene) {
             return;
         }
+
+        const wasScene = root._appliedType === WallpaperService.Type.Scene;
 
         root._applied = wallpaper;
         root._appliedType = type;
@@ -105,13 +129,45 @@ Singleton {
         Config.wallpaper.type = typeToString(type);
         root.wallpaperChanged(wallpaper, type);
 
+        if (type === WallpaperService.Type.Scene) {
+            SceneWallpaperService.start(wallpaper);
+        } else if (wasScene) {
+            // The scene's layer surface covers the shell's wallpaper window, so
+            // it has to come down before an image or video can be seen.
+            SceneWallpaperService.stop();
+        }
+
         if (type === WallpaperService.Type.Image) {
             generateThumbnail(wallpaper, type);
             generateColors(wallpaper);
+        } else if (type === WallpaperService.Type.Scene) {
+            // No frame to grab from a process that renders straight to its own
+            // surface — the Workshop preview stands in for the scene.
+            const preview = scenePreview(wallpaper);
+            if (preview) {
+                root._colorsWaitForScene = false;
+                generateColors(preview);
+            } else {
+                root._colorsWaitForScene = true;
+            }
         } else {
             root._colorsWaitForThumbnail = true;
             generateThumbnail(wallpaper, type);
         }
+    }
+
+    // Workshop item folder -> preview image, filled in by the lister. Scenes
+    // are keyed by folder, so this is also how anything that needs to *show* a
+    // scene resolves it to something paintable.
+    property var _scenePreviews: ({})
+    property bool _colorsWaitForScene: false
+
+    function scenePreview(sceneDir) {
+        if (!sceneDir) {
+            return "";
+        }
+
+        return root._scenePreviews[sceneDir.toString().replace(/^file:\/\//, "")] || "";
     }
 
     // Each backend is a no-op unless Config.theme.colorscheme names it.
@@ -120,10 +176,17 @@ Singleton {
         MatugenService.generate(wallpaper);
     }
 
-    // What the generators read: the wallpaper itself, or a video's thumbnail.
+    // What the generators read: the wallpaper itself, a video's thumbnail, or a
+    // scene's Workshop preview.
     function colorSource() {
-        if (toType(Config.wallpaper.type) === WallpaperService.Type.Mpvpaper) {
+        const type = toType(Config.wallpaper.type);
+
+        if (type === WallpaperService.Type.Mpvpaper) {
             return root._thumbnailSource ? root.thumbnailPath : "";
+        }
+
+        if (type === WallpaperService.Type.Scene) {
+            return scenePreview(Config.wallpaper.current);
         }
 
         return Config.wallpaper.current;
@@ -184,7 +247,9 @@ Singleton {
             return undefined;
         }
 
-        if (filter !== "video" && filter !== "both") {
+        // Only the image filter is backed by a FolderListModel, which needs a
+        // role name rather than a row. Every other filter is a ListModel.
+        if (filter === "image") {
             const path = imageWallpapersModel.get(index, "filePath");
             return path ? {
                 path: path,
@@ -197,9 +262,16 @@ Singleton {
             return undefined;
         }
 
+        let type = row.type;
+        if (filter === "video") {
+            type = WallpaperService.Type.Mpvpaper;
+        } else if (filter === "scene") {
+            type = WallpaperService.Type.Scene;
+        }
+
         return {
             path: row.filePath,
-            type: filter === "video" ? WallpaperService.Type.Mpvpaper : row.type
+            type: type
         };
     }
 
@@ -229,31 +301,53 @@ Singleton {
         id: videoWallpapersModel
     }
 
-    // Images then videos; the video helper carries no mtime, so the two lists
-    // are concatenated rather than sorted together.
+    ListModel {
+        id: sceneWallpapersModel
+    }
+
+    // Images, then videos, (then scenes); the Workshop helper carries no mtime,
+    // so the lists are concatenated rather than sorted together.
+    //
+    // "both" predates scenes and still means image+video, so a config written
+    // by an older revision keeps browsing what it used to; "all" is the one
+    // that includes scenes. They are two models rather than one rebuilt against
+    // the current filter, because switching the filter does not itself rebuild.
     ListModel {
         id: bothWallpapersModel
     }
 
+    ListModel {
+        id: allWallpapersModel
+    }
+
+    function _appendTo(model, source, type) {
+        for (let i = 0; i < source.count; i++) {
+            const row = source.get(i);
+            model.append({
+                preview: row.preview,
+                filePath: row.filePath,
+                type: type
+            });
+        }
+    }
+
     function _rebuildBoth() {
         bothWallpapersModel.clear();
+        allWallpapersModel.clear();
 
         for (let i = 0; i < imageWallpapersModel.count; i++) {
-            bothWallpapersModel.append({
+            const entry = {
                 preview: "",
                 filePath: imageWallpapersModel.get(i, "filePath"),
                 type: WallpaperService.Type.Image
-            });
+            };
+            bothWallpapersModel.append(entry);
+            allWallpapersModel.append(entry);
         }
 
-        for (let i = 0; i < videoWallpapersModel.count; i++) {
-            const row = videoWallpapersModel.get(i);
-            bothWallpapersModel.append({
-                preview: row.preview,
-                filePath: row.filePath,
-                type: WallpaperService.Type.Mpvpaper
-            });
-        }
+        _appendTo(bothWallpapersModel, videoWallpapersModel, WallpaperService.Type.Mpvpaper);
+        _appendTo(allWallpapersModel, videoWallpapersModel, WallpaperService.Type.Mpvpaper);
+        _appendTo(allWallpapersModel, sceneWallpapersModel, WallpaperService.Type.Scene);
     }
 
     Connections {
@@ -286,16 +380,42 @@ Singleton {
                 try {
                     const data = JSON.parse(this.text);
                     videoWallpapersModel.clear();
+                    sceneWallpapersModel.clear();
+
+                    const previews = {};
+
                     for (let i = 0; i < data.length; i++) {
-                        videoWallpapersModel.append({
-                            preview: data[i].preview,
-                            filePath: data[i].file
-                        });
+                        const item = data[i];
+                        const row = {
+                            preview: item.preview || "",
+                            filePath: item.file
+                        };
+
+                        if (item.type === "scene") {
+                            sceneWallpapersModel.append(row);
+                            previews[item.file] = row.preview;
+                        } else {
+                            videoWallpapersModel.append(row);
+                        }
                     }
+
+                    root._scenePreviews = previews;
                     root._rebuildBoth();
+
+                    // A scene set at startup could not resolve its preview until
+                    // this ran, so the generators were left waiting on it.
+                    if (root._colorsWaitForScene) {
+                        const preview = root.scenePreview(Config.wallpaper.current);
+                        if (preview) {
+                            root._colorsWaitForScene = false;
+                            root.generateColors(preview);
+                            root.wallpaperChanged(Config.wallpaper.current, WallpaperService.Type.Scene);
+                        }
+                    }
+
                     Qt.callLater(root.modelUpdateDone);
                 } catch (e) {
-                    console.log("[mpvpaper] Failed to parse video wallpapers:", e);
+                    console.log("[wallpaper] Failed to parse Workshop wallpapers:", e);
                 }
             }
         }
