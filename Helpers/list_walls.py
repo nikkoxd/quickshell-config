@@ -47,6 +47,17 @@ def get_video(wall_dir: Path) -> Path | None:
     return None
 
 
+def get_mtime(wall_dir: Path) -> float:
+    """Download time of the wallpaper.
+
+    Steam stamps the files it writes, but not the directory holding them, so
+    the newest file inside a wallpaper is the best available proxy for when it
+    was downloaded.
+    """
+    times = [f.stat().st_mtime for f in wall_dir.iterdir() if f.is_file()]
+    return max(times) if times else wall_dir.stat().st_mtime
+
+
 def get_preview(wall_dir: Path) -> Path | None:
     for name in PREVIEW_NAMES:
         candidate = wall_dir / name
@@ -62,11 +73,15 @@ def get_preview(wall_dir: Path) -> Path | None:
 def main() -> None:
     workshop_dir = find_workshop_dir()
 
-    wallpapers = []
-    for wall_dir in sorted(workshop_dir.iterdir()):
-        if not wall_dir.is_dir():
-            continue
+    # Most recently downloaded first.
+    wall_dirs = sorted(
+        (d for d in workshop_dir.iterdir() if d.is_dir()),
+        key=get_mtime,
+        reverse=True,
+    )
 
+    wallpapers = []
+    for wall_dir in wall_dirs:
         video = get_video(wall_dir)
         if video is None:
             continue

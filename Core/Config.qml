@@ -205,6 +205,8 @@ Singleton {
             property string type: "image"
             // What the wallpaper selector browses: image | video | both
             property string selectorFilter: "image"
+            // The order the selector lists wallpapers in: recent | random
+            property string selectorSort: "recent"
             property string staticWallpaperFolder: "$HOME/Pictures/Wallpapers/"
             property string transition: "doom"
             // Pick a random transition on every wallpaper change instead.

@@ -45,6 +45,10 @@ View {
     // by a write-back from here.
     readonly property string filter: Config.wallpaper.selectorFilter
 
+    // Listing order: "recent" (newest first) or "random". Read-only for the
+    // same reason as the filter — the button writes the config.
+    readonly property string sort: Config.wallpaper.selectorSort
+
     onFilterChanged: WallpaperService.requestModelUpdate(filter)
 
     Component.onCompleted: {
@@ -61,14 +65,8 @@ View {
 
         let target = Config.wallpaper.current;
         for (let i = 0; i < model.count; i++) {
-            // FolderListModel needs a role name, ListModel returns the row.
-            let item;
-            if (filter === "image") {
-                item = model.get(i, "filePath");
-            } else {
-                item = model.get(i).filePath;
-            }
-            if (item && item === target) {
+            const wallpaper = WallpaperService.getWallpaper(i, root.filter);
+            if (wallpaper && wallpaper.path === target) {
                 Qt.callLater(() => carousel.currentIndex = i);
                 return;
             }
@@ -128,6 +126,16 @@ View {
             // list is not covered by the wallpaper thumbnails.
             z: 1
             text: "Wallpapers"
+
+            // Not a toggle: the icon alone says which order is on, so it never
+            // takes the accent highlight. A new shuffle every time random is
+            // picked, so pressing it again reorders instead of doing nothing.
+            IconButton {
+                icon: root.sort === "random" ? "shuffle" : "clock-counter-clockwise"
+                width: height
+                height: themeSelector.height
+                onClicked: Config.wallpaper.selectorSort = root.sort === "random" ? "recent" : "random"
+            }
 
             // Only the generators render a light and a dark variant; a static
             // theme is whatever its file says it is.

@@ -38,7 +38,9 @@ Singleton {
     // What the selector browses: "image", "video" or "both". A plain string
     // rather than a second enum — QML only exposes one enum per type here.
     function getModel(filter) {
-        if (filter === "video") {
+        if (Config.wallpaper.selectorSort === "random") {
+            return shuffledWallpapersModel;
+        } else if (filter === "video") {
             return videoWallpapersModel;
         } else if (filter === "both") {
             return bothWallpapersModel;
@@ -184,15 +186,17 @@ Singleton {
             return undefined;
         }
 
-        if (filter !== "video" && filter !== "both") {
-            const path = imageWallpapersModel.get(index, "filePath");
+        // Only the image list is a FolderListModel, which is read by role name.
+        const model = getModel(filter);
+        if (model === imageWallpapersModel) {
+            const path = model.get(index, "filePath");
             return path ? {
                 path: path,
                 type: WallpaperService.Type.Image
             } : undefined;
         }
 
-        const row = getModel(filter).get(index);
+        const row = model.get(index);
         if (!row) {
             return undefined;
         }
@@ -235,6 +239,74 @@ Singleton {
         id: bothWallpapersModel
     }
 
+    // Whatever the filter browses, in a random order. Filled on demand so the
+    // ordered models stay the source of truth and nothing is shuffled twice.
+    ListModel {
+        id: shuffledWallpapersModel
+    }
+
+    function _rows(filter) {
+        const rows = [];
+
+        if (filter !== "video") {
+            for (let i = 0; i < imageWallpapersModel.count; i++) {
+                rows.push({
+                    preview: "",
+                    filePath: imageWallpapersModel.get(i, "filePath"),
+                    type: WallpaperService.Type.Image
+                });
+            }
+        }
+
+        if (filter !== "image") {
+            for (let i = 0; i < videoWallpapersModel.count; i++) {
+                const row = videoWallpapersModel.get(i);
+                rows.push({
+                    preview: row.preview,
+                    filePath: row.filePath,
+                    type: WallpaperService.Type.Mpvpaper
+                });
+            }
+        }
+
+        return rows;
+    }
+
+    function _reshuffle() {
+        shuffledWallpapersModel.clear();
+        if (Config.wallpaper.selectorSort !== "random") {
+            return;
+        }
+
+        const rows = _rows(Config.wallpaper.selectorFilter);
+        for (let i = rows.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            const swap = rows[i];
+            rows[i] = rows[j];
+            rows[j] = swap;
+        }
+
+        for (let i = 0; i < rows.length; i++) {
+            shuffledWallpapersModel.append(rows[i]);
+        }
+    }
+
+    // A shuffle is only redrawn when asked for, not on every model change, so
+    // the order under the cursor stays put while browsing.
+    Connections {
+        target: Config.wallpaper
+
+        function onSelectorSortChanged() {
+            root._reshuffle();
+            Qt.callLater(root.modelUpdateDone);
+        }
+
+        function onSelectorFilterChanged() {
+            root._reshuffle();
+            Qt.callLater(root.modelUpdateDone);
+        }
+    }
+
     function _rebuildBoth() {
         bothWallpapersModel.clear();
 
@@ -254,6 +326,8 @@ Singleton {
                 type: WallpaperService.Type.Mpvpaper
             });
         }
+
+        root._reshuffle();
     }
 
     Connections {
