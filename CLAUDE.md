@@ -47,9 +47,35 @@ Colorschemes are separate: `Config/theme.json` names a scheme (e.g. `"Moonfly"`)
 
 > Note: `Core/ThemeLoader.qml` is a legacy/duplicate colorscheme singleton with a different key set (`bg2`/`bg3`/`bg4`). New code should use `Config.colorscheme`, not `ThemeLoader`.
 
-Use `Core/ThemedText.qml` (font from `Config.theme`) and `Core/ScrollingText.qml` for text so typography stays centralized. Icon glyphs are Phosphor ligature names (`ThemedText { icon: true; text: "push-pin" }`).
+Never hardcode a color, font or radius in a view — read it off `Config` through the shared components below.
 
 `Modules/Settings/` is the GUI over those JSON files. **To add a settings page:** create `Modules/Settings/Settings<Name>.qml` as a `ColumnLayout` of `SettingsOption`s (grouped under `SettingsSection`s), add a value to the `Settings.Tab` enum plus the instance in `Settings.qml`, and a `SettingsTab` in `SettingsSidebar.qml`.
+
+## Core components
+
+`Core/` also holds the reusable widgets every view is built from. Prefer these over raw `QtQuick.Controls` or hand-rolled rectangles — they already pull colors from `Config.colorscheme`, radii from `Config.island.radius`, and fonts from `Config.theme`, so a new colorscheme or font size propagates for free.
+
+Text:
+
+- `ThemedText` — the `Text` replacement (font from `Config.theme`, color `Config.colorscheme.fg`). `icon: true` switches the family to Phosphor so `text` is a ligature name (`ThemedText { icon: true; text: "push-pin" }`); `isHeading: true` bumps the size by 1.15.
+- `ScrollingText` — `ThemedText` clipped to `maxWidth` that auto-scrolls back and forth when the text overflows, restarting on every `text` change. Used for track titles.
+
+Controls (all emit a signal rather than mutating their own state, so the caller owns the value):
+
+- `IconButton` — square Phosphor-glyph button, also usable as a toggle: `active` swaps in `activeIcon` and the accent background. `clicked(button)` carries the mouse button, so right-click menus hang off the same component.
+- `Toggle` — the switch. Emits `toggled(checked)` only on real user input; it deliberately does *not* watch `checked`, because a binding resolving at load would otherwise write the config back over itself.
+- `Slider` — horizontal or vertical (`vertical: true`) fill slider with a hover preview. Optional icon via `icon`, drawn as a Phosphor glyph (`iconAsText: true`, default) or a themed app icon (`iconAsText: false`, resolved through `Quickshell.iconPath`); it recolors itself once the fill grows behind it.
+- `TextField` — themed `Controls.TextField` with `pill`, `borderless`, `radius` and `horizontalPadding` knobs.
+- `SegmentPill` — segmented control over `options` (a list of `{ label, value }`) with a highlight that slides onto `current`; emits `selected(value)`. `icons: true` renders the labels as glyphs.
+- `Dropdown` — single-select dropdown over the same option shape (plain strings also work); emits `selected(value)`. The list floats and the root stays trigger-height, so opening one never reflows the layout — but a clipping container has to grow by `listHeight` to reveal it, and `collapse()` closes it.
+- `PopupMenu` — `PopupWindow` context menu built from a `menu` list of `{ text, triggered, isSeparator }`; `showMenu()` opens it, `closeRequested` fires on activation.
+
+Chrome and helpers:
+
+- `ViewHeader` — the title row every non-default view uses: `text` on the left, children going into the right-hand action `Row` (its `default` property).
+- `Cava` / `CavaBars` — the two visualizer renderings fed by `CavaService`. `Cava` paints a gradient curve across the island background, `CavaBars` a few inline bars next to text; each is `visible` only for its own `Config.visualizer.mode` (`"background"` / `"bars"`), so both can be instantiated unconditionally.
+- `RecordingIndicator` — the blinking dot shown while `RecordingService.recording`. `shown` is the extra gate default views use to keep it clear of the inline visualizer.
+- `CommandQueue` — runs a list of shell commands one at a time through `sh -c`, warning on stderr with `label` as the prefix. Used for user-configured hook commands.
 
 ## Services
 
