@@ -1,4 +1,5 @@
 import Quickshell.Io
+import Quickshell.Services.Pipewire
 import QtQuick
 import qs.Core
 import qs.Services
@@ -170,6 +171,22 @@ View {
                     }
                 }
             }
+        }
+
+        ThemedText {
+            text: "microphone-slash"
+            font.pixelSize: 13
+            icon: true
+            visible: Pipewire.defaultAudioSink?.audio.muted
+            anchors.verticalCenter: parent.verticalCenter
+        }
+
+        ThemedText {
+            text: "speaker-slash"
+            font.pixelSize: 13
+            icon: true
+            visible: Pipewire.defaultAudioSource?.audio.muted
+            anchors.verticalCenter: parent.verticalCenter
         }
 
         RecordingIndicator {
