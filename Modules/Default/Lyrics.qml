@@ -177,7 +177,7 @@ View {
             text: "microphone-slash"
             font.pixelSize: 13
             icon: true
-            visible: Pipewire.defaultAudioSink?.audio.muted
+            visible: Pipewire.defaultAudioSource?.audio.muted
             anchors.verticalCenter: parent.verticalCenter
         }
 
@@ -185,7 +185,7 @@ View {
             text: "speaker-slash"
             font.pixelSize: 13
             icon: true
-            visible: Pipewire.defaultAudioSource?.audio.muted
+            visible: Pipewire.defaultAudioSink?.audio.muted
             anchors.verticalCenter: parent.verticalCenter
         }
 
