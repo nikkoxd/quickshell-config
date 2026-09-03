@@ -25,6 +25,13 @@ Column {
         }
 
         SettingsTab {
+            text: "DNS"
+            icon: "globe"
+            selected: root.currentTab === Settings.Tab.Dns
+            onTapped: root.currentTab = Settings.Tab.Dns
+        }
+
+        SettingsTab {
             text: "Dock"
             icon: "app-window"
             selected: root.currentTab === Settings.Tab.Dock

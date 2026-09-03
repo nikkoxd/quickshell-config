@@ -15,6 +15,7 @@ import qs.Modules.LocalSend as LocalSendModule
 import qs.Modules.Wallpapers as WallpapersModule
 import qs.Modules.Bluetooth as BluetoothModule
 import qs.Modules.Mixer as MixerModule
+import qs.Modules.Dns as DnsModule
 import qs.Modules.Settings as SettingsModule
 import qs.Services
 
@@ -56,6 +57,7 @@ Item {
     property Component localsend: LocalSendModule.LocalSend {}
     property Component bluetooth: BluetoothModule.Bluetooth {}
     property Component mixer: MixerModule.Mixer {}
+    property Component dns: DnsModule.Dns {}
 
     PropertyAnimation {
         id: blurTransitionAnimation

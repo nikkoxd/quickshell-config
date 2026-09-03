@@ -7,11 +7,15 @@ FloatingWindow {
     id: root
     color: Config.colorscheme.bg
     title: "Settings"
+    // Floor under the sidebar plus a label and its control, so the pages are
+    // never squeezed past what their layouts can shrink to.
+    minimumSize: Qt.size(640, 400)
 
     property int currentTab: sidebar.currentTab
 
     enum Tab {
         Island,
+        Dns,
         Dock,
         Launcher,
         Recording,
@@ -32,6 +36,10 @@ FloatingWindow {
 
         SettingsIsland {
             visible: root.currentTab === Settings.Tab.Island
+        }
+
+        SettingsDns {
+            visible: root.currentTab === Settings.Tab.Dns
         }
 
         SettingsDock {

@@ -140,6 +140,15 @@ LauncherProvider {
             }
         },
         {
+            name: "DNS",
+            genericName: "dns servers",
+            icon: "globe",
+            iconType: LauncherProvider.IconType.Material,
+            execute: function() {
+                root.svc.viewChangeRequested("dns");
+            }
+        },
+        {
             name: "Bluetooth",
             genericName: "bluetooth",
             icon: "bluetooth",

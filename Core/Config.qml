@@ -81,6 +81,50 @@ Singleton {
             }
         })
 
+    // DNS presets offered by the dns view, in the order they are listed. Each
+    // entry is { name, ipv4: [...], ipv6: [...] }; a list of objects is shaped
+    // wrong for a JsonAdapter, so it is parsed by hand like the templates
+    // registry. The DHCP entry is not in here -- DnsService always prepends it.
+    property var dns: root.defaultDns
+
+    readonly property var defaultDns: [
+        {
+            name: "Cloudflare",
+            ipv4: ["1.1.1.1", "1.0.0.1"],
+            ipv6: ["2606:4700:4700::1111", "2606:4700:4700::1001"]
+        },
+        {
+            name: "Cloudflare (no malware)",
+            ipv4: ["1.1.1.2", "1.0.0.2"],
+            ipv6: ["2606:4700:4700::1112", "2606:4700:4700::1002"]
+        },
+        {
+            name: "Google",
+            ipv4: ["8.8.8.8", "8.8.4.4"],
+            ipv6: ["2001:4860:4860::8888", "2001:4860:4860::8844"]
+        },
+        {
+            name: "Quad9",
+            ipv4: ["9.9.9.9", "149.112.112.112"],
+            ipv6: ["2620:fe::fe", "2620:fe::9"]
+        },
+        {
+            name: "AdGuard",
+            ipv4: ["94.140.14.14", "94.140.15.15"],
+            ipv6: ["2a10:50c0::ad1:ff", "2a10:50c0::ad2:ff"]
+        },
+        {
+            name: "Mullvad",
+            ipv4: ["194.242.2.2"],
+            ipv6: ["2a07:e340::2"]
+        }
+    ]
+
+    function saveDns(servers) {
+        root.dns = servers;
+        dnsLoader.setText(JSON.stringify(servers, null, 4) + "\n");
+    }
+
     function saveTemplates(entries) {
         root.templates = entries;
         templatesLoader.setText(JSON.stringify(entries, null, 4) + "\n");
@@ -306,6 +350,30 @@ Singleton {
         onLoadFailed: error => {
             if (error === FileViewError.FileNotFound) {
                 root.saveTemplates(root.defaultTemplates);
+            }
+        }
+    }
+
+    FileView {
+        id: dnsLoader
+        path: Qt.resolvedUrl("../Config/dns.json")
+        watchChanges: true
+        onFileChanged: reload()
+        onLoaded: {
+            try {
+                const parsed = JSON.parse(text());
+                if (Array.isArray(parsed)) {
+                    root.dns = parsed;
+                } else {
+                    console.warn("config: dns.json is not a list of servers");
+                }
+            } catch (e) {
+                console.warn("config: could not parse dns.json:", e);
+            }
+        }
+        onLoadFailed: error => {
+            if (error === FileViewError.FileNotFound) {
+                root.saveDns(root.defaultDns);
             }
         }
     }
