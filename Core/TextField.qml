@@ -17,6 +17,9 @@ Controls.TextField {
     // whichever of the background and the content is larger.
     property real backgroundImplicitWidth: 0
     property real backgroundImplicitHeight: 40
+    // Unit label pinned inside the right edge (px, ms, …). It reserves its own
+    // padding, so the text never runs underneath it.
+    property string suffix: ""
 
     color: Config.colorscheme.fg
     placeholderTextColor: Qt.alpha(Config.colorscheme.fg, 0.5)
@@ -25,12 +28,23 @@ Controls.TextField {
     font.family: Config.theme.fontFamily
     font.pixelSize: Config.theme.fontSize
     leftPadding: root.horizontalPadding
-    rightPadding: root.horizontalPadding
+    rightPadding: root.horizontalPadding + (suffixLabel.visible ? suffixLabel.implicitWidth + 6 : 0)
 
     background: Rectangle {
         implicitWidth: root.backgroundImplicitWidth
         implicitHeight: root.backgroundImplicitHeight
         color: root.borderless ? "transparent" : Config.colorscheme.surface
         radius: root.pill ? height / 2 : root.radius
+    }
+
+    ThemedText {
+        id: suffixLabel
+        visible: root.suffix !== ""
+        text: root.suffix
+        font.pixelSize: root.font.pixelSize
+        color: Qt.alpha(Config.colorscheme.fg, 0.5)
+        anchors.right: parent.right
+        anchors.rightMargin: root.horizontalPadding
+        anchors.verticalCenter: parent.verticalCenter
     }
 }
