@@ -103,4 +103,19 @@ ColumnLayout {
             type: SettingsOption.Type.Switch
         }
     }
+
+    ColumnLayout {
+        spacing: 10
+
+        SettingsSection {
+            text: "OCR"
+        }
+
+        SettingsOption {
+            title: "OCR language"
+            value: Config.recorder.ocrLanguage
+            onEdited: value => Config.recorder.ocrLanguage = value
+            type: SettingsOption.Type.TextField
+        }
+    }
 }

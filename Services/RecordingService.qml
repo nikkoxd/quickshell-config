@@ -14,6 +14,9 @@ Singleton {
     property bool screenshotTemp: false
     property var visibleWorkspaces: []
     property int pendingKind: RecordingService.Kind.Region
+    // Whether the pending capture ends in tesseract instead of the usual
+    // save/copy. The whole slurp -> grim path is shared between the two.
+    property bool pendingOcr: false
 
     Timer {
         id: screenshotDelay
@@ -70,12 +73,27 @@ Singleton {
             NotificationService.notify("Screenshot skipped", "Enable saving or copying in Settings → Recordings");
             return;
         }
+        root.pendingOcr = false;
+        root.pendingKind = kind;
+        screenshotDelay.restart();
+    }
+
+    // Same capture path as screenshot(), but the image is read by tesseract and
+    // the recognised text goes to the clipboard; nothing is kept on disk.
+    function ocr(kind) {
+        root.pendingOcr = true;
         root.pendingKind = kind;
         screenshotDelay.restart();
     }
 
     function startScreenshot(kind) {
-        screenshotFileName();
+        if (root.pendingOcr) {
+            root.screenshotTemp = true;
+            root.screenshotPath = "/tmp/island-ocr-" + timestamp() + ".png";
+            console.log("[Recorder] OCR capture to:", root.screenshotPath);
+        } else {
+            screenshotFileName();
+        }
         if (kind === RecordingService.Kind.Fullscreen) {
             runGrim("");
         } else if (kind === RecordingService.Kind.Region) {
@@ -303,10 +321,18 @@ Singleton {
         id: grimProc
         onExited: exitCode => {
             if (exitCode !== 0) {
-                NotificationService.notify("Screenshot failed", "grim exited with code " + exitCode);
+                NotificationService.notify(root.pendingOcr ? "OCR failed" : "Screenshot failed", "grim exited with code " + exitCode);
                 return;
             }
-            if (Config.recorder.screenshotCopy) {
+            if (root.pendingOcr) {
+                // stdout is the recognised text ("-" as the output base), so
+                // tesseract never writes a .txt file next to anything.
+                ocrProc.command = [
+                    "sh", "-c", 'tesseract "$1" - -l "$2" 2>/dev/null',
+                    "_", root.screenshotPath, Config.recorder.ocrLanguage
+                ];
+                ocrProc.running = true;
+            } else if (Config.recorder.screenshotCopy) {
                 copyProc.command = ["sh", "-c", 'wl-copy --type image/png < "$1"', "_", root.screenshotPath];
                 copyProc.running = true;
             } else {
@@ -334,6 +360,38 @@ Singleton {
 
     Process {
         id: removeProc
+    }
+
+    Process {
+        id: ocrProc
+        // Driven off stdout for the same reason as slurp: stdout and onExited
+        // have no guaranteed order, and the text is the only thing that matters.
+        stdout: StdioCollector {
+            onStreamFinished: {
+                removeProc.command = ["rm", "-f", root.screenshotPath];
+                removeProc.running = true;
+                const recognized = text.trim();
+                if (recognized === "") {
+                    NotificationService.notify("OCR found no text", "Nothing was recognized in the selection");
+                    return;
+                }
+                // Text passed as an argument rather than piped, so no quoting
+                // of the recognized text is involved anywhere.
+                ocrCopyProc.command = ["wl-copy", "--", recognized];
+                ocrCopyProc.running = true;
+                const preview = recognized.replace(/\s+/g, " ");
+                NotificationService.notify("Text copied", preview.length > 100 ? preview.slice(0, 100) + "…" : preview);
+            }
+        }
+    }
+
+    Process {
+        id: ocrCopyProc
+        onExited: exitCode => {
+            if (exitCode !== 0) {
+                NotificationService.notify("Text not copied", "wl-copy exited with code " + exitCode);
+            }
+        }
     }
 
     Process {

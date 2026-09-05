@@ -188,6 +188,15 @@ Item {
             return "ok";
         }
 
+        function ocr(kind: string): string {
+            const resolved = root.screenshotKind(kind === "" ? "region" : kind);
+            if (resolved === -1) {
+                return "unknown kind: " + kind + " (region, window, fullscreen)";
+            }
+            RecordingService.ocr(resolved);
+            return "ok";
+        }
+
         function toggleRecording(): string {
             RecordingService.toggleRecording();
             return RecordingService.recording ? "recording" : "stopped";

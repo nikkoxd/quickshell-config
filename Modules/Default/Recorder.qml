@@ -16,6 +16,11 @@ View {
         root.closeRequested();
     }
 
+    function recognize(kind) {
+        RecordingService.ocr(kind);
+        root.closeRequested();
+    }
+
     component RecorderButton: Rectangle {
         id: button
         color: active ? Config.colorscheme.accent : hoverHandler.hovered ? Config.colorscheme.surface : "transparent"
@@ -76,6 +81,11 @@ View {
                 icon: "monitor"
                 onTapped: root.capture(RecordingService.Kind.Fullscreen)
             }
+            RecorderButton {
+                icon: "text-t"
+                onTapped: root.recognize(RecordingService.Kind.Region)
+            }
+
         }
 
         Row {

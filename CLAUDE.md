@@ -91,7 +91,7 @@ Singletons in `Services/` wrap external systems and expose reactive properties/s
 - `TemplateService` — owns the app-theming templates shared by both generators (see below).
 - `LocalSendService`, `DateService`.
 
-External CLI tools these depend on (must be on PATH): `cava`, `awww` + `awww-daemon`, `mpvpaper`, `notify-send`, `iris`/`matugen` for colorscheme generation, plus `python3` for helpers.
+External CLI tools these depend on (must be on PATH): `cava`, `awww` + `awww-daemon`, `mpvpaper`, `notify-send`, `iris`/`matugen` for colorscheme generation, `tesseract` for OCR, plus `python3` for helpers.
 
 ## Templates
 

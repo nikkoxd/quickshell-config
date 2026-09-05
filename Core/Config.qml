@@ -287,6 +287,7 @@ Singleton {
             property bool recordingMicrophone: false
             property int recordingFramerate: 60
             property int replayDuration: 60
+            property string ocrLanguage: "rus+eng"
         }
     }
 

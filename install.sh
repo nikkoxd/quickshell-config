@@ -41,6 +41,10 @@ PACMAN_PKGS=(
     matugen
     git
     go
+    tesseract
+    tesseract-data-eng
+    tesseract-data-osd
+    tesseract-data-rus
 )
 
 # AUR.
