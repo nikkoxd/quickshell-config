@@ -30,44 +30,123 @@ FloatingWindow {
         anchors.fill: parent
         anchors.margins: Config.island.padding
 
-        SettingsSidebar {
-            id: sidebar
+        // The tab list outgrows a short window before the pages do, so it gets
+        // the same treatment.
+        ScrollArea {
+            Layout.fillHeight: true
+            Layout.preferredWidth: sidebar.implicitWidth + gutter
+
+            SettingsSidebar {
+                id: sidebar
+            }
         }
 
-        SettingsIsland {
+        ScrollArea {
             visible: root.currentTab === Settings.Tab.Island
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            // A row is a 200px title, its spacing and the widest control
+            // minimum (the Dropdown's 150px). Below that the page scrolls
+            // sideways instead of squeezing its controls away.
+            minContentWidth: 360
+
+            SettingsIsland {}
         }
 
-        SettingsDns {
+        ScrollArea {
             visible: root.currentTab === Settings.Tab.Dns
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            // A row is a 200px title, its spacing and the widest control
+            // minimum (the Dropdown's 150px). Below that the page scrolls
+            // sideways instead of squeezing its controls away.
+            minContentWidth: 360
+
+            SettingsDns {}
         }
 
-        SettingsDock {
+        ScrollArea {
             visible: root.currentTab === Settings.Tab.Dock
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            // A row is a 200px title, its spacing and the widest control
+            // minimum (the Dropdown's 150px). Below that the page scrolls
+            // sideways instead of squeezing its controls away.
+            minContentWidth: 360
+
+            SettingsDock {}
         }
 
-        SettingsLauncher {
+        ScrollArea {
             visible: root.currentTab === Settings.Tab.Launcher
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            // A row is a 200px title, its spacing and the widest control
+            // minimum (the Dropdown's 150px). Below that the page scrolls
+            // sideways instead of squeezing its controls away.
+            minContentWidth: 360
+
+            SettingsLauncher {}
         }
 
-        SettingsRecording {
+        ScrollArea {
             visible: root.currentTab === Settings.Tab.Recording
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            // A row is a 200px title, its spacing and the widest control
+            // minimum (the Dropdown's 150px). Below that the page scrolls
+            // sideways instead of squeezing its controls away.
+            minContentWidth: 360
+
+            SettingsRecording {}
         }
 
-        SettingsVisualizer {
+        ScrollArea {
             visible: root.currentTab === Settings.Tab.Visualizer
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            // A row is a 200px title, its spacing and the widest control
+            // minimum (the Dropdown's 150px). Below that the page scrolls
+            // sideways instead of squeezing its controls away.
+            minContentWidth: 360
+
+            SettingsVisualizer {}
         }
 
-        SettingsTheme {
+        ScrollArea {
             visible: root.currentTab === Settings.Tab.Theme
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            // A row is a 200px title, its spacing and the widest control
+            // minimum (the Dropdown's 150px). Below that the page scrolls
+            // sideways instead of squeezing its controls away.
+            minContentWidth: 360
+
+            SettingsTheme {}
         }
 
-        SettingsTemplates {
+        ScrollArea {
             visible: root.currentTab === Settings.Tab.Templates
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            // A row is a 200px title, its spacing and the widest control
+            // minimum (the Dropdown's 150px). Below that the page scrolls
+            // sideways instead of squeezing its controls away.
+            minContentWidth: 360
+
+            SettingsTemplates {}
         }
 
-        SettingsWallpaper {
+        ScrollArea {
             visible: root.currentTab === Settings.Tab.Wallpaper
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            // A row is a 200px title, its spacing and the widest control
+            // minimum (the Dropdown's 150px). Below that the page scrolls
+            // sideways instead of squeezing its controls away.
+            minContentWidth: 360
+
+            SettingsWallpaper {}
         }
     }
 }
