@@ -113,6 +113,42 @@ LauncherProvider {
             }
         },
         {
+            name: "Timer",
+            genericName: "timer countdown",
+            icon: "timer",
+            iconType: LauncherProvider.IconType.Material,
+            execute: function() {
+                root.svc.viewChangeRequested("timer");
+            }
+        },
+        {
+            name: "Pause/resume timer",
+            genericName: "pause timer",
+            icon: "pause",
+            iconType: LauncherProvider.IconType.Material,
+            execute: function() {
+                TimerService.toggle();
+            }
+        },
+        {
+            name: "Stop timer",
+            genericName: "stop timer",
+            icon: "stop",
+            iconType: LauncherProvider.IconType.Material,
+            execute: function() {
+                TimerService.stop();
+            }
+        },
+        {
+            name: "Repeat last timer",
+            genericName: "repeat timer",
+            icon: "arrow-counter-clockwise",
+            iconType: LauncherProvider.IconType.Material,
+            execute: function() {
+                TimerService.repeat();
+            }
+        },
+        {
             name: "Dashboard",
             genericName: "dashboard",
             icon: "cards-three",

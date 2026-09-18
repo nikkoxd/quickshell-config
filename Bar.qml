@@ -16,6 +16,7 @@ import qs.Modules.Wallpapers as WallpapersModule
 import qs.Modules.Bluetooth as BluetoothModule
 import qs.Modules.Mixer as MixerModule
 import qs.Modules.Dns as DnsModule
+import qs.Modules.Timer as TimerModule
 import qs.Modules.Settings as SettingsModule
 import qs.Services
 
@@ -58,6 +59,7 @@ Item {
     property Component bluetooth: BluetoothModule.Bluetooth {}
     property Component mixer: MixerModule.Mixer {}
     property Component dns: DnsModule.Dns {}
+    property Component timer: TimerModule.Timer {}
 
     PropertyAnimation {
         id: blurTransitionAnimation

@@ -24,6 +24,10 @@ View {
             anchors.verticalCenter: parent.verticalCenter
         }
 
+        TimerIndicator {
+            anchors.verticalCenter: parent.verticalCenter
+        }
+
         ThemedText {
             id: text
             text: DateService.hours + ":" + DateService.minutes

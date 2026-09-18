@@ -42,6 +42,10 @@ View {
             anchors.verticalCenter: parent.verticalCenter
         }
 
+        TimerIndicator {
+            anchors.verticalCenter: parent.verticalCenter
+        }
+
         Item {
             id: lyrics
             anchors.verticalCenter: parent.verticalCenter
