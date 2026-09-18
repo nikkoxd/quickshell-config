@@ -201,7 +201,11 @@ Singleton {
                 "-r", String(Config.recorder.replayDuration),
                 "-c", "mp4",
                 "-o", expandPath(Config.recorder.replaysFolder),
-                "-replay-storage", "disk"
+                // RAM, not disk: with "-replay-storage disk" gpu-screen-recorder
+                // (5.15.2) never trims its on-disk buffer, so a save writes out
+                // everything recorded since the buffer started rather than the
+                // last -r seconds. RAM storage honours -r.
+                "-replay-storage", "ram"
             ]
             // Sweep leftovers first, then start (see cleanupProc.onExited).
             cleanupStaleReplays();
