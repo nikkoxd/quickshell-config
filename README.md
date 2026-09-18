@@ -5,7 +5,7 @@
     <br />
     <img src="Screenshots/6.png" width="33%" />
     <img src="Screenshots/5.png" width="33%" />
-    <img src="Screenshots/4.png" width="33%" />
+    <img src="Screenshots/7.png" width="33%" />
 </div>
 
 ## Installing
