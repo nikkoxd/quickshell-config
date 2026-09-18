@@ -75,6 +75,7 @@ Item {
     function openDefaultView() {
         console.log("[bar] Opening default view");
         hoverOpenTimer.stop();
+        root.hoverOpened = false;
         // Closing a view while still pointing at the island would immediately
         // re-arm the open timer. Stay closed until the pointer leaves.
         root.hoverSuppressed = islandHover.hovered;
@@ -84,6 +85,7 @@ Item {
 
     function openView(view, params) {
         console.log("[bar] Opening", view, "view");
+        root.hoverOpened = false;
         if (view === root.currentItem)
             return;
         hoverOpenTimer.stop();
@@ -101,6 +103,11 @@ Item {
     readonly property string hoverItem: "dashboard"
     readonly property bool hoverClosable: content.currentView?.closeOnUnhover ?? false
     property bool hoverSuppressed: false
+    // Whether the current view was swapped in by the pointer resting on the
+    // island rather than by an explicit request. Only a hover-opened view is
+    // denied the keyboard grab, so a view can be both `focused` and
+    // `closeOnUnhover` and still take keys when opened deliberately.
+    property bool hoverOpened: false
 
     HoverHandler {
         id: islandHover
@@ -122,7 +129,10 @@ Item {
     Timer {
         id: hoverOpenTimer
         interval: Config.island.hoverOpenDelay
-        onTriggered: root.openView(root.hoverItem)
+        onTriggered: {
+            root.openView(root.hoverItem);
+            root.hoverOpened = true;
+        }
     }
 
     Timer {
