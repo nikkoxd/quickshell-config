@@ -45,9 +45,10 @@ ShellRoot {
         HyprlandFocusGrab {
             id: grab
             windows: [root]
-            // A view that closes when the pointer leaves must not steal the
-            // keyboard just because the pointer drifted over it.
-            active: bar.content.currentView.focused && !bar.hoverClosable
+            // A view swapped in by hover must not steal the keyboard just
+            // because the pointer drifted over the island. One opened
+            // deliberately grabs even if it also closes on unhover.
+            active: bar.content.currentView.focused && !bar.hoverOpened
             onCleared: {
                 if (bar.content.currentView.popups.length === 0) {
                     LocalSendService.rejectTransfer();
