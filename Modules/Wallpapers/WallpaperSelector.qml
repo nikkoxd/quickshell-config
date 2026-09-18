@@ -127,6 +127,13 @@ View {
             z: 1
             text: "Wallpapers"
 
+            IconButton {
+                icon: "cloud-arrow-down"
+                width: height
+                height: themeSelector.height
+                onClicked: root.viewChangeRequested("wallpaperBrowser")
+            }
+
             // Not a toggle: the icon alone says which order is on, so it never
             // takes the accent highlight. A new shuffle every time random is
             // picked, so pressing it again reorders instead of doing nothing.

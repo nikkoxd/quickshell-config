@@ -45,4 +45,25 @@ ColumnLayout {
         onChecked: value => Config.wallpaper.randomTransition = value
         type: SettingsOption.Type.Switch
     }
+
+    SettingsSection {
+        text: "Wallhaven"
+    }
+
+    // Downloads land in the image folder above. Only the key lives here: the
+    // rest of the search filters are set in the browser itself.
+    SettingsOption {
+        title: "API key"
+        value: Config.wallhaven.apiKey
+        onEdited: value => Config.wallhaven.apiKey = value
+        type: SettingsOption.Type.TextField
+    }
+
+    SettingsOption {
+        title: "Toplist range"
+        value: Config.wallhaven.topRange
+        options: ["1d", "3d", "1w", "1M", "3M", "6M", "1y"]
+        onEdited: value => Config.wallhaven.topRange = value
+        type: SettingsOption.Type.ComboBox
+    }
 }

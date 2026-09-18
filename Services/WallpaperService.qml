@@ -214,6 +214,10 @@ Singleton {
         });
     }
 
+    // The local image folder, read by WallhavenService to mark results that
+    // have already been downloaded.
+    readonly property alias imageModel: imageWallpapersModel
+
     FolderListModel {
         id: imageWallpapersModel
         folder: "file://" + root.expandPath(Config.wallpaper.staticWallpaperFolder)

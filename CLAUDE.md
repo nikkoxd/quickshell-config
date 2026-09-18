@@ -66,6 +66,7 @@ Controls (all emit a signal rather than mutating their own state, so the caller 
 - `Toggle` — the switch. Emits `toggled(checked)` only on real user input; it deliberately does *not* watch `checked`, because a binding resolving at load would otherwise write the config back over itself.
 - `Slider` — horizontal or vertical (`vertical: true`) fill slider with a hover preview. Optional icon via `icon`, drawn as a Phosphor glyph (`iconAsText: true`, default) or a themed app icon (`iconAsText: false`, resolved through `Quickshell.iconPath`); it recolors itself once the fill grows behind it.
 - `TextField` — themed `Controls.TextField` with `pill`, `borderless`, `radius` and `horizontalPadding` knobs.
+- `Chip` — labelled toggle pill. Independent of its neighbours, so a row of them reads as a multi-select filter (the wallpaper browser's categories/purity); emits `clicked()`.
 - `SegmentPill` — segmented control over `options` (a list of `{ label, value }`) with a highlight that slides onto `current`; emits `selected(value)`. `icons: true` renders the labels as glyphs.
 - `Dropdown` — single-select dropdown over the same option shape (plain strings also work); emits `selected(value)`. The list floats and the root stays trigger-height, so opening one never reflows the layout — but a clipping container has to grow by `listHeight` to reveal it, and `collapse()` closes it.
 - `PopupMenu` — `PopupWindow` context menu built from a `menu` list of `{ text, triggered, isSeparator }`; `showMenu()` opens it, `closeRequested` fires on activation.
@@ -89,6 +90,7 @@ Singletons in `Services/` wrap external systems and expose reactive properties/s
 - `DockService` — builds the dock model: one item per application (`{ appId, entry, toplevels, pinned }`), pinned apps first in the order saved to `Config.dock.pinned`, then running-but-unpinned apps. Owns `move()`/`persistOrder()` (drag reorder; only pinned positions survive a restart), `setPinned()`/`togglePin()`, and `activate()`/`launch()`/`close()`.
 - `IrisService` / `MatugenService` — the two colorscheme generators, each a no-op unless `Config.theme.colorscheme` names it. Both are called from `WallpaperService.generateColors()`, and again whenever the colorscheme changes, so picking a generator re-themes from the wallpaper already on screen.
 - `TemplateService` — owns the app-theming templates shared by both generators (see below).
+- `WallhavenService` — search and download against wallhaven.cc through `Helpers/wallhaven.py`; exposes `results`, `loading`, `error`, `page`/`lastPage`, `search()`/`loadMore()`/`download()` and `downloaded`/`downloadFailed`. Filters live in `Config.wallhaven` (categories/purity bit strings, sorting, ratio, API key); `Modules/Wallpapers/WallpaperBrowser.qml` is the GUI and applies a finished download through `WallpaperService`.
 - `LocalSendService`, `DateService`.
 
 External CLI tools these depend on (must be on PATH): `cava`, `awww` + `awww-daemon`, `mpvpaper`, `notify-send`, `iris`/`matugen` for colorscheme generation, `tesseract` for OCR, plus `python3` for helpers.

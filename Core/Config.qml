@@ -15,6 +15,7 @@ Singleton {
     property var iris: irisLoader.adapter
     property var matugen: matugenLoader.adapter
     property var dock: dockLoader.adapter
+    property var wallhaven: wallhavenLoader.adapter
     property var colorscheme: colorschemeLoader.adapter
 
     // Template registry, keyed by template name. Each entry is
@@ -251,10 +252,42 @@ Singleton {
             property string selectorFilter: "image"
             // The order the selector lists wallpapers in: recent | random
             property string selectorSort: "recent"
+            // Which online source the wallpaper browser downloads from.
+            property string downloadSource: "wallhaven"
             property string staticWallpaperFolder: "$HOME/Pictures/Wallpapers/"
             property string transition: "doom"
             // Pick a random transition on every wallpaper change instead.
             property bool randomTransition: false
+        }
+    }
+
+    FileView {
+        id: wallhavenLoader
+        path: Qt.resolvedUrl("../Config/wallhaven.json")
+        watchChanges: true
+        onFileChanged: reload()
+        onAdapterUpdated: writeAdapter()
+        onLoadFailed: error => {
+            if (error === FileViewError.FileNotFound) {
+                writeAdapter();
+            }
+        }
+        adapter: JsonAdapter {
+            // Three bits each, in the order Wallhaven's API takes them:
+            // categories is general/anime/people, purity is sfw/sketchy/nsfw.
+            property string categories: "111"
+            property string purity: "100"
+            // date_added | relevance | random | views | favorites | toplist
+            property string sorting: "date_added"
+            // Aspect ratio filter: landscape, portrait or an exact ratio like
+            // 16x9. Empty for no filter.
+            property string ratios: ""
+            // Only read for the toplist sorting.
+            property string topRange: "1M"
+            // Last search, so reopening the browser lands where it was left.
+            property string query: ""
+            // Needed for NSFW results, and for a logged-in user's own filters.
+            property string apiKey: ""
         }
     }
 

@@ -56,6 +56,7 @@ Item {
     property Component dashboard: DashboardModule.Dashboard {}
     property Component launcher: LauncherModule.Launcher {}
     property Component wallpaperSelector: WallpapersModule.WallpaperSelector {}
+    property Component wallpaperBrowser: WallpapersModule.WallpaperBrowser {}
     property Component localsend: LocalSendModule.LocalSend {}
     property Component bluetooth: BluetoothModule.Bluetooth {}
     property Component mixer: MixerModule.Mixer {}
