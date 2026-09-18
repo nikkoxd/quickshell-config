@@ -27,8 +27,9 @@ Item {
 
     property string currentItem: "clock"
     // The dashboard's middle panel and the island's default view are one
-    // choice, made in DashboardService.
-    readonly property string defaultItem: DashboardService.panel === 1 ? "lyrics" : "clock"
+    // choice, made in DashboardService. Lyrics only make sense while something
+    // is actually playing, so a paused or absent player falls back to the clock.
+    readonly property string defaultItem: DashboardService.panel === 1 && MprisService.isPlaying === true ? "lyrics" : "clock"
 
     onDefaultItemChanged: {
         // This binding is first evaluated while the StackView is still empty,
