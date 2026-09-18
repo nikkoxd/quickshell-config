@@ -1,5 +1,7 @@
-#+title: Quickshell Configuration
+#+title: Readme
+#+OPTIONS: toc:nil
 
+* Quickshell Configuration
 #+BEGIN_EXPORT  html
 <div align="center">
     <img src="Screenshots/1.png" />
@@ -16,6 +18,7 @@ curl -fsSL https://raw.githubusercontent.com/nikkoxd/quickshell-config/main/inst
 #+end_src
 
 This will install the Quickshell config and the dependencies.
+
 You can then run the config with =qs -c island=. You can pass parameters after =bash -s --=.
 
 ** Features

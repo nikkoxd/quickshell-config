@@ -1,3 +1,5 @@
+
+
 # Quickshell Configuration
 
 <div align="center">
@@ -8,31 +10,33 @@
     <img src="Screenshots/7.png" width="33%" />
 </div>
 
+
 ## Installing
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/nikkoxd/quickshell-config/main/install.sh | bash
-```
+    curl -fsSL https://raw.githubusercontent.com/nikkoxd/quickshell-config/main/install.sh | bash
 
-This will install the Quickshell config and it's dependencies. You can then run the config with `qs -c island`. You can pass parameters after `bash -s --`.
+This will install the Quickshell config and the dependencies.  
+
+You can then run the config with `qs -c island`. You can pass parameters after `bash -s --`.  
+
 
 ## Features
 
-- [x] Themes
-- [x] App launcher
-    - [x] Password management (using KeePassXC)
-    - [x] Clipboard history
-    - [x] Emoji picker
-    - [x] Calculator
-- [x] Audio mixer
-- [x] Bluetooth controls
-- [x] Notifications
-- [x] Wallpaper picker
-    - [x] Iris/Matugen support
-    - [x] Wallpaper Engine integration
-    - [x] Online wallpapers from wallhaven.cc
-- [x] LocalSend integration
-- [x] Screenshot tool
-- [x] Recording tool
-- [x] Replay tool
-- [x] DNS switcher
+-   [X] Themes
+-   [X] App launcher  
+    -   [X] Password management using KeePassXC
+    -   [X] Clipboard history
+    -   [X] Emoji picker
+    -   [X] Calculator
+-   [X] Audio mixer
+-   [X] Bluetooth controls
+-   [X] Notifications
+-   [X] Wallpaper picker  
+    -   [X] Generate colorschemes with Iris or Matugen
+    -   [X] View Wallpaper Engine wallpapers downloaded from Steam workshop
+    -   [X] Download wallpapers from wallhaven.cc
+-   [X] Share files via LocalSend by dragging a file onto the island
+-   [X] Screenshot tool
+-   [X] Recording/replay tool
+-   [X] DNS switcher
+
