@@ -34,8 +34,24 @@ Singleton {
         root.selectedPlayer = player;
     }
     property var isPlaying: activePlayer && activePlayer.isPlaying
-    property real position: activePlayer ? activePlayer.position : 0
     property real length: activePlayer ? activePlayer.length : 0
+
+    // What the player reports right now, which is not always the truth: players emit a position
+    // a second ahead of reality and correct it in the same event loop turn (Sonora does it once
+    // a second). Read `position` instead - it is the settled value.
+    readonly property real rawPosition: activePlayer ? activePlayer.position : 0
+    property real position: 0
+
+    onRawPositionChanged: settlePosition.restart()
+
+    // Coalesces a turn's worth of position updates and publishes only the last, so a spike and
+    // its correction never reach bindings as two separate values. Without it the current lyric
+    // jumps to the next line and straight back, playing the swap animation twice.
+    Timer {
+        id: settlePosition
+        interval: 0
+        onTriggered: root.position = root.rawPosition
+    }
 
     Connections {
         target: root.activePlayer
