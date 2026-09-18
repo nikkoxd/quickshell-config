@@ -135,7 +135,7 @@ View {
             clip: true
             model: filtered.values
             width: parent.width
-            height: Math.min(contentHeight, 200)
+            height: Math.min(contentHeight, 300)
             spacing: 5
             delegate: LauncherEntry {}
         }

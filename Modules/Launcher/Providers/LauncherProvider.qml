@@ -5,7 +5,8 @@ QtObject {
     enum IconType {
         Application, // desktop icon name → Quickshell.iconPath (default)
         Material,    // Material Symbols glyph name → ThemedText { icon: true }
-        Emoji        // literal emoji glyph → ThemedText (color emoji font)
+        Emoji,       // literal emoji glyph → ThemedText (color emoji font)
+        Preview      // `icon` unused; `previewKey` names a CliphistService image preview
     }
 
     property string providerId

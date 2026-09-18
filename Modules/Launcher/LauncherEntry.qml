@@ -8,11 +8,23 @@ import qs.Modules.Launcher.Providers
 Rectangle {
     id: root
     width: parent.width
-    height: 40
+    // Image entries get a taller row so the thumbnail is actually readable.
+    height: root.isImage ? 76 : 40
     color: ListView.isCurrentItem ? Config.colorscheme.accent :
            hoverHandler.hovered ? Config.colorscheme.surface : "transparent"
     radius: Config.island.radius / 2
     required property var modelData
+    readonly property bool isImage: modelData.iconType === LauncherProvider.IconType.Preview
+
+    // Previews are decoded lazily, so the delegate asks for the one it needs and
+    // picks it up from CliphistService.previews once the decode lands. Delegates are
+    // recycled onto new entries without being recreated, hence both handlers.
+    function requestPreview() {
+        if (root.modelData && root.modelData.previewKey)
+            CliphistService.ensureDecoded(root.modelData.previewKey);
+    }
+    onModelDataChanged: root.requestPreview()
+    Component.onCompleted: root.requestPreview()
 
     HoverHandler {
         id: hoverHandler
@@ -29,6 +41,26 @@ Rectangle {
         spacing: 10
         anchors.fill: parent
         anchors.margins: 10
+
+        ClippingRectangle {
+            visible: root.isImage
+            width: root.isImage ? 96 : 0
+            height: parent.height
+            radius: Config.island.radius / 2
+            color: Config.colorscheme.surface
+            anchors.verticalCenter: parent.verticalCenter
+
+            Image {
+                anchors.fill: parent
+                source: CliphistService.previews[root.modelData.previewKey] ?? ""
+                fillMode: Image.PreserveAspectCrop
+                asynchronous: true
+                // Bound on both axes so neither a panorama nor a tall screenshot is
+                // decoded at full size just to fill a 96px box.
+                sourceSize.width: 256
+                sourceSize.height: 256
+            }
+        }
 
         IconImage {
             visible: (root.modelData.iconType === LauncherProvider.IconType.Application

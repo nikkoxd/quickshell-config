@@ -11,6 +11,15 @@ LauncherProvider {
         CliphistService.fetch();
     }
 
+    // CliphistService lives in qs.Services, which the providers import — so it can't
+    // name the IconType enum itself without a module cycle. It flags image entries
+    // instead and the mapping happens here.
+    function decorate(entries) {
+        return entries.map(entry => entry.isImage
+            ? Object.assign({}, entry, { iconType: LauncherProvider.IconType.Preview })
+            : entry);
+    }
+
     function entries(query) {
         if (CliphistService.entries.length === 0) {
             return [{
@@ -19,6 +28,6 @@ LauncherProvider {
                 iconType: LauncherProvider.IconType.Material
             }]
         }
-        return svc.substringFilter(query, CliphistService.entries, 50);
+        return root.decorate(svc.substringFilter(query, CliphistService.entries, 50));
     }
 }
