@@ -44,6 +44,10 @@ Singleton {
         return "";
     }
 
+    // Whether the connection carries DNS servers of its own rather than the
+    // ones DHCP handed out - what the dashboard badges as "ON".
+    readonly property bool custom: !root.matches(root.automaticEntry)
+
     property bool busy: false
     property string error: ""
 

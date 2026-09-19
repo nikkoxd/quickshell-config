@@ -60,6 +60,14 @@ View {
                 Layout.fillWidth: true
                 Layout.preferredHeight: root.buttonHeight
                 icon: "bell"
+                // Capped so a pile of notifications cannot widen the pill past
+                // the button it sits on.
+                badge: {
+                    const count = NotificationService.notifications.length;
+                    if (count === 0)
+                        return "";
+                    return count > 99 ? "99+" : "" + count;
+                }
                 onClicked: root.openView("notifications")
             }
 
@@ -95,6 +103,7 @@ View {
                 Layout.fillWidth: true
                 Layout.preferredHeight: root.buttonHeight
                 icon: "globe"
+                badge: DnsService.custom ? "ON" : ""
                 onClicked: root.openView("dns")
             }
 
@@ -102,6 +111,7 @@ View {
                 Layout.fillWidth: true
                 Layout.preferredHeight: root.buttonHeight
                 icon: "timer"
+                badge: TimerService.active ? TimerService.display : ""
                 onClicked: root.openView("timer")
             }
 
