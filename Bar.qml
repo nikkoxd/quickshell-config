@@ -25,28 +25,13 @@ Item {
     implicitWidth: content.currentView.implicitWidth
     implicitHeight: content.currentView.implicitHeight
 
-    property string currentItem: "clock"
-    // The dashboard's middle panel and the island's default view are one
-    // choice, made in DashboardService. Lyrics only make sense while something
-    // is actually playing, so a paused or absent player falls back to the clock.
-    readonly property string defaultItem: DashboardService.panel === 1 && MprisService.isPlaying === true ? "lyrics" : "clock"
-
-    onDefaultItemChanged: {
-        // This binding is first evaluated while the StackView is still empty,
-        // and replace() there pushes a stray item that initialItem then stacks
-        // on top of - visible under every later view, since they are all
-        // transparent.
-        if (content.depth === 0)
-            return;
-        // Swap under the user only while the island is already showing the
-        // other default; anything else (an OSD, an open menu) is left alone.
-        if (root.currentItem === "clock" || root.currentItem === "lyrics")
-            root.openDefaultView();
-    }
+    readonly property string defaultItem: "default"
+    property string currentItem: root.defaultItem
     property alias content: content
 
-    property Component clock: DefaultModule.Clock {}
-    property Component lyrics: DefaultModule.Lyrics {}
+    // The idle view. Clock and lyrics live inside it and swap themselves, so
+    // the island never replaces a view to move between them.
+    property Component default_: DefaultModule.Default {}
     property Component notification: DefaultModule.Notification {}
     property Component player: DefaultModule.Player {}
     property Component workspaces: DefaultModule.Workspaces {}
@@ -81,7 +66,13 @@ Item {
         // re-arm the open timer. Stay closed until the pointer leaves.
         root.hoverSuppressed = islandHover.hovered;
         root.currentItem = root.defaultItem;
-        content.replace(root[root.defaultItem]);
+        content.replace(root.default_);
+    }
+
+    /// The Component behind a view key. `default` is spelled `default_` as a
+    /// property, since the bare word is reserved.
+    function componentFor(view) {
+        return view === root.defaultItem ? root.default_ : root[view];
     }
 
     function openView(view, params) {
@@ -92,9 +83,9 @@ Item {
         hoverOpenTimer.stop();
         root.currentItem = view;
         if (params !== undefined) {
-            content.replace(root[view], params);
+            content.replace(root.componentFor(view), params);
         } else {
-            content.replace(root[view]);
+            content.replace(root.componentFor(view));
         }
     }
 
@@ -167,12 +158,36 @@ Item {
     IpcHandler {
         target: "bar"
 
-        function toggle(view: string) {
+        function toggle(view: string): string {
+            if (root.componentFor(view) === undefined)
+                return "unknown view: " + view;
             if (view === root.currentItem) {
                 root.openDefaultView();
             } else {
                 root.openView(view);
             }
+            return "ok";
+        }
+
+        // Toggle the launcher on a specific provider. Opening it again on the
+        // same provider closes it; naming a different one while it is open
+        // switches providers in place, since openView() is a no-op then.
+        function launcher(provider: string): string {
+            const id = provider === "" ? "default" : provider;
+            if (!LauncherService.hasProvider(id))
+                return "unknown provider: " + id;
+            if (root.currentItem === "launcher") {
+                if (LauncherService.provider === id) {
+                    root.openDefaultView();
+                    return "closed";
+                }
+                LauncherService.provider = id;
+                return "ok";
+            }
+            root.openView("launcher", {
+                initialProvider: id
+            });
+            return "ok";
         }
     }
 
@@ -347,7 +362,7 @@ Item {
         height: currentItem && currentItem.implicitHeight
         anchors.fill: parent
         clip: true
-        initialItem: root.clock
+        initialItem: root.default_
         readonly property View currentView: content.currentItem as View
 
         replaceEnter: Transition {
