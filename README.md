@@ -5,7 +5,7 @@
 <div align="center">
     <img src="Screenshots/1.png" />
     <br />
-    <img src="Screenshots/6.png" width="33%" />
+    <img src="Screenshots/8.png" width="33%" />
     <img src="Screenshots/5.png" width="33%" />
     <img src="Screenshots/7.png" width="33%" />
 </div>
