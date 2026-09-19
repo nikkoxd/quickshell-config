@@ -258,6 +258,27 @@ Singleton {
             property string transition: "doom"
             // Pick a random transition on every wallpaper change instead.
             property bool randomTransition: false
+            // Pan the wallpaper behind the desktop instead of pinning it to
+            // the screen.
+            property bool parallax: false
+            // What drives the pan: workspace | cursor | both. The workspace
+            // slides it sideways as the focused workspace changes; the cursor
+            // drifts it on both axes as the pointer moves.
+            property string parallaxSource: "workspace"
+            // How much wider than the screen the wallpaper is drawn for the
+            // workspace pan, as a fraction of the screen width. That overscan
+            // is what gets panned across, so it doubles as the strength.
+            property real parallaxAmount: 0.15
+            // How many workspaces the pan is spread over. 0 spreads it over
+            // whatever workspaces exist at the time, so the step size changes
+            // as they come and go.
+            property int parallaxWorkspaces: 10
+            property int parallaxDuration: 400
+            // The same, for the cursor pan — a far smaller drift, and quick
+            // enough to read as following the pointer rather than catching up
+            // with it.
+            property real parallaxMouseAmount: 0.04
+            property int parallaxMouseDuration: 150
         }
     }
 

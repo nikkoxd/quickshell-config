@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Wayland
 import QtQuick
 import QtMultimedia
+import Quickshell.Hyprland
 import qs.Core
 import qs.Services
 
@@ -16,8 +17,87 @@ PanelWindow {
     property int frontSlot: 0
     property bool transitionRunning: false
 
-    Component.onCompleted: root.setWallpaper(Config.wallpaper.current,
-                                             WallpaperService.toType(Config.wallpaper.type))
+    // Which inputs drive the pan: workspace | cursor | both.
+    readonly property bool workspaceParallax: Config.wallpaper.parallax && Config.wallpaper.parallaxSource !== "cursor"
+    readonly property bool cursorParallax: Config.wallpaper.parallax && Config.wallpaper.parallaxSource !== "workspace"
+
+    // Overscan each input pans across, as a fraction of the screen size. Zero
+    // travel leaves that layer exactly screen sized, so a disabled input costs
+    // nothing. The cursor pans both axes; workspaces only run sideways.
+    readonly property real workspaceTravel: root.workspaceParallax ? Math.max(0, Config.wallpaper.parallaxAmount) : 0
+    readonly property real cursorTravel: root.cursorParallax ? Math.max(0, Config.wallpaper.parallaxMouseAmount) : 0
+
+    // The poller behind CursorService is only worth running while the wallpaper
+    // actually follows the pointer.
+    onCursorParallaxChanged: {
+        if (root.cursorParallax)
+            CursorService.subscribe();
+        else
+            CursorService.unsubscribe();
+    }
+
+    // Where the pointer sits on this monitor, 0..1 on each axis. Hyprland
+    // reports it in layout coordinates, so the monitor's own origin comes off
+    // first.
+    readonly property var parallaxMonitor: Hyprland.monitorFor(root.screen) ?? Hyprland.focusedMonitor
+
+    readonly property real cursorFractionX: {
+        if (root.cursorTravel <= 0 || root.width <= 0)
+            return 0.5;
+        return Math.max(0, Math.min(1, (CursorService.x - (root.parallaxMonitor?.x ?? 0)) / root.width));
+    }
+
+    readonly property real cursorFractionY: {
+        if (root.cursorTravel <= 0 || root.height <= 0)
+            return 0.5;
+        return Math.max(0, Math.min(1, (CursorService.y - (root.parallaxMonitor?.y ?? 0)) / root.height));
+    }
+
+    // Where the focused workspace sits in the run of workspaces, 0..1. The
+    // leftmost workspace shows the left edge of the wallpaper, the rightmost
+    // the right edge.
+    readonly property real parallaxFraction: {
+        if (root.workspaceTravel <= 0)
+            return 0;
+
+        const focused = Hyprland.focusedWorkspace;
+        if (!focused)
+            return 0;
+
+        const span = Config.wallpaper.parallaxWorkspaces;
+        if (span > 0) {
+            if (span < 2)
+                return 0;
+            return Math.max(0, Math.min(1, (focused.id - 1) / (span - 1)));
+        }
+
+        // Auto: spread over the workspaces that exist right now. Special
+        // workspaces carry negative ids and would pin the pan to one end, so
+        // they are left out and simply hold the position.
+        const ids = (Hyprland.workspaces?.values ?? []).map(workspace => workspace.id).filter(id => id > 0).sort((a, b) => a - b);
+        const index = ids.indexOf(focused.id);
+        if (index === -1 || ids.length < 2)
+            return 0;
+
+        return index / (ids.length - 1);
+    }
+
+    Component.onCompleted: {
+        // onCursorParallaxChanged never fires for the value the property loads
+        // with, so the first subscription is taken by hand.
+        if (root.cursorParallax)
+            CursorService.subscribe();
+
+        root.setWallpaper(Config.wallpaper.current, WallpaperService.toType(Config.wallpaper.type));
+    }
+
+    // Quickshell keeps singletons across a reload that replaces this window, so
+    // a subscription that is never handed back would leave the poller running
+    // with nobody reading it.
+    Component.onDestruction: {
+        if (root.cursorParallax)
+            CursorService.unsubscribe();
+    }
 
     Connections {
         target: WallpaperService
@@ -74,10 +154,54 @@ PanelWindow {
         property bool isVideo: false
         readonly property bool ready: loader.item ? loader.item.ready : false
 
-        Loader {
-            id: loader
-            anchors.fill: parent
-            sourceComponent: slot.isVideo ? videoComp : imageComp
+        // Fed from the outside, so the slot stays a self-contained component.
+        // Each pan is a 0..1 position within its own overscan.
+        property real workspaceOverscan: 0
+        property real workspacePan: 0
+        property real cursorOverscan: 0
+        property real cursorPanX: 0.5
+        property real cursorPanY: 0.5
+
+        // Two nested oversized layers rather than one: the workspace pan is a
+        // long slide between two resting points while the cursor pan chases the
+        // pointer, so they need their own durations. Each is wider than what it
+        // sits in and slides within it; the slot is a layer, so whatever hangs
+        // over its edges is cropped by the layer texture.
+        Item {
+            id: workspaceLayer
+            width: parent.width * (1 + slot.workspaceOverscan)
+            height: parent.height
+            x: -slot.workspacePan * (width - parent.width)
+
+            Behavior on x {
+                NumberAnimation {
+                    duration: Config.wallpaper.parallaxDuration
+                    easing.type: Easing.OutCubic
+                }
+            }
+
+            Loader {
+                id: loader
+                width: parent.width * (1 + slot.cursorOverscan)
+                height: parent.height * (1 + slot.cursorOverscan)
+                x: -slot.cursorPanX * (width - parent.width)
+                y: -slot.cursorPanY * (height - parent.height)
+                sourceComponent: slot.isVideo ? videoComp : imageComp
+
+                Behavior on x {
+                    NumberAnimation {
+                        duration: Config.wallpaper.parallaxMouseDuration
+                        easing.type: Easing.OutCubic
+                    }
+                }
+
+                Behavior on y {
+                    NumberAnimation {
+                        duration: Config.wallpaper.parallaxMouseDuration
+                        easing.type: Easing.OutCubic
+                    }
+                }
+            }
         }
 
         Component {
@@ -134,8 +258,23 @@ PanelWindow {
         }
     }
 
-    Slot { id: slotA }
-    Slot { id: slotB }
+    Slot {
+        id: slotA
+        workspaceOverscan: root.workspaceTravel
+        workspacePan: root.parallaxFraction
+        cursorOverscan: root.cursorTravel
+        cursorPanX: root.cursorFractionX
+        cursorPanY: root.cursorFractionY
+    }
+
+    Slot {
+        id: slotB
+        workspaceOverscan: root.workspaceTravel
+        workspacePan: root.parallaxFraction
+        cursorOverscan: root.cursorTravel
+        cursorPanX: root.cursorFractionX
+        cursorPanY: root.cursorFractionY
+    }
 
     ShaderEffect {
         id: effect

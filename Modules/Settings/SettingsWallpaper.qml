@@ -47,6 +47,67 @@ ColumnLayout {
     }
 
     SettingsSection {
+        text: "Parallax"
+    }
+
+    SettingsOption {
+        title: "Enabled"
+        value: Config.wallpaper.parallax
+        onChecked: value => Config.wallpaper.parallax = value
+        type: SettingsOption.Type.Switch
+    }
+
+    SettingsOption {
+        title: "Driven by"
+        value: Config.wallpaper.parallaxSource
+        options: ["workspace", "cursor", "both"]
+        onEdited: value => Config.wallpaper.parallaxSource = value
+        type: SettingsOption.Type.ComboBox
+    }
+
+    // The wallpaper is drawn this much wider than the screen and slid across
+    // the overscan, so each amount is both the travel and the strength.
+    SettingsOption {
+        title: "Workspace amount"
+        units: "%"
+        value: Math.round(Config.wallpaper.parallaxAmount * 100)
+        onEdited: value => Config.wallpaper.parallaxAmount = parseFloat(value) / 100
+        type: SettingsOption.Type.TextField
+    }
+
+    // 0 spreads the pan over whatever workspaces exist at the time.
+    SettingsOption {
+        title: "Workspaces spanned"
+        value: Config.wallpaper.parallaxWorkspaces
+        onEdited: value => Config.wallpaper.parallaxWorkspaces = parseInt(value)
+        type: SettingsOption.Type.TextField
+    }
+
+    SettingsOption {
+        title: "Workspace duration"
+        units: "ms"
+        value: Config.wallpaper.parallaxDuration
+        onEdited: value => Config.wallpaper.parallaxDuration = parseInt(value)
+        type: SettingsOption.Type.TextField
+    }
+
+    SettingsOption {
+        title: "Cursor amount"
+        units: "%"
+        value: Math.round(Config.wallpaper.parallaxMouseAmount * 100)
+        onEdited: value => Config.wallpaper.parallaxMouseAmount = parseFloat(value) / 100
+        type: SettingsOption.Type.TextField
+    }
+
+    SettingsOption {
+        title: "Cursor duration"
+        units: "ms"
+        value: Config.wallpaper.parallaxMouseDuration
+        onEdited: value => Config.wallpaper.parallaxMouseDuration = parseInt(value)
+        type: SettingsOption.Type.TextField
+    }
+
+    SettingsSection {
         text: "Wallhaven"
     }
 
