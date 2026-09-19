@@ -1,57 +1,196 @@
 pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Layouts
-import Quickshell.Services.Mpris
+import Quickshell.Services.Pipewire
 import qs.Core
 import qs.Services
 
+// The dashboard, top to bottom: a scrollable strip of days, a row of view
+// shortcuts, the media player, and a grid of quick-settings toggles bound to
+// service state.
 View {
     id: root
-    implicitWidth: row.implicitWidth + Config.island.padding * 2
-    implicitHeight: row.implicitHeight + Config.island.padding * 2
+    // The column's children all fill the width, so it has no implicit width of
+    // its own to measure - the island is sized from contentWidth instead.
+    implicitWidth: root.contentWidth + Config.island.padding * 2
+    implicitHeight: column.implicitHeight + Config.island.padding * 2
     focused: true
     dismissable: false
     displayInFullscreen: true
     closeOnUnhover: true
-    popups: tray.popups
 
-    TapHandler {
-        acceptedButtons: Qt.RightButton
-        onTapped: root.viewChangeRequested("notifications")
+    // Width of the tile column, and the height of one tile row. The tiles
+    // divide the width between them, so widening the dashboard is this one
+    // number rather than a per-tile size.
+    readonly property int contentWidth: 440
+    readonly property int tileHeight: 66
+    readonly property int buttonHeight: 36
+    readonly property int gap: 8
+
+    // Opening another view replaces this one, so nothing needs to close first.
+    function openView(view) {
+        root.viewChangeRequested(view);
     }
 
-    function switchTab(tab) {
-        root.currentTab = tab;
+    // The mute states below only update while their node is tracked.
+    PwObjectTracker {
+        objects: [Pipewire.defaultAudioSink, Pipewire.defaultAudioSource]
     }
 
-    RowLayout {
-        id: row
-        spacing: 30
+    ColumnLayout {
+        id: column
+        width: root.contentWidth
         x: Config.island.padding
         y: Config.island.padding
+        spacing: 10
 
-        Player {
-            Layout.alignment: Qt.AlignVCenter
-            visible: Mpris.players.values.length > 0
+        DateStrip {
+            Layout.fillWidth: true
         }
 
-        Loader {
-            id: calTrayLoader
-            property Component cal: Calendar {}
-            property Component lyrics: Lyrics {}
+        // Plain navigation: these only swap the island over to another view,
+        // so they get the shared IconButton rather than a tile that would
+        // imply a state to toggle.
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: root.gap
 
-            TapHandler {
-                acceptedButtons: Qt.MiddleButton
-                onTapped: DashboardService.togglePanel()
+            IconButton {
+                Layout.fillWidth: true
+                Layout.preferredHeight: root.buttonHeight
+                icon: "bell"
+                onClicked: root.openView("notifications")
             }
 
-            sourceComponent: DashboardService.panel === 0 ? cal : lyrics
+            IconButton {
+                Layout.fillWidth: true
+                Layout.preferredHeight: root.buttonHeight
+                icon: "rocket-launch"
+                onClicked: root.openView("launcher")
+            }
+
+            IconButton {
+                Layout.fillWidth: true
+                Layout.preferredHeight: root.buttonHeight
+                icon: "image"
+                onClicked: root.openView("wallpaperSelector")
+            }
+
+            IconButton {
+                Layout.fillWidth: true
+                Layout.preferredHeight: root.buttonHeight
+                icon: "bluetooth"
+                onClicked: root.openView("bluetooth")
+            }
+
+            IconButton {
+                Layout.fillWidth: true
+                Layout.preferredHeight: root.buttonHeight
+                icon: "faders"
+                onClicked: root.openView("mixer")
+            }
+
+            IconButton {
+                Layout.fillWidth: true
+                Layout.preferredHeight: root.buttonHeight
+                icon: "globe"
+                onClicked: root.openView("dns")
+            }
+
+            IconButton {
+                Layout.fillWidth: true
+                Layout.preferredHeight: root.buttonHeight
+                icon: "timer"
+                onClicked: root.openView("timer")
+            }
+
+            // Settings is a window of its own rather than a view, so it is
+            // requested through the service the launcher uses and the island
+            // falls back to its default view.
+            IconButton {
+                Layout.fillWidth: true
+                Layout.preferredHeight: root.buttonHeight
+                icon: "gear-six"
+                onClicked: {
+                    LauncherService.settingsRequested();
+                    root.closeRequested();
+                }
+            }
         }
 
-        Tray {
-            id: tray
-            onCloseRequested: root.closeRequested()
-            Layout.fillHeight: true
+        PlayerTile {
+            Layout.fillWidth: true
+            Layout.preferredHeight: root.tileHeight
+            visible: MprisService.players.values.length > 0
+        }
+
+        GridLayout {
+            Layout.fillWidth: true
+            columns: 4
+            columnSpacing: root.gap
+            rowSpacing: root.gap
+
+            Tile {
+                Layout.columnSpan: 2
+                Layout.fillWidth: true
+                Layout.preferredWidth: 1
+                Layout.preferredHeight: root.tileHeight
+                wide: true
+                icon: "bell"
+                activeIcon: "bell-slash"
+                label: "Do not disturb"
+                sublabel: NotificationService.muted ? "On" : "Off"
+                active: NotificationService.muted
+                onClicked: NotificationService.muted = !NotificationService.muted
+            }
+
+            Tile {
+                Layout.columnSpan: 2
+                Layout.fillWidth: true
+                Layout.preferredWidth: 1
+                Layout.preferredHeight: root.tileHeight
+                wide: true
+                icon: "speaker-high"
+                activeIcon: "speaker-slash"
+                label: "Output"
+                sublabel: active ? "Muted" : "On"
+                active: Pipewire.defaultAudioSink?.audio.muted ?? false
+                onClicked: {
+                    if (Pipewire.defaultAudioSink)
+                        Pipewire.defaultAudioSink.audio.muted = !Pipewire.defaultAudioSink.audio.muted;
+                }
+            }
+
+            Tile {
+                Layout.columnSpan: 2
+                Layout.fillWidth: true
+                Layout.preferredWidth: 1
+                Layout.preferredHeight: root.tileHeight
+                wide: true
+                icon: "microphone"
+                activeIcon: "microphone-slash"
+                label: "Microphone"
+                sublabel: active ? "Muted" : "On"
+                active: Pipewire.defaultAudioSource?.audio.muted ?? false
+                onClicked: {
+                    if (Pipewire.defaultAudioSource)
+                        Pipewire.defaultAudioSource.audio.muted = !Pipewire.defaultAudioSource.audio.muted;
+                }
+            }
+
+            Tile {
+                Layout.columnSpan: 2
+                Layout.fillWidth: true
+                Layout.preferredWidth: 1
+                Layout.preferredHeight: root.tileHeight
+                wide: true
+                icon: "video-camera"
+                label: "Record"
+                sublabel: RecordingService.recording ? "Recording" : RecordingService.replayRunning ? "Replay buffer" : "Off"
+                active: RecordingService.recording
+                onClicked: RecordingService.toggleRecording()
+            }
         }
     }
 }
