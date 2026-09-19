@@ -127,6 +127,12 @@ Singleton {
     // cycle. Registering from the view keeps the dependency one-directional.
     property var providers: []
 
+    // Ids of the registered providers, kept as plain strings: the provider
+    // objects are children of the Launcher view and go away with it on close,
+    // so `providers` can't be read for validation between opens.
+    property var providerIds: []
+    onProvidersChanged: providerIds = providers.map(p => p.providerId)
+
     function activeProvider() {
         if (!providers || providers.length === 0)
             return null;
@@ -147,8 +153,17 @@ Singleton {
             root.closeRequested();
     }
 
-    function reset() {
-        root.provider = "default";
+    // True when `id` names a registered provider. The registry is only filled
+    // once the Launcher view has been built, so an id is accepted unconditionally
+    // before that - the first IPC-driven open happens with an empty list.
+    function hasProvider(id) {
+        if (!providerIds || providerIds.length === 0)
+            return true;
+        return providerIds.includes(id);
+    }
+
+    function reset(provider) {
+        root.provider = provider ?? "default";
         root.query = "";
     }
 }

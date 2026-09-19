@@ -12,6 +12,10 @@ View {
     focused: true
     displayInFullscreen: true
 
+    // Provider the launcher opens on. Set through openView() params, so
+    // `ipc call bar launcher <provider>` lands straight in that provider.
+    property string initialProvider: "default"
+
     // Registry of launcher providers. To add a provider: create a file in Providers/
     // extending LauncherProvider and add one instance here.
     DefaultProvider { id: defaultProvider }
@@ -34,7 +38,7 @@ View {
             emojiProvider,
             clipboardProvider
         ];
-        LauncherService.reset();
+        LauncherService.reset(root.initialProvider);
         searchInput.forceActiveFocus();
     }
 
