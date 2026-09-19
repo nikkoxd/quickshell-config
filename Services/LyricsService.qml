@@ -26,17 +26,24 @@ Singleton {
     property int currentIndex: root.indexAt(root.lines, MprisService.position)
     readonly property string currentText: currentIndex >= 0 && currentIndex < lines.length ? lines[currentIndex].text : ""
 
-    /// How far playback has advanced through the current line, 0..1.
-    readonly property real currentProgress: {
+    readonly property real currentLineStart: currentIndex >= 0 && currentIndex < lines.length ? lines[currentIndex].time : 0
+    // The last line has no successor to bound it, so give it a nominal window.
+    readonly property real currentLineEnd: currentIndex < 0 || currentIndex >= lines.length ? 0 : currentIndex + 1 < lines.length ? lines[currentIndex + 1].time : root.currentLineStart + 4
+
+    /// How far playback has advanced through the current line at `position`, 0..1.
+    /// Callers that run the fill on the frame clock pass their own extrapolated
+    /// position; `currentProgress` is the same thing at the last published one.
+    function progressAt(position) {
         if (currentIndex < 0 || currentIndex >= lines.length)
             return 0;
-        const start = lines[currentIndex].time;
-        // The last line has no successor to bound it, so give it a nominal window.
-        const end = currentIndex + 1 < lines.length ? lines[currentIndex + 1].time : start + 4;
-        if (end <= start)
+        const span = root.currentLineEnd - root.currentLineStart;
+        if (span <= 0)
             return 1;
-        return Math.max(0, Math.min(1, (MprisService.position - start) / (end - start)));
+        return Math.max(0, Math.min(1, (position - root.currentLineStart) / span));
     }
+
+    /// How far playback has advanced through the current line, 0..1.
+    readonly property real currentProgress: root.progressAt(MprisService.position)
 
     /// Placeholder to show in place of lyrics; empty when there are lyrics to show.
     readonly property string statusText: {

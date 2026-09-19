@@ -25,6 +25,50 @@ Item {
     // Auto-follow parks while the user scrolls by hand, and resumes a few seconds later.
     property bool following: true
 
+    // MprisService publishes a position five times a second, so a fill bound straight
+    // to it steps rather than sweeps, and smoothing those steps with an animation only
+    // trades the stepping for a fifth of a second of lag. Run the fill on the frame
+    // clock instead, anchored to the last published position.
+    property real livePosition: 0
+    // Playback position at `anchorWall`, the wall clock the prediction runs from.
+    property real anchorPosition: 0
+    property real anchorWall: 0
+
+    readonly property real syncedPosition: MprisService.position
+
+    /// Where playback should have reached by wall-clock time `now`, in seconds.
+    function predict(now) {
+        return root.anchorPosition + (now - root.anchorWall) / 1000;
+    }
+
+    // Players re-report positions they have already passed: the same stale reads
+    // MprisService settles when they land in one turn, except these arrive a tick
+    // apart and up to a tenth of a second behind, several times a second. Snapping
+    // the clock onto each of them is what makes the fill stutter, so only a jump big
+    // enough to be a seek, a track change or a resume moves it outright - anything
+    // smaller is steered out a fraction per tick, and never rewinds the fill by more
+    // than a frame's worth.
+    readonly property real snapThreshold: 0.5
+    readonly property real correctionGain: 0.2
+    readonly property real maxRewind: 0.01
+
+    onSyncedPositionChanged: {
+        const now = Date.now();
+        const predicted = root.predict(now);
+        const error = root.syncedPosition - predicted;
+
+        root.anchorPosition = Math.abs(error) > root.snapThreshold ? root.syncedPosition : predicted + Math.max(-root.maxRewind, error * root.correctionGain);
+        root.anchorWall = now;
+        root.livePosition = root.predict(now);
+    }
+
+    readonly property real lineProgress: LyricsService.progressAt(root.livePosition)
+
+    FrameAnimation {
+        running: root.synced && MprisService.isPlaying === true && root.visible
+        onTriggered: root.livePosition = root.predict(Date.now())
+    }
+
     onFollowIndexChanged: root.follow(true)
 
     /// contentY that puts line `index` in the vertical centre.
@@ -195,7 +239,7 @@ Item {
 
             Binding on fillProgress {
                 when: line.current
-                value: LyricsService.currentProgress
+                value: root.lineProgress
                 restoreMode: Binding.RestoreNone
             }
 
@@ -286,14 +330,6 @@ Item {
                         height: modelData.h
                         clip: true
                         width: Math.max(0, Math.min(modelData.w, base.totalWidth * line.fillProgress - offset))
-
-                        // MprisService.position ticks at 5Hz - smooth the steps into a continuous sweep.
-                        Behavior on width {
-                            NumberAnimation {
-                                duration: 220
-                                easing.type: Easing.Linear
-                            }
-                        }
 
                         ThemedText {
                             y: -fillRow.y
