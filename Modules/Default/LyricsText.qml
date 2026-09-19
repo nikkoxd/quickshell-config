@@ -13,10 +13,10 @@ Item {
     readonly property bool onLine: LyricsService.synced && LyricsService.currentIndex >= 0
     readonly property string displayText: {
         if (root.onLine)
-            return LyricsService.currentText || "♪";
+            return LyricsService.currentText || "♪♪♪";
         // "synced" before the first timestamp and "plain" both have lyrics but no line to show
         // right now, and statusText is empty for them - the island would otherwise go blank.
-        return LyricsService.statusText || "♪";
+        return LyricsService.statusText || "♪♪♪";
     }
     // Only a timestamped line can be filled in; status text stays plain.
     readonly property bool karaoke: root.onLine
