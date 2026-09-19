@@ -25,6 +25,10 @@ View {
         spacing: 8
         anchors.centerIn: parent
 
+        SongArtwork {
+            anchors.verticalCenter: parent.verticalCenter
+        }
+
         CavaBars {
             anchors.verticalCenter: parent.verticalCenter
         }

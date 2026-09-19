@@ -19,6 +19,13 @@ ColumnLayout {
     }
 
     SettingsOption {
+        title: "Display artwork"
+        value: Config.visualizer.displayArtwork
+        onChecked: value => Config.visualizer.displayArtwork = value
+        type: SettingsOption.Type.Switch
+    }
+
+    SettingsOption {
         title: "Mode"
         value: Config.visualizer.mode
         options: [

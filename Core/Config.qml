@@ -197,6 +197,7 @@ Singleton {
         }
         adapter: JsonAdapter {
             property bool displayVisualizer: true
+            property bool displayArtwork: true
             // "background" paints the curve behind every view; "bars" draws a
             // handful of discrete bars inline in the default/lyrics view.
             property string mode: "background"
