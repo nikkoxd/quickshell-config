@@ -193,6 +193,8 @@ Item {
         // Swap what the idle view and the dashboard's middle column show.
         // Both read DashboardService.panel, so one call moves the two together.
         function toggleLyrics(): string {
+            if (!Config.island.displayLyrics)
+                return "disabled";
             DashboardService.togglePanel();
             return DashboardService.panel === 1 ? "lyrics" : "clock";
         }

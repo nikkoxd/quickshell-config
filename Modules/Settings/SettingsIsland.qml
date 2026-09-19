@@ -42,6 +42,13 @@ ColumnLayout {
     }
 
     SettingsOption {
+        title: "Display lyrics"
+        value: Config.island.displayLyrics
+        onChecked: value => Config.island.displayLyrics = value
+        type: SettingsOption.Type.Switch
+    }
+
+    SettingsOption {
         title: "Hover open delay"
         units: "ms"
         value: Config.island.hoverOpenDelay

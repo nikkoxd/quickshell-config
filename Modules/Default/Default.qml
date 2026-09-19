@@ -15,8 +15,9 @@ View {
 
     // The dashboard's middle panel and the island's centre are one choice, made
     // in DashboardService. Lyrics only make sense while something is actually
-    // playing, so a paused or absent player falls back to the clock.
-    readonly property bool showLyrics: DashboardService.panel === 1 && MprisService.isPlaying === true
+    // playing, so a paused or absent player falls back to the clock, and the
+    // config switch keeps the clock even when one is.
+    readonly property bool showLyrics: Config.island.displayLyrics && DashboardService.panel === 1 && MprisService.isPlaying === true
 
     readonly property bool barsVisualizer: Config.visualizer.mode === "bars"
 

@@ -156,6 +156,10 @@ Singleton {
             property int padding: 40
             property int radius: 20
             property string keepassVault: ""
+            // Whether the idle view may swap the clock for the line being sung.
+            // Off leaves the clock alone - useful once the desktop lyrics widget
+            // is carrying them instead.
+            property bool displayLyrics: true
             property int hoverOpenDelay: 100
             property int hoverCloseDelay: 200
         }
