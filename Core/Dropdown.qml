@@ -76,6 +76,16 @@ Item {
             anchors.rightMargin: 4
             text: root.labelFor(root.current)
             elide: Text.ElideRight
+            // The trigger fills with accentAlt on hover and while open, so the
+            // label has to flip to the background color to stay readable.
+            color: headerHover.hovered || root._expanded ? Config.colorscheme.bg : Config.colorscheme.fg
+
+            Behavior on color {
+                ColorAnimation {
+                    duration: 100
+                    easing.type: Easing.InOutQuad
+                }
+            }
         }
 
         ThemedText {
@@ -86,6 +96,14 @@ Item {
             icon: true
             text: root._expanded ? "caret-up" : "caret-down"
             opacity: root.enabled ? 1 : 0.3
+            color: headerHover.hovered || root._expanded ? Config.colorscheme.bg : Config.colorscheme.fg
+
+            Behavior on color {
+                ColorAnimation {
+                    duration: 100
+                    easing.type: Easing.InOutQuad
+                }
+            }
         }
 
         HoverHandler {

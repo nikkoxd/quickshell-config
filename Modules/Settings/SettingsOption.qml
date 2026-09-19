@@ -21,6 +21,10 @@ RowLayout {
     }
 
     Layout.fillWidth: true
+    // A Dropdown raises itself above its own siblings, but its list still hangs
+    // over the rows below, which are siblings of this whole row. Lift the row
+    // itself while the list is open so it paints over them.
+    z: dropdown.expanded ? 10 : 0
 
     ThemedText {
         text: root.title
@@ -70,6 +74,7 @@ RowLayout {
         }
 
         Dropdown {
+            id: dropdown
             visible: root.type === SettingsOption.Type.ComboBox
             options: root.options
             current: root.value
