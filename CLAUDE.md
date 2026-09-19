@@ -93,7 +93,7 @@ Singletons in `Services/` wrap external systems and expose reactive properties/s
 - `WallhavenService` — search and download against wallhaven.cc through `Helpers/wallhaven.py`; exposes `results`, `loading`, `error`, `page`/`lastPage`, `search()`/`loadMore()`/`download()` and `downloaded`/`downloadFailed`. Filters live in `Config.wallhaven` (categories/purity bit strings, sorting, ratio, API key); `Modules/Wallpapers/WallpaperBrowser.qml` is the GUI and applies a finished download through `WallpaperService`.
 - `LocalSendService`, `DateService`.
 
-External CLI tools these depend on (must be on PATH): `cava`, `awww` + `awww-daemon`, `mpvpaper`, `notify-send`, `iris`/`matugen` for colorscheme generation, `tesseract` for OCR, plus `python3` for helpers.
+External CLI tools these depend on (must be on PATH): `cava`, `awww` + `awww-daemon`, `mpvpaper`, `notify-send`, `iris`/`matugen` for colorscheme generation, `tesseract` for OCR, `wayfreeze` for freezing the screen during a screenshot selection, plus `python3` for helpers.
 
 ## Templates
 

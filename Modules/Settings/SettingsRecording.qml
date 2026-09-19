@@ -102,6 +102,13 @@ ColumnLayout {
             onChecked: value => Config.recorder.screenshotCopy = value
             type: SettingsOption.Type.Switch
         }
+
+        SettingsOption {
+            title: "Freeze the screen while selecting"
+            value: Config.recorder.screenshotFreeze
+            onChecked: value => Config.recorder.screenshotFreeze = value
+            type: SettingsOption.Type.Switch
+        }
     }
 
     ColumnLayout {

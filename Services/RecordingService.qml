@@ -95,14 +95,46 @@ Singleton {
             screenshotFileName();
         }
         if (kind === RecordingService.Kind.Fullscreen) {
+            // Nothing is selected, so there is no window of time in which the
+            // screen could change under the user: no freeze needed.
             runGrim("");
-        } else if (kind === RecordingService.Kind.Region) {
+        } else if (Config.recorder.screenshotFreeze) {
+            freeze(kind);
+        } else {
+            beginSelection(kind);
+        }
+    }
+
+    function beginSelection(kind) {
+        if (kind === RecordingService.Kind.Region) {
             runSlurp(["slurp"], "");
         } else {
             // Visible workspaces, then window geometries, then a slurp
             // restricted to them (see monitorsProc/clientsProc).
             monitorsProc.running = true;
         }
+    }
+
+    // wayfreeze puts a still of the screen up in a layer surface, so what was
+    // on screen when the capture was asked for is what ends up selected (and
+    // captured, since grim reads the composited output). It stays up until
+    // stopFreeze(); see freezeProc for why the selection waits on its stdout.
+    function freeze(kind) {
+        stopFreeze();
+        freezeProc.frozen = false;
+        freezeProc.kind = kind;
+        // --hide-cursor keeps the cursor out of the frozen image: grim does not
+        // capture a cursor either, so the result matches the unfrozen path.
+        freezeProc.command = ["wayfreeze", "--hide-cursor", "--after-freeze-cmd", "echo READY"];
+        freezeProc.running = true;
+    }
+
+    function stopFreeze() {
+        if (!freezeProc.running) {
+            return;
+        }
+        freezeProc.stale = true;
+        freezeProc.running = false;
     }
 
     function runSlurp(args, regions) {
@@ -253,6 +285,7 @@ Singleton {
                 try {
                     monitors = JSON.parse(text);
                 } catch (e) {
+                    root.stopFreeze();
                     NotificationService.notify("Screenshot failed", "Could not read the monitor list");
                     return;
                 }
@@ -279,6 +312,7 @@ Singleton {
                 try {
                     clients = JSON.parse(text);
                 } catch (e) {
+                    root.stopFreeze();
                     NotificationService.notify("Screenshot failed", "Could not read the window list");
                     return;
                 }
@@ -286,10 +320,46 @@ Singleton {
                     .filter(client => client.mapped && !client.hidden && root.visibleWorkspaces.includes(client.workspace?.id))
                     .map(client => client.at[0] + "," + client.at[1] + " " + client.size[0] + "x" + client.size[1]);
                 if (regions.length === 0) {
+                    root.stopFreeze();
                     NotificationService.notify("Screenshot failed", "No windows to capture");
                     return;
                 }
                 root.runSlurp(["slurp", "-r"], regions.join("\n") + "\n");
+            }
+        }
+    }
+
+    // Waits for wayfreeze to say it is actually up before selecting: its layer
+    // surface is not mapped the instant the process starts, and a slurp drawn
+    // before it lands would sit *under* the frozen image. --after-freeze-cmd
+    // runs once the freeze is on screen, so READY on stdout is that signal.
+    Process {
+        id: freezeProc
+        property int kind: RecordingService.Kind.Region
+        property bool frozen: false
+        // Set when the shell kills the freeze itself, so the exit below is not
+        // mistaken for wayfreeze falling over.
+        property bool stale: false
+        stdout: SplitParser {
+            onRead: data => {
+                if (freezeProc.frozen || data.trim() !== "READY") {
+                    return;
+                }
+                freezeProc.frozen = true;
+                root.beginSelection(freezeProc.kind);
+            }
+        }
+        onExited: exitCode => {
+            if (freezeProc.stale) {
+                freezeProc.stale = false;
+                return;
+            }
+            // Gone before it ever froze: wayfreeze is missing or would not
+            // start. Not worth failing the screenshot over — select on the live
+            // screen instead, exactly as the freeze-less path does.
+            if (!freezeProc.frozen) {
+                console.warn("[Recorder] wayfreeze exited with code " + exitCode + ", selecting without freezing");
+                root.beginSelection(freezeProc.kind);
             }
         }
     }
@@ -313,6 +383,7 @@ Singleton {
             onStreamFinished: {
                 const geometry = text.trim();
                 if (geometry === "") {
+                    root.stopFreeze();
                     console.log("[Recorder] Screenshot cancelled");
                     return;
                 }
@@ -324,6 +395,9 @@ Singleton {
     Process {
         id: grimProc
         onExited: exitCode => {
+            // The picture is taken by now, so the screen can go live again
+            // before anything slower (tesseract, wl-copy) runs.
+            root.stopFreeze();
             if (exitCode !== 0) {
                 NotificationService.notify(root.pendingOcr ? "OCR failed" : "Screenshot failed", "grim exited with code " + exitCode);
                 return;

@@ -53,6 +53,7 @@ AUR_PKGS=(
     gpu-screen-recorder
     iris-colors
     ttf-phosphor-icons
+    wayfreeze
 )
 
 bold() { printf '\033[1m%s\033[0m\n' "$*"; }
