@@ -2,11 +2,31 @@ pragma Singleton
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Notifications
+import QtQuick
+import qs.Core
 
 Singleton {
     id: root
 
+    // Do not disturb. Mirrored into Config so it survives a reload; kept as a
+    // plain property rather than a binding because every view toggles it by
+    // assignment, which would break a binding on the first click.
     property bool muted: false
+
+    Component.onCompleted: root.muted = Config.notifications.doNotDisturb
+
+    onMutedChanged: {
+        if (Config.notifications.doNotDisturb !== root.muted) {
+            Config.notifications.doNotDisturb = root.muted;
+        }
+    }
+
+    Connections {
+        target: Config.notifications
+        function onDoNotDisturbChanged() {
+            root.muted = Config.notifications.doNotDisturb;
+        }
+    }
 
     property NotificationServer server: NotificationServer {
         id: server

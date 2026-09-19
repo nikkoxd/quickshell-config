@@ -16,6 +16,7 @@ Singleton {
     property var matugen: matugenLoader.adapter
     property var dock: dockLoader.adapter
     property var widgets: widgetsLoader.adapter
+    property var notifications: notificationsLoader.adapter
     property var wallhaven: wallhavenLoader.adapter
     property var colorscheme: colorschemeLoader.adapter
 
@@ -493,6 +494,24 @@ Singleton {
             // Lyrics of a paused track are stale on screen; hide them until
             // playback resumes.
             property bool lyricsOnlyWhilePlaying: true
+        }
+    }
+
+    FileView {
+        id: notificationsLoader
+        path: Qt.resolvedUrl("../Config/notifications.json")
+        watchChanges: true
+        onFileChanged: reload()
+        onAdapterUpdated: writeAdapter()
+        onLoadFailed: error => {
+            if (error === FileViewError.FileNotFound) {
+                writeAdapter();
+            }
+        }
+        adapter: JsonAdapter {
+            // Do not disturb: notification popups are suppressed while it is
+            // on. Lives here so it survives a reload of the shell.
+            property bool doNotDisturb: false
         }
     }
 
