@@ -36,6 +36,10 @@ def request(url: str, timeout: float) -> bytes:
 
 
 def describe(error: Exception) -> str:
+    # A 200 carrying the site's own status page instead of JSON is what a
+    # Wallhaven outage looks like from here, so it lands as a decode error.
+    if isinstance(error, json.JSONDecodeError):
+        return "Wallhaven is down :("
     if isinstance(error, urllib.error.HTTPError):
         if error.code == 401:
             return "Wallhaven rejected the API key"
