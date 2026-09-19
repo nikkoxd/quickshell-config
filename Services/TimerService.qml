@@ -32,7 +32,17 @@ Singleton {
     readonly property int minutes: Math.floor(root.totalSeconds / 60) % 60
     readonly property int seconds: root.totalSeconds % 60
 
+    // The countdown as the island shows it: the hour slot only appears once
+    // there are hours left, so a short timer reads "4:07" rather than "0:04:07".
+    readonly property string display: root.hours > 0
+        ? root.hours + ":" + root._pad(root.minutes) + ":" + root._pad(root.seconds)
+        : root.minutes + ":" + root._pad(root.seconds)
+
     signal finished()
+
+    function _pad(value) {
+        return value < 10 ? "0" + value : "" + value;
+    }
 
     property double _deadline: 0
 
