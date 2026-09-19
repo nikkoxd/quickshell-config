@@ -200,6 +200,11 @@ Singleton {
             // "background" paints the curve behind every view; "bars" draws a
             // handful of discrete bars inline in the default/lyrics view.
             property string mode: "background"
+            // What cava listens to: "auto" leaves it on its own default input
+            // (the sink monitor, so every app at once), "player" follows the
+            // active MPRIS player's own PipeWire stream. Any other value is
+            // used verbatim as a PipeWire node.name.
+            property string source: "auto"
             property real visualizerHeight: 1
             property real topOpacity: 0.8
             property real bottomOpacity: 0

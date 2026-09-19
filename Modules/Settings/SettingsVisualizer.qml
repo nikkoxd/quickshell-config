@@ -36,6 +36,23 @@ ColumnLayout {
     }
 
     SettingsOption {
+        title: "Audio source"
+        value: Config.visualizer.source
+        options: [
+            {
+                label: "All audio",
+                value: "auto"
+            },
+            {
+                label: "Media player",
+                value: "player"
+            }
+        ]
+        onEdited: value => Config.visualizer.source = value
+        type: SettingsOption.Type.ComboBox
+    }
+
+    SettingsOption {
         title: "Visualizer height"
         units: "px"
         visible: !root.bars

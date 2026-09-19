@@ -84,7 +84,7 @@ Singletons in `Services/` wrap external systems and expose reactive properties/s
 
 - `MprisService` — media players (emits `trackChanged`); also exposes `position`/`length`, refreshed by a timer since `MprisPlayer.position` is not self-updating.
 - `NotificationService` — wraps `NotificationServer`; `muted` gates OSD popups; `notify()` shells out to `notify-send`.
-- `CavaService` — spawns `cava` as a `Process`, feeds it config via stdin, parses raw stdout into a `values` array for the visualizer.
+- `CavaService` — spawns `cava` as a `Process`, feeds it config via stdin, parses raw stdout into a `values` array for the visualizer. `Config.visualizer.source` picks what cava listens to: `"auto"` writes no `[input]` section at all (cava's default, the sink monitor, so every app at once), `"player"` resolves the active MPRIS player to its own PipeWire stream through `Helpers/audio_nodes.py` and captures only that, and any other value is passed through verbatim as a `node.name`. cava reads its input once at startup, so a new target means stopping and relaunching it; the stream also appears a moment after the player does, so a miss is retried with a growing delay before falling back to system audio.
 - `WallpaperService` — drives `awww`/`awww-daemon` (images) and `mpvpaper` (video); folder models from `Config.wallpaper.staticWallpaperFolder`; video list via `Helpers/list_walls.py`.
 - `LyricsService` — fetches the whole timestamped LRC once per track via `Helpers/lyrics.py fetch` (lrclib.net, cached under `$XDG_CACHE_HOME/island/lyrics/`); exposes `state`, `lines`, `plain`, `currentIndex`, `currentText` and `seek()`. The active line is derived in QML from `MprisService.position`, not by re-spawning the helper.
 - `DockService` — builds the dock model: one item per application (`{ appId, entry, toplevels, pinned }`), pinned apps first in the order saved to `Config.dock.pinned`, then running-but-unpinned apps. Owns `move()`/`persistOrder()` (drag reorder; only pinned positions survive a restart), `setPinned()`/`togglePin()`, and `activate()`/`launch()`/`close()`.
@@ -93,7 +93,7 @@ Singletons in `Services/` wrap external systems and expose reactive properties/s
 - `WallhavenService` — search and download against wallhaven.cc through `Helpers/wallhaven.py`; exposes `results`, `loading`, `error`, `page`/`lastPage`, `search()`/`loadMore()`/`download()` and `downloaded`/`downloadFailed`. Filters live in `Config.wallhaven` (categories/purity bit strings, sorting, ratio, API key); `Modules/Wallpapers/WallpaperBrowser.qml` is the GUI and applies a finished download through `WallpaperService`.
 - `LocalSendService`, `DateService`.
 
-External CLI tools these depend on (must be on PATH): `cava`, `awww` + `awww-daemon`, `mpvpaper`, `notify-send`, `iris`/`matugen` for colorscheme generation, `tesseract` for OCR, `wayfreeze` for freezing the screen during a screenshot selection, plus `python3` for helpers.
+External CLI tools these depend on (must be on PATH): `cava`, `awww` + `awww-daemon`, `mpvpaper`, `notify-send`, `iris`/`matugen` for colorscheme generation, `tesseract` for OCR, `wayfreeze` for freezing the screen during a screenshot selection, `pw-dump` (pipewire) for resolving a player's audio stream, plus `python3` for helpers.
 
 ## Templates
 
