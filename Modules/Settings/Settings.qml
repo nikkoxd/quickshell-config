@@ -22,7 +22,8 @@ FloatingWindow {
         Visualizer,
         Theme,
         Templates,
-        Wallpaper
+        Wallpaper,
+        Widgets
     }
 
     RowLayout {
@@ -147,6 +148,18 @@ FloatingWindow {
             minContentWidth: 360
 
             SettingsWallpaper {}
+        }
+
+        ScrollArea {
+            visible: root.currentTab === Settings.Tab.Widgets
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            // A row is a 200px title, its spacing and the widest control
+            // minimum (the Dropdown's 150px). Below that the page scrolls
+            // sideways instead of squeezing its controls away.
+            minContentWidth: 360
+
+            SettingsWidgets {}
         }
     }
 }

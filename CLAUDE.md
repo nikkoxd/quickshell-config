@@ -39,6 +39,12 @@ The island is a `StackView` of **views** that replace each other with a blur/sca
 
 - **External control:** an `IpcHandler` with target `"bar"` exposes `toggle(view)`. Trigger from anywhere with `qs -c island ipc call bar toggle <view>` (bind these in Hyprland).
 
+## Desktop widgets
+
+`Modules/Widgets/` is separate from the view system: `Widgets.qml` is a `LazyLoader` over a click-through `PanelWindow` on `WlrLayer.Bottom` (masked with `Region { item: null }`, `ExclusionMode.Ignore`), so widgets sit on the wallpaper under every window and never take input or screen space. `shell.qml` instantiates it alongside `Dock`/`ScreenCorners`. Settings live in `Config/widgets.json` (`Config.widgets`), GUI in `Modules/Settings/SettingsWidgets.qml`.
+
+`Modules/Widgets/Lyrics.qml` is the scrolling karaoke panel the dashboard used to show, kept generic: `fontScale`, `horizontalAlignment` (the fill follows the per-row `x` the layout hands it, so centred text fills correctly), `idleOpacity`/`minOpacity` for how the off-lines dim, `lineSpacing`, and `wheelEnabled`/`seekOnClick` for a surface that cannot take input. `LyricsWidget.qml` sizes it to `Config.widgets.lyricsRows` rows — the panel keeps the active line centred, so three rows read as previous/current/next — and fades itself out when there are no lyrics or playback is paused.
+
 ## Config & theming
 
 `Core/Config.qml` is the single source of truth for user settings. Each setting group is a `FileView` over a JSON file in `Config/` with a `JsonAdapter` defining schema + defaults. Files are written back on change and hot-reloaded (`watchChanges: true`), so editing `Config/*.json` at runtime updates the UI live, and missing files are recreated from defaults.

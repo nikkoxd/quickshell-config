@@ -6,12 +6,30 @@ import qs.Services
 
 Item {
     id: root
-    // Sized to roughly match Calendar so scroll-swapping doesn't resize the island.
+    // A default the island panel was sized around; the desktop widget gives it
+    // a size of its own instead.
     implicitWidth: 230
     implicitHeight: 230
 
     // Uniform bump over the base font - per-line sizing reflowed the list on every change.
     property real fontScale: 1.3
+    // Left in the panel, centred as a desktop widget. The karaoke fill follows
+    // it, because each wrapped row is placed at the x the layout gave it.
+    property int horizontalAlignment: Text.AlignLeft
+    // Auto-follow re-centres the active line; turning it off leaves scrolling
+    // entirely to the wheel.
+    property bool wheelEnabled: true
+    // Click-to-seek. A click-through widget window can't take the press anyway.
+    property bool seekOnClick: true
+    // How dim the lines around the current one sit. Over a wallpaper they need
+    // to be brighter than they do inside the island.
+    property real idleOpacity: 0.4
+    property real minOpacity: 0.12
+    // Gap between lines, which a caller sizing itself in whole rows needs too.
+    property int lineSpacing: 6
+    // How much bigger the current line sits. This is a transform, not a font size:
+    // resizing the text would re-wrap and reflow the list under the scroll position.
+    property real activeScale: 1
 
     readonly property bool synced: LyricsService.state === "synced"
     readonly property bool hasPlain: LyricsService.state === "plain" && LyricsService.plain.length > 0
@@ -130,8 +148,9 @@ Item {
         root.scrollTo(target, true);
     }
 
-    // Ctrl+wheel is left alone for the Dashboard, which swaps this panel for the calendar.
+    // Ctrl+wheel is left alone for whatever hosts the panel to use.
     WheelHandler {
+        enabled: root.wheelEnabled
         acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
         acceptedModifiers: Qt.NoModifier
 
@@ -159,7 +178,7 @@ Item {
         id: list
         anchors.fill: parent
         clip: true
-        spacing: 6
+        spacing: root.lineSpacing
         // contentY is driven by hand (see handleWheel / follow), never by flick physics.
         interactive: false
 
@@ -246,18 +265,32 @@ Item {
             width: list.width
             implicitHeight: base.implicitHeight
 
+            // Grows in place, so the rows around it keep the positions the list
+            // laid out and the active line stays centred.
+            scale: line.current ? root.activeScale : 1
+            transformOrigin: root.horizontalAlignment === Text.AlignHCenter ? Item.Center : Item.Left
+
+            Behavior on scale {
+                NumberAnimation {
+                    duration: 250
+                    easing.type: Easing.OutCubic
+                }
+            }
+
             ThemedText {
                 id: base
                 width: parent.width
                 wrapMode: Text.WordWrap
+                horizontalAlignment: root.horizontalAlignment
                 // model is either [{time, text}] or plain strings, and can lag `synced` by a frame.
                 readonly property string lineText: line.modelData && line.modelData.text !== undefined ? line.modelData.text : line.modelData || ""
-                // LRC marks instrumental breaks with empty lines.
-                text: root.synced && lineText.length === 0 ? "♪" : lineText
+                // LRC marks instrumental breaks with empty lines. Three notes, the
+                // same placeholder the default view uses.
+                text: root.synced && lineText.length === 0 ? "♪♪♪" : lineText
                 font.pixelSize: Config.theme.fontSize * root.fontScale
                 // The current line sits dim too - the fill overlay is what brightens it.
                 // Everything else fades off gradually the further it is from the current line.
-                opacity: !root.synced ? 0.8 : Math.max(0.12, 0.4 - line.distance * 0.07)
+                opacity: !root.synced ? 0.8 : Math.max(root.minOpacity, root.idleOpacity - line.distance * (root.idleOpacity / 6))
 
                 Behavior on opacity {
                     NumberAnimation {
@@ -326,15 +359,24 @@ Item {
                             return total;
                         }
 
+                        // Where this row starts once the Text has aligned it.
+                        // `TextLine.x` is 0 whatever the alignment, so the
+                        // offset the paint applies has to be redone here or the
+                        // fill clips an empty strip left of the glyphs.
+                        readonly property real rowX: root.horizontalAlignment === Text.AlignHCenter ? (base.width - modelData.w) / 2 : root.horizontalAlignment === Text.AlignRight ? base.width - modelData.w : 0
+
+                        x: fillRow.rowX
                         y: modelData.y
                         height: modelData.h
                         clip: true
                         width: Math.max(0, Math.min(modelData.w, base.totalWidth * line.fillProgress - offset))
 
                         ThemedText {
+                            x: -fillRow.rowX
                             y: -fillRow.y
                             width: base.width
                             wrapMode: base.wrapMode
+                            horizontalAlignment: base.horizontalAlignment
                             text: base.text
                             font: base.font
                         }
@@ -345,7 +387,7 @@ Item {
             // A MouseArea takes the grab, so the Dashboard's TapHandler won't also close the view.
             MouseArea {
                 anchors.fill: parent
-                enabled: root.synced
+                enabled: root.synced && root.seekOnClick
                 cursorShape: Qt.PointingHandCursor
                 onClicked: LyricsService.seek(line.index)
             }

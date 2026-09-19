@@ -79,5 +79,12 @@ Column {
             selected: root.currentTab === Settings.Tab.Wallpaper
             onTapped: root.currentTab = Settings.Tab.Wallpaper
         }
+
+        SettingsTab {
+            text: "Widgets"
+            icon: "squares-four"
+            selected: root.currentTab === Settings.Tab.Widgets
+            onTapped: root.currentTab = Settings.Tab.Widgets
+        }
     }
 }

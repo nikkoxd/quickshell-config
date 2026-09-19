@@ -15,6 +15,7 @@ Singleton {
     property var iris: irisLoader.adapter
     property var matugen: matugenLoader.adapter
     property var dock: dockLoader.adapter
+    property var widgets: widgetsLoader.adapter
     property var wallhaven: wallhavenLoader.adapter
     property var colorscheme: colorschemeLoader.adapter
 
@@ -460,6 +461,34 @@ Singleton {
             property int iconSize: 40
             property int spacing: 8
             property list<string> pinned: []
+        }
+    }
+
+    FileView {
+        id: widgetsLoader
+        path: Qt.resolvedUrl("../Config/widgets.json")
+        watchChanges: true
+        onFileChanged: reload()
+        onAdapterUpdated: writeAdapter()
+        onLoadFailed: error => {
+            if (error === FileViewError.FileNotFound) {
+                writeAdapter();
+            }
+        }
+        adapter: JsonAdapter {
+            // The lyrics widget: the dashboard's lyrics panel, cut down to a
+            // few rows and parked at the bottom of the desktop.
+            property bool lyricsEnabled: false
+            property int lyricsRows: 3
+            property int lyricsWidth: 900
+            property int lyricsBottomMargin: 64
+            property real lyricsFontScale: 1.8
+            // How much bigger the line being sung is drawn than the ones around it.
+            property real lyricsActiveScale: 1.15
+            property bool lyricsCentered: true
+            // Lyrics of a paused track are stale on screen; hide them until
+            // playback resumes.
+            property bool lyricsOnlyWhilePlaying: true
         }
     }
 

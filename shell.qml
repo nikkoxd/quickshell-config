@@ -14,11 +14,13 @@ import qs.Modules.ScreenCorners as ScreenCornersModule
 import qs.Modules.Wallpapers as WallpapersModule
 import qs.Modules.Lockscreen as LockscreenModule
 import qs.Modules.Dock as DockModule
+import qs.Modules.Widgets as WidgetsModule
 
 ShellRoot {
     WallpapersModule.Wallpaper {}
     ScreenCornersModule.ScreenCorners {}
     DockModule.Dock {}
+    WidgetsModule.Widgets {}
     LockscreenModule.Lockscreen {}
 
     PanelWindow {
