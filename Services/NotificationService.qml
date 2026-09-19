@@ -11,7 +11,7 @@ Singleton {
     property NotificationServer server: NotificationServer {
         id: server
         actionsSupported: true
-        keepOnReload: false
+        keepOnReload: true
     }
 
     // All tracked notifications, oldest first.
