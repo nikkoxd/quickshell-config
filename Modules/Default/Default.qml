@@ -117,5 +117,9 @@ View {
             visible: Pipewire.defaultAudioSink?.audio.muted
             anchors.verticalCenter: parent.verticalCenter
         }
+
+        ScreenshotIndicator {
+            anchors.verticalCenter: parent.verticalCenter
+        }
     }
 }

@@ -187,7 +187,7 @@ View {
                 wide: true
                 icon: "video-camera"
                 label: "Record"
-                sublabel: RecordingService.recording ? "Recording" : RecordingService.replayRunning ? "Replay buffer" : "Off"
+                sublabel: RecordingService.recording ? RecordingService.recordingElapsedText : RecordingService.replayRunning ? "Replay buffer" : "Off"
                 active: RecordingService.recording
                 onClicked: RecordingService.toggleRecording()
             }

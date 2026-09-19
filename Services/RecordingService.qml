@@ -12,11 +12,46 @@ Singleton {
     property string recordingPath: ""
     property string screenshotPath: ""
     property bool screenshotTemp: false
+
+    // Set for a few seconds after a capture lands, for the default view's
+    // indicator to show.
+    property bool screenshotFlash: false
+    readonly property int screenshotFlashDuration: 2500
+
     property var visibleWorkspaces: []
     property int pendingKind: RecordingService.Kind.Region
     // Whether the pending capture ends in tesseract instead of the usual
     // save/copy. The whole slurp -> grim path is shared between the two.
     property bool pendingOcr: false
+
+    // Wall-clock seconds since the recording started, ticked while recording so
+    // views can show elapsed time. Reset on stop, so a stale value never shows
+    // up on the next start before the first tick.
+    property int recordingElapsed: 0
+    property double recordingStartedAt: 0
+    readonly property string recordingElapsedText: formatDuration(root.recordingElapsed)
+
+    Timer {
+        id: recordingClock
+        interval: 1000
+        repeat: true
+        running: root.recording
+        onTriggered: root.recordingElapsed = Math.floor((Date.now() - root.recordingStartedAt) / 1000)
+    }
+
+    function formatDuration(seconds) {
+        const pad = n => String(n).padStart(2, "0");
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+        return (hours > 0 ? hours + ":" + pad(minutes) : String(minutes)) + ":" + pad(secs);
+    }
+
+    Timer {
+        id: screenshotFlashTimer
+        interval: root.screenshotFlashDuration
+        onTriggered: root.screenshotFlash = false
+    }
 
     Timer {
         id: screenshotDelay
@@ -165,14 +200,14 @@ Singleton {
         grimProc.running = true;
     }
 
-    function notifyScreenshot() {
-        if (root.screenshotTemp) {
-            NotificationService.notify("Screenshot copied", "Copied to clipboard");
-        } else if (Config.recorder.screenshotCopy) {
-            NotificationService.notify("Screenshot saved", "Copied to clipboard, saved to: " + root.screenshotPath);
-        } else {
-            NotificationService.notify("Screenshot saved", "Saved to: " + root.screenshotPath);
-        }
+    // A successful capture is confirmed by the transient icon in the island's
+    // default view rather than a notification: it is ambient feedback for
+    // something the user just did on purpose, so it has no business outliving
+    // the moment in the notification list. Failures still notify.
+    function announceScreenshot() {
+        console.log("[Recorder] Screenshot done:", root.screenshotTemp ? "clipboard only" : root.screenshotPath);
+        root.screenshotFlash = true;
+        screenshotFlashTimer.restart();
     }
 
     // Sources joined with "|" so they land in a single audio track; passing
@@ -199,7 +234,9 @@ Singleton {
         }
         root.recording = value;
         console.log("[Recorder] Recording status:", root.recording);
+        root.recordingElapsed = 0;
         if (root.recording) {
+            root.recordingStartedAt = Date.now();
             recordingStartProc.command = [
                 "gpu-screen-recorder", "-w", "screen",
                 "-f", String(Config.recorder.recordingFramerate),
@@ -414,7 +451,7 @@ Singleton {
                 copyProc.command = ["sh", "-c", 'wl-copy --type image/png < "$1"', "_", root.screenshotPath];
                 copyProc.running = true;
             } else {
-                root.notifyScreenshot();
+                root.announceScreenshot();
             }
         }
     }
@@ -432,7 +469,7 @@ Singleton {
                 removeProc.command = ["rm", "-f", root.screenshotPath];
                 removeProc.running = true;
             }
-            root.notifyScreenshot();
+            root.announceScreenshot();
         }
     }
 
