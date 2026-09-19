@@ -69,6 +69,10 @@ Item {
         // the off-lines need more of the foreground colour to stay readable.
         idleOpacity: 0.55
         minOpacity: 0.25
+        // A light scheme's foreground is dark, which disappears into the
+        // wallpaper the shadow below is meant to lift the text off. The
+        // background colour is the light end of the same scheme.
+        textColor: Config.lightTheme ? Config.colorscheme.bg : Config.colorscheme.fg
         lineSpacing: root.lineSpacing
         activeScale: Config.widgets.lyricsActiveScale
     }

@@ -20,6 +20,11 @@ Singleton {
     property var wallhaven: wallhavenLoader.adapter
     property var colorscheme: colorschemeLoader.adapter
 
+    // Whether the active colorscheme is a light one. Derived from the
+    // background rather than a generator's `dark` flag, so a hand-written
+    // Themes/<Name>.json is classified too.
+    readonly property bool lightTheme: Qt.color(root.colorscheme.bg).hslLightness > 0.5
+
     // Template registry, keyed by template name. Each entry is
     // { enabled, template, output, postHook }; `template` is the file name
     // looked up in Templates/<generator>/ and defaults to the key. `output`

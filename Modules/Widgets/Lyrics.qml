@@ -27,6 +27,10 @@ Item {
     property real minOpacity: 0.12
     // Gap between lines, which a caller sizing itself in whole rows needs too.
     property int lineSpacing: 6
+    // Colour of the lyrics. Over the island's own background the foreground
+    // colour is right, but a caller drawing over a wallpaper may need the
+    // other end of the scheme.
+    property color textColor: Config.colorscheme.fg
     // How much bigger the current line sits. This is a transform, not a font size:
     // resizing the text would re-wrap and reflow the list under the scroll position.
     property real activeScale: 1
@@ -288,6 +292,7 @@ Item {
                 // same placeholder the default view uses.
                 text: root.synced && lineText.length === 0 ? "♪♪♪" : lineText
                 font.pixelSize: Config.theme.fontSize * root.fontScale
+                color: root.textColor
                 // The current line sits dim too - the fill overlay is what brightens it.
                 // Everything else fades off gradually the further it is from the current line.
                 opacity: !root.synced ? 0.8 : Math.max(root.minOpacity, root.idleOpacity - line.distance * (root.idleOpacity / 6))
@@ -379,6 +384,7 @@ Item {
                             horizontalAlignment: base.horizontalAlignment
                             text: base.text
                             font: base.font
+                            color: root.textColor
                         }
                     }
                 }
@@ -401,6 +407,7 @@ Item {
         wrapMode: Text.WordWrap
         opacity: 0.8
         visible: text.length > 0
+        color: root.textColor
         text: LyricsService.statusText
     }
 }
