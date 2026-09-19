@@ -56,16 +56,22 @@ ClippingRectangle {
         spacing: 2
 
         Row {
+            id: titleRow
             spacing: 8
 
             CavaBars {
+                id: bars
                 anchors.verticalCenter: parent.verticalCenter
             }
 
             ScrollingText {
                 text: root.player ? root.player.trackTitle : ""
                 bold: true
-                maxWidth: root.textWidth
+                // The bars share this line, so the title only gets what they
+                // leave - without this it runs under the transport buttons
+                // whenever the inline visualizer is on. A hidden Row keeps its
+                // width but takes no space, hence the visibility check.
+                maxWidth: root.textWidth - (bars.visible ? bars.width + titleRow.spacing : 0)
             }
         }
 
