@@ -37,7 +37,16 @@ LazyLoader {
         anchors.bottom: true
 
         readonly property bool revealed: !Config.dock.onlyOnHover || (Config.dock.showWhenWorkspaceClear && workspaceClear) || dockHover.hovered || hotzoneHover.hovered || menu.visible || dragging
-        property bool dragging: false
+
+        // Reordering is previewed by displacing the other icons and only
+        // committed to DockService on drop. ScriptModel is free to answer a
+        // reorder by reassigning modelData on the delegates it already has
+        // instead of moving them, which mid-drag would swap the dragged app for
+        // its neighbour and leave `index` stale, so the model must not change
+        // while a drag is in flight.
+        property int dragIndex: -1
+        property int dropIndex: -1
+        readonly property bool dragging: dragIndex >= 0
 
         // Nothing on the workspace claims the bottom of the screen: either no
         // windows at all, or only floating ones. `floating` isn't a property of
@@ -151,9 +160,11 @@ LazyLoader {
                 rightPadding: Config.island.margins * 2
 
                 Repeater {
-                    // ScriptModel diffs the array into insert/remove/move
-                    // operations, so reordering keeps the delegates alive and a
-                    // drag survives the item it is dragging changing places.
+                    // ScriptModel diffs the array so unchanged apps keep their
+                    // delegate. It does not promise to *move* a delegate on a
+                    // reorder though — it may equally reassign modelData on the
+                    // delegates already in place — so nothing may assume a
+                    // delegate keeps its app across an update.
                     model: ScriptModel {
                         values: DockService.items
                         objectProp: "appId"
@@ -163,18 +174,44 @@ LazyLoader {
                         id: entry
                         size: Config.dock.iconSize
 
-                        onDraggingChanged: root.dragging = entry.dragging
+                        dockDragging: root.dragging
 
+                        // Icons between the dragged one and the slot it would
+                        // land on step aside by one place.
+                        shiftSlots: {
+                            if (root.dragIndex < 0 || entry.index === root.dragIndex)
+                                return 0;
+                            if (entry.index > root.dragIndex && entry.index <= root.dropIndex)
+                                return -1;
+                            if (entry.index < root.dragIndex && entry.index >= root.dropIndex)
+                                return 1;
+                            return 0;
+                        }
+
+                        // HoverHandler doesn't block, so the entry sitting under
+                        // the dragged icon reports a hover too. Ignore hovers
+                        // outright while a drag is running.
                         onHoveredChanged: {
-                            if (entry.hovered)
+                            if (entry.hovered && !root.dragging)
                                 root.hoveredEntry = entry;
                             else if (root.hoveredEntry === entry)
                                 root.hoveredEntry = null;
                         }
 
-                        onDragMoved: centerX => DockService.move(entry.index, root.indexAt(centerX))
+                        onDragStarted: {
+                            root.dragIndex = entry.index;
+                            root.dropIndex = entry.index;
+                        }
 
-                        onDragFinished: DockService.persistOrder()
+                        onDragMoved: centerX => root.dropIndex = root.indexAt(centerX)
+
+                        onDragFinished: {
+                            if (root.dropIndex >= 0 && root.dropIndex !== root.dragIndex)
+                                DockService.move(root.dragIndex, root.dropIndex);
+                            root.dragIndex = -1;
+                            root.dropIndex = -1;
+                            DockService.persistOrder();
+                        }
 
                         onMenuRequested: (anchor, item) => root.openMenu(anchor, item)
                     }
