@@ -6,8 +6,8 @@ import qs.Core
 import qs.Services
 
 // The island's idle view: a single row of ambient indicators around a centre
-// that is the clock, the current lyric line, a running countdown or the
-// workspace strip.
+// that is the clock, the current lyric line, a running countdown, the
+// workspace strip or the track being announced.
 View {
     id: root
     implicitWidth: centre.implicitWidth + root.leftExtent + root.rightExtent
@@ -38,10 +38,21 @@ View {
     readonly property bool showTimer: TimerService.active
     property bool showWorkspaces: false
 
+    // The track announcement: "artist - track" in the centre and the artwork
+    // in place of the visualizer, both for as long as this is set.
+    property bool announceTrack: false
+    readonly property bool showTrack: root.announceTrack && track.text.length > 0
+
     readonly property bool centreWorkspaces: root.showWorkspaces
-    readonly property bool centreTimer: root.showTimer && !root.showWorkspaces
-    readonly property bool centreLyrics: root.showLyrics && !root.showTimer && !root.showWorkspaces
-    readonly property bool centreClock: !root.showLyrics && !root.showTimer && !root.showWorkspaces
+    readonly property bool centreTrack: root.showTrack && !root.showWorkspaces
+    readonly property bool centreTimer: root.showTimer && !root.showWorkspaces && !root.showTrack
+    readonly property bool centreLyrics: root.showLyrics && !root.showTimer && !root.showWorkspaces && !root.showTrack
+    readonly property bool centreClock: !root.showLyrics && !root.showTimer && !root.showWorkspaces && !root.showTrack
+
+    // The left slot holds one of the two: the artwork while a track is being
+    // announced, the inline visualizer the rest of the time.
+    readonly property bool slotArtwork: artwork.active && root.showTrack
+    readonly property bool slotBars: bars.active && !root.slotArtwork
 
     readonly property bool barsVisualizer: Config.visualizer.mode === "bars"
 
@@ -59,6 +70,30 @@ View {
         onTriggered: root.showWorkspaces = false
     }
 
+    // A new song and a resumed one are the same event as far as the island is
+    // concerned: say what is playing, then go back to being idle.
+    Connections {
+        target: MprisService
+        function onTrackChanged() {
+            root.announce();
+        }
+        function onIsPlayingChanged() {
+            if (MprisService.isPlaying)
+                root.announce();
+        }
+    }
+
+    function announce() {
+        root.announceTrack = true;
+        trackTimer.restart();
+    }
+
+    Timer {
+        id: trackTimer
+        interval: 3000
+        onTriggered: root.announceTrack = false
+    }
+
     // Every indicator goes in through a PopIn instead of hiding itself, so the
     // slot it takes in the row opens and closes with it and the island's width
     // Behavior in Bar.qml follows the row rather than jumping to meet it.
@@ -69,22 +104,44 @@ View {
         anchors.rightMargin: root.centreSpacing
         anchors.verticalCenter: parent.verticalCenter
 
+        // One slot for the two of them, so the swap reads as the artwork
+        // taking the visualizer's place rather than the row opening a second
+        // gap next to it.
         PopIn {
             anchors.verticalCenter: parent.verticalCenter
-            shown: artwork.active
+            shown: root.slotArtwork || root.slotBars
 
-            SongArtwork {
-                id: artwork
-            }
-        }
+            Item {
+                implicitWidth: root.slotArtwork ? artwork.width : bars.width
+                implicitHeight: Math.max(artwork.height, bars.height)
 
-        PopIn {
-            anchors.verticalCenter: parent.verticalCenter
-            shown: bars.active
+                Behavior on implicitWidth {
+                    NumberAnimation {
+                        duration: 220
+                        easing.type: Easing.OutCubic
+                    }
+                }
 
-            CavaBars {
-                id: bars
-                visible: true
+                // Neither of the two pops: one is taking the other's place in
+                // a slot that is already open, so an overshoot would read as a
+                // second arrival on top of the swap.
+                CrossFade {
+                    anchors.centerIn: parent
+                    shown: root.slotArtwork
+
+                    SongArtwork {
+                        id: artwork
+                    }
+                }
+
+                CrossFade {
+                    anchors.centerIn: parent
+                    shown: root.slotBars
+
+                    CavaBars {
+                        id: bars
+                    }
+                }
             }
         }
     }
@@ -96,8 +153,8 @@ View {
         // it while the island around it stays screen-centred.
         anchors.horizontalCenterOffset: -root.centreOffset
         anchors.verticalCenter: parent.verticalCenter
-        implicitWidth: root.showWorkspaces ? workspaces.implicitWidth : root.showTimer ? timer.implicitWidth : root.showLyrics ? lyrics.implicitWidth : clock.implicitWidth
-        implicitHeight: Math.max(clock.implicitHeight, Math.max(timer.implicitHeight, Math.max(lyrics.implicitHeight, workspaces.implicitHeight)))
+        implicitWidth: root.centreWorkspaces ? workspaces.implicitWidth : root.centreTrack ? track.implicitWidth : root.centreTimer ? timer.implicitWidth : root.centreLyrics ? lyrics.implicitWidth : clock.implicitWidth
+        implicitHeight: Math.max(clock.implicitHeight, Math.max(timer.implicitHeight, Math.max(track.implicitHeight, Math.max(lyrics.implicitHeight, workspaces.implicitHeight))))
 
         // Same curve as the island's slide and resize, so the two halves of
         // the trick stay cancelled out for the whole animation instead of only
@@ -109,93 +166,53 @@ View {
             }
         }
 
-        ThemedText {
-            id: clock
+        // The centre is one slot with five members, so none of them pops in:
+        // whichever arrives is replacing the one leaving, and the overshoot
+        // belongs to an indicator turning up in a slot of its own.
+        CrossFade {
             anchors.centerIn: parent
-            text: DateService.hours + ":" + DateService.minutes
-            opacity: root.centreClock ? 1 : 0
-            scale: root.centreClock ? 1 : 0.8
-            visible: opacity > 0
+            shown: root.centreClock
 
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: 200
-                    easing.type: Easing.OutQuad
-                }
-            }
-
-            Behavior on scale {
-                NumberAnimation {
-                    duration: 300
-                    easing.type: Easing.OutBack
-                }
+            ThemedText {
+                id: clock
+                text: DateService.hours + ":" + DateService.minutes
             }
         }
 
-        ThemedText {
-            id: timer
+        CrossFade {
             anchors.centerIn: parent
-            text: TimerService.display
-            opacity: root.centreTimer ? 1 : 0
-            scale: root.centreTimer ? 1 : 0.8
-            visible: opacity > 0
+            shown: root.centreTimer
 
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: 200
-                    easing.type: Easing.OutQuad
-                }
-            }
-
-            Behavior on scale {
-                NumberAnimation {
-                    duration: 300
-                    easing.type: Easing.OutBack
-                }
+            ThemedText {
+                id: timer
+                text: TimerService.display
             }
         }
 
-        LyricsText {
-            id: lyrics
+        CrossFade {
             anchors.centerIn: parent
-            opacity: root.centreLyrics ? 1 : 0
-            scale: root.centreLyrics ? 1 : 0.8
-            visible: opacity > 0
+            shown: root.centreLyrics
 
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: 200
-                    easing.type: Easing.OutQuad
-                }
-            }
-
-            Behavior on scale {
-                NumberAnimation {
-                    duration: 300
-                    easing.type: Easing.OutBack
-                }
+            LyricsText {
+                id: lyrics
             }
         }
 
-        Workspaces {
-            id: workspaces
+        CrossFade {
             anchors.centerIn: parent
-            opacity: root.centreWorkspaces ? 1 : 0
-            scale: root.centreWorkspaces ? 1 : 0.8
-            visible: opacity > 0
+            shown: root.centreTrack
 
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: 200
-                    easing.type: Easing.OutQuad
-                }
+            TrackText {
+                id: track
             }
+        }
 
-            Behavior on scale {
-                NumberAnimation {
-                    duration: 300
-                    easing.type: Easing.OutBack
-                }
+        CrossFade {
+            anchors.centerIn: parent
+            shown: root.centreWorkspaces
+
+            Workspaces {
+                id: workspaces
             }
         }
     }

@@ -5,8 +5,8 @@ import qs.Services
 
 ClippingRectangle {
     id: root
-    width: 24
-    height: 24
+    width: 16
+    height: 16
     radius: width / 2
     color: "transparent"
 

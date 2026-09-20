@@ -19,11 +19,16 @@ Item {
     // model, where being constructed is the same event as arriving.
     property bool animateOnLoad: false
 
-    property int duration: 220
+    // The overshoot past full size. On, because an indicator here arrives into
+    // a slot of its own rather than displacing something already in it; turn it
+    // off where the wrapper shares its slot with another element.
+    property bool pop: true
 
-    default property alias content: holder.data
+    property int duration: 400
 
-    readonly property Item item: holder.children.length > 0 ? holder.children[0] : null
+    default property alias content: holder.content
+
+    readonly property Item item: holder.item
 
     // The child sizes itself, so the slot is measured off it rather than the
     // other way round; holder is the fixed-size stage the child is scaled on, so
@@ -52,30 +57,14 @@ Item {
         }
     }
 
-    Item {
+    // The scale and fade themselves are the same motion every slot member uses;
+    // the slot is unclipped, so a pop's overshoot spills over the neighbouring
+    // gap for a few frames rather than being cut off.
+    CrossFade {
         id: holder
         anchors.centerIn: parent
-        width: root.contentWidth
-        height: root.contentHeight
-
-        opacity: root.expanded ? 1 : 0
-        scale: root.expanded ? 1 : 0.5
-
-        Behavior on opacity {
-            NumberAnimation {
-                duration: root.duration
-                easing.type: Easing.OutQuad
-            }
-        }
-
-        // OutBack overshoots a little past 1, which is the pop itself. The slot
-        // is unclipped, so the overshoot spills over the neighbouring gap for a
-        // few frames rather than being cut off.
-        Behavior on scale {
-            NumberAnimation {
-                duration: root.duration + 120
-                easing.type: Easing.OutBack
-            }
-        }
+        shown: root.expanded
+        pop: root.pop
+        duration: root.duration
     }
 }

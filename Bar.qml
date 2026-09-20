@@ -32,7 +32,6 @@ Item {
     // the island never replaces a view to move between them.
     property Component default_: DefaultModule.Default {}
     property Component notification: DefaultModule.Notification {}
-    property Component player: DefaultModule.Player {}
     property Component volume: DefaultModule.Volume {}
     property Component recorder: DefaultModule.Recorder {}
     property Component notifications: NotificationsModule.Notifications {}
@@ -290,15 +289,6 @@ Item {
         }
         function onViewChangeRequested(view) {
             root.openView(view);
-        }
-    }
-
-    Connections {
-        target: MprisService
-        function onTrackChanged() {
-            if (!content.currentView.dismissable)
-                return;
-            root.openView("player");
         }
     }
 
