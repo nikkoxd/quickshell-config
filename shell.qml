@@ -67,6 +67,10 @@ ShellRoot {
             radius: Config.island.radius
             anchors.top: parent.top
             anchors.horizontalCenter: parent.horizontalCenter
+            // A view laid out asymmetrically asks the island to slide, so the
+            // part of it that should read as centred ends up over the middle
+            // of the screen rather than the island's own middle.
+            anchors.horizontalCenterOffset: bar.content.currentView.centreOffset
             anchors.topMargin: Config.island.margins
             layer.enabled: true
             layer.effect: MultiEffect {
@@ -87,6 +91,15 @@ ShellRoot {
                     easing.type: Easing.OutCubic
                 }
             }
+
+            // Matches the island's resize, so a flank filling up slides and
+            // grows in one motion.
+            Behavior on anchors.horizontalCenterOffset {
+                NumberAnimation {
+                    duration: 250
+                    easing.type: Easing.OutCubic
+                }
+            }
         }
 
         Item {
@@ -96,6 +109,14 @@ ShellRoot {
             anchors.top: parent.top
             anchors.topMargin: Config.island.margins
             anchors.horizontalCenter: parent.horizontalCenter
+            anchors.horizontalCenterOffset: bar.content.currentView.centreOffset
+
+            Behavior on anchors.horizontalCenterOffset {
+                NumberAnimation {
+                    duration: 250
+                    easing.type: Easing.OutCubic
+                }
+            }
 
             Bar {
                 id: bar

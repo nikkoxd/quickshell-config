@@ -7,18 +7,12 @@ import qs.Services
 
 // The island's idle view: a single row of ambient indicators around a centre
 // that is the clock, the current lyric line, a running countdown or the
-// workspace strip. Every centre is built up front and cross-faded, so the
-// surrounding chrome is written once and every indicator added here shows up
-// under each of them.
-//
-// The centre is anchored to the island's middle rather than laid out in the
-// row, so the clock stays put no matter how lopsided the chrome is; the width
-// reserves the wider of the two flanks on both sides, which is the padding
-// that keeps it there.
+// workspace strip.
 View {
     id: root
-    implicitWidth: centre.implicitWidth + Math.max(root.leftWidth, root.rightWidth) * 2 + Config.island.padding * 2
+    implicitWidth: centre.implicitWidth + root.leftExtent + root.rightExtent
     implicitHeight: Config.island.height
+    centreOffset: (root.rightExtent - root.leftExtent) / 2
 
     // The gap between indicators inside a flank, and the wider one that sets
     // the centre apart from the flanks either side of it.
@@ -29,6 +23,18 @@ View {
     // in it, so an empty side collapses instead of padding twice.
     readonly property real leftWidth: leftRow.implicitWidth > 0 ? leftRow.implicitWidth + root.centreSpacing : 0
     readonly property real rightWidth: rightRow.implicitWidth > 0 ? rightRow.implicitWidth + root.centreSpacing : 0
+
+    // The full padding is there to give a bare clock its bubble. A flank on
+    // that side is already holding the centre off the edge, so it only needs
+    // half of it to clear the island's rounding.
+    readonly property real leftPadding: Config.island.padding / (root.leftWidth > 0 ? 2 : 1)
+    readonly property real rightPadding: Config.island.padding / (root.rightWidth > 0 ? 2 : 1)
+
+    // Everything on one side of the centre: the flank, its gap to the centre,
+    // and the edge padding outside it. The width is the two of them around the
+    // centre, and the slide is half their difference.
+    readonly property real leftExtent: root.leftWidth + root.leftPadding
+    readonly property real rightExtent: root.rightWidth + root.rightPadding
 
     // The dashboard's middle panel and the island's centre are one choice, made
     // in DashboardService. Lyrics only make sense while something is actually
@@ -103,9 +109,22 @@ View {
     Item {
         id: centre
         anchors.horizontalCenter: parent.horizontalCenter
+        // Undo the island's own slide, so the centre lands where the row wants
+        // it while the island around it stays screen-centred.
+        anchors.horizontalCenterOffset: -root.centreOffset
         anchors.verticalCenter: parent.verticalCenter
         implicitWidth: root.showWorkspaces ? workspaces.implicitWidth : root.showTimer ? timer.implicitWidth : root.showLyrics ? lyrics.implicitWidth : clock.implicitWidth
         implicitHeight: Math.max(clock.implicitHeight, Math.max(timer.implicitHeight, Math.max(lyrics.implicitHeight, workspaces.implicitHeight)))
+
+        // Same curve as the island's slide and resize, so the two halves of
+        // the trick stay cancelled out for the whole animation instead of only
+        // at either end of it.
+        Behavior on anchors.horizontalCenterOffset {
+            NumberAnimation {
+                duration: 250
+                easing.type: Easing.OutCubic
+            }
+        }
 
         ThemedText {
             id: clock
