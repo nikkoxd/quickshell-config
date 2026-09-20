@@ -70,16 +70,12 @@ View {
         onTriggered: root.showWorkspaces = false
     }
 
-    // A new song and a resumed one are the same event as far as the island is
-    // concerned: say what is playing, then go back to being idle.
+    // Only a new song is worth announcing: resuming the one already playing is
+    // not news, and the centre would swap out from under whatever is there.
     Connections {
         target: MprisService
         function onTrackChanged() {
             root.announce();
-        }
-        function onIsPlayingChanged() {
-            if (MprisService.isPlaying)
-                root.announce();
         }
     }
 
