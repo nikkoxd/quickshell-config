@@ -281,5 +281,14 @@ View {
                 id: screenshot
             }
         }
+
+        PopIn {
+            anchors.verticalCenter: parent.verticalCenter
+            shown: recordingSaved.active
+
+            RecordingSavedIndicator {
+                id: recordingSaved
+            }
+        }
     }
 }

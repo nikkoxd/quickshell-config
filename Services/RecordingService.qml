@@ -18,6 +18,12 @@ Singleton {
     property bool screenshotFlash: false
     readonly property int screenshotFlashDuration: 2500
 
+    // Same thing for a recording that has just been written out: the file is
+    // there the moment gpu-screen-recorder exits, so the confirmation is the
+    // same transient indicator rather than a notification.
+    property bool recordingFlash: false
+    readonly property int recordingFlashDuration: 2500
+
     property var visibleWorkspaces: []
     property int pendingKind: RecordingService.Kind.Region
     // Whether the pending capture ends in tesseract instead of the usual
@@ -51,6 +57,12 @@ Singleton {
         id: screenshotFlashTimer
         interval: root.screenshotFlashDuration
         onTriggered: root.screenshotFlash = false
+    }
+
+    Timer {
+        id: recordingFlashTimer
+        interval: root.recordingFlashDuration
+        onTriggered: root.recordingFlash = false
     }
 
     Timer {
@@ -208,6 +220,15 @@ Singleton {
         console.log("[Recorder] Screenshot done:", root.screenshotTemp ? "clipboard only" : root.screenshotPath);
         root.screenshotFlash = true;
         screenshotFlashTimer.restart();
+    }
+
+    // The recording equivalent of announceScreenshot(): same reasoning, same
+    // transient indicator. The blinking dot is gone by now, so the two never
+    // share the slot.
+    function announceRecording() {
+        console.log("[Recorder] Recording saved:", root.recordingPath);
+        root.recordingFlash = true;
+        recordingFlashTimer.restart();
     }
 
     // Sources joined with "|" so they land in a single audio track; passing
@@ -515,7 +536,7 @@ Singleton {
         onExited: (exitCode, exitStatus) => {
             console.log("[Recorder] gpu-screen-recorder exited with code:", exitCode);
             if (exitCode === 0) {
-                NotificationService.notify("Recording finished", "Saved to: " + root.recordingPath);
+                root.announceRecording();
             } else {
                 NotificationService.notify("Recording failed", "gpu-screen-recorder exited with code " + exitCode);
             }
