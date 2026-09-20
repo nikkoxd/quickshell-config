@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 
 import Quickshell
 import Quickshell.Io
-import Quickshell.Hyprland
 import Quickshell.Services.Pipewire
 import QtQuick
 import QtQuick.Controls
@@ -34,7 +33,6 @@ Item {
     property Component default_: DefaultModule.Default {}
     property Component notification: DefaultModule.Notification {}
     property Component player: DefaultModule.Player {}
-    property Component workspaces: DefaultModule.Workspaces {}
     property Component volume: DefaultModule.Volume {}
     property Component recorder: DefaultModule.Recorder {}
     property Component notifications: NotificationsModule.Notifications {}
@@ -292,15 +290,6 @@ Item {
         }
         function onViewChangeRequested(view) {
             root.openView(view);
-        }
-    }
-
-    Connections {
-        target: Hyprland
-        function onFocusedWorkspaceChanged() {
-            if (!content.currentView.dismissable)
-                return;
-            root.openView("workspaces");
         }
     }
 

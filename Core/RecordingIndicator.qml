@@ -12,10 +12,13 @@ Rectangle {
     // a dot on either side of the text and let the visualizer mode pick one, so
     // the dot never lands where the inline bars go.
     property bool shown: true
-    visible: root.shown && RecordingService.recording
+
+    // The owner wraps this in a PopIn and drives it from here, so the dot pops
+    // in and out rather than appearing mid-blink.
+    readonly property bool active: root.shown && RecordingService.recording
 
     SequentialAnimation on opacity {
-        running: root.visible
+        running: root.active
         loops: Animation.Infinite
         NumberAnimation {
             from: 1

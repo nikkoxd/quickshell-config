@@ -81,6 +81,7 @@ Chrome and helpers:
 
 - `ViewHeader` — the title row every non-default view uses: `text` on the left, children going into the right-hand action `Row` (its `default` property).
 - `Cava` / `CavaBars` — the two visualizer renderings fed by `CavaService`. `Cava` paints a gradient curve across the island background, `CavaBars` a few inline bars next to text; each is `visible` only for its own `Config.visualizer.mode` (`"background"` / `"bars"`), so both can be instantiated unconditionally.
+- `PopIn` — wrapper that animates an ambient indicator in and out: the slot it takes in its `Row` grows and shrinks while the child scales and fades inside it. The child must *not* hide itself — the condition goes on the wrapper's `shown`, so there is still something laid out to animate on the way out; the default-view indicators therefore expose their condition as `active` instead of binding it to `visible`. `animateOnLoad` pops on creation, for delegates where being built is the same event as arriving.
 - `RecordingIndicator` — the blinking dot shown while `RecordingService.recording`. `shown` is the extra gate default views use to keep it clear of the inline visualizer.
 - `CommandQueue` — runs a list of shell commands one at a time through `sh -c`, warning on stderr with `label` as the prefix. Used for user-configured hook commands.
 

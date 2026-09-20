@@ -3,24 +3,16 @@ import qs.Services
 
 // Confirmation that a screenshot landed, shown in the default views for a few
 // seconds instead of a notification: the crop glyph with a check badge over its
-// bottom-right corner. `RecordingService` owns the timing; this only fades in
-// and out.
+// bottom-right corner. `RecordingService` owns the timing; this only draws the
+// glyph.
 Item {
     id: root
     implicitWidth: glyph.implicitWidth
     implicitHeight: glyph.implicitHeight
 
-    // Kept out of the Row's layout while faded out, so the island doesn't
-    // reserve the width between captures.
-    visible: opacity > 0
-    opacity: RecordingService.screenshotFlash ? 1 : 0
-
-    Behavior on opacity {
-        NumberAnimation {
-            duration: 200
-            easing.type: Easing.OutQuad
-        }
-    }
+    // The owner wraps this in a PopIn and drives it from here, which is also
+    // what keeps the island from reserving the width between captures.
+    readonly property bool active: RecordingService.screenshotFlash
 
     ThemedText {
         id: glyph

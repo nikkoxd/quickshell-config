@@ -7,10 +7,13 @@ ClippingRectangle {
     id: root
     width: 24
     height: 24
-    radius: 4
+    radius: width / 2
     color: "transparent"
-    visible: Config.visualizer.displayArtwork
-             && MprisService.isPlaying
+
+    // The owner wraps this in a PopIn and drives it from here, so the artwork
+    // grows out of the row instead of blinking into it.
+    readonly property bool active: Config.visualizer.displayArtwork
+                                   && MprisService.isPlaying
 
     Rectangle {
         anchors.fill: parent

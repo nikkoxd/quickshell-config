@@ -16,9 +16,13 @@ Row {
 
     spacing: 1
     height: root.maxHeight
-    visible: Config.visualizer.displayVisualizer
-             && Config.visualizer.mode === "bars"
-             && MprisService.isPlaying
+
+    // Exposed as well as applied: a caller that wants the bars to animate in
+    // wraps them in a PopIn, overrides `visible` and drives it from `active`.
+    readonly property bool active: Config.visualizer.displayVisualizer
+                                   && Config.visualizer.mode === "bars"
+                                   && MprisService.isPlaying
+    visible: root.active
 
     // CavaService emits more bars than fit inline, so each output bar averages
     // the slice of the raw values it covers.

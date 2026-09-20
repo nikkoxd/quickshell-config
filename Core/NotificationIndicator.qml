@@ -10,7 +10,9 @@ Row {
 
     readonly property int count: NotificationService.notifications.length
 
-    visible: root.count > 0 || NotificationService.muted
+    // The owner wraps this in a PopIn and drives it from here.
+    readonly property bool active: root.count > 0 || NotificationService.muted
+
     opacity: NotificationService.muted ? 0.5 : 1
 
     Behavior on opacity {

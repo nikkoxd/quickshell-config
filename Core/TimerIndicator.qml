@@ -10,22 +10,14 @@ Item {
     implicitWidth: glyph.implicitWidth
     implicitHeight: glyph.implicitHeight
 
-    // Kept out of the Row's layout while faded out, so the island doesn't
-    // reserve the width when no timer is set.
-    visible: opacity > 0
-    opacity: TimerService.active ? 1 : 0
+    // The owner wraps this in a PopIn and drives it from here, which is also
+    // what keeps the island from reserving the width when no timer is set.
+    readonly property bool active: TimerService.active
 
     // The blink is driven through a plain property rather than animating the
     // glyph's opacity directly: an animation that stops leaves the property at
     // whatever value it reached, so a paused timer would keep a random dimness.
     property real blink: 1
-
-    Behavior on opacity {
-        NumberAnimation {
-            duration: 200
-            easing.type: Easing.OutQuad
-        }
-    }
 
     SequentialAnimation on blink {
         running: TimerService.running
