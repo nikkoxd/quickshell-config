@@ -101,7 +101,7 @@ Singletons in `Services/` wrap external systems and expose reactive properties/s
 - `WallhavenService` — search and download against wallhaven.cc through `Helpers/wallhaven.py`; exposes `results`, `loading`, `error`, `page`/`lastPage`, `search()`/`loadMore()`/`download()` and `downloaded`/`downloadFailed`. Filters live in `Config.wallhaven` (categories/purity bit strings, sorting, ratio, API key); `Modules/Wallpapers/WallpaperBrowser.qml` is the GUI and applies a finished download through `WallpaperService`.
 - `LocalSendService`, `DateService`.
 
-External CLI tools these depend on (must be on PATH): `cava`, `awww` + `awww-daemon`, `mpvpaper`, `notify-send`, `iris`/`matugen` for colorscheme generation, `tesseract` for OCR, `wayfreeze` for freezing the screen during a screenshot selection, `pw-dump` (pipewire) for resolving a player's audio stream, plus `python3` for helpers.
+External CLI tools these depend on (must be on PATH): `cava`, `awww` + `awww-daemon`, `mpvpaper`, `notify-send`, `iris`/`matugen` for colorscheme generation, `tesseract` for OCR, `wayfreeze` for freezing the screen during a screenshot selection, `pw-dump` (pipewire) for resolving a player's audio stream, plus `python3` for helpers. `ffmpeg` is used for video-wallpaper thumbnails and ImageMagick (`magick`) for the Telegram theme background.
 
 ## Templates
 
@@ -122,6 +122,8 @@ External CLI tools these depend on (must be on PATH): `cava`, `awww` + `awww-dae
 - `{mode}` for iris comes from the `dark` flag in `~/.cache/iris/colors.json`, watched by a `FileView`. It is read opportunistically and `installIris()` never waits on it: a `FileView` only signals when content actually changes, so gating a run on one silently stops after the first render (this was a real bug).
 - Post hooks are always run by the shell (not by matugen's `post_hook`), so an enabled template behaves identically under either generator. They run before the generator's own `Config.<generator>.after` commands.
 - `TemplateService` syncs on `Component.onCompleted` as well as on registry change. Singletons load lazily, and by the time anything first reaches for this one the registry has usually already loaded and its change signal is long gone.
+
+Telegram is the one target that is not a plain rendered file. A `.tdesktop-theme` is a zip of `colors.tdesktop-theme` plus a `background.jpg` (or `tiled.jpg`) that Telegram shows behind the chats, so the template renders only the palette, to `~/.config/telegram/island.tdesktop-palette`, and the post hook runs `Helpers/telegram-theme.py` to zip that together with the current wallpaper into `~/.config/telegram/island.tdesktop-theme`. The helper reads the wallpaper out of `Config/wallpaper.json` when `--wallpaper` is not given, pulls a still out of a video wallpaper with ffmpeg, and takes `--blur`, `--dim`, `--size` and `--tiled` for how the background is rendered. `--solid` drops the wallpaper for a flat fill instead: bare it uses the palette's own generated `windowBg`, and it also accepts any other palette key (`--solid msgInBg`) or a `#rrggbb` literal. Telegram does not watch the file, so the theme has to be re-imported after a wallpaper change.
 
 ## Conventions
 
