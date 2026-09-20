@@ -118,24 +118,47 @@ View {
                     }
                 }
 
-                // Neither of the two pops: one is taking the other's place in
-                // a slot that is already open, so an overshoot would read as a
-                // second arrival on top of the swap.
-                CrossFade {
+                SongArtwork {
+                    id: artwork
                     anchors.centerIn: parent
-                    shown: root.slotArtwork
+                    opacity: root.slotArtwork ? 1 : 0
+                    scale: root.slotArtwork ? 1 : 0.8
+                    visible: opacity > 0
 
-                    SongArtwork {
-                        id: artwork
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: 200
+                            easing.type: Easing.OutQuad
+                        }
+                    }
+
+                    Behavior on scale {
+                        NumberAnimation {
+                            duration: 300
+                            easing.type: Easing.OutBack
+                        }
                     }
                 }
 
-                CrossFade {
+                CavaBars {
+                    id: bars
                     anchors.centerIn: parent
-                    shown: root.slotBars
+                    opacity: root.slotBars ? 1 : 0
+                    scale: root.slotBars ? 1 : 0.8
+                    visible: opacity > 0
 
-                    CavaBars {
-                        id: bars
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: 200
+                            easing.type: Easing.OutQuad
+                        }
+                    }
+
+                    Behavior on scale {
+                        NumberAnimation {
+                            duration: 300
+                            easing.type: Easing.OutBack
+                        }
                     }
                 }
             }
@@ -162,53 +185,115 @@ View {
             }
         }
 
-        // The centre is one slot with five members, so none of them pops in:
-        // whichever arrives is replacing the one leaving, and the overshoot
-        // belongs to an indicator turning up in a slot of its own.
-        CrossFade {
+        ThemedText {
+            id: clock
             anchors.centerIn: parent
-            shown: root.centreClock
+            text: DateService.hours + ":" + DateService.minutes
+            opacity: root.centreClock ? 1 : 0
+            scale: root.centreClock ? 1 : 0.8
+            visible: opacity > 0
 
-            ThemedText {
-                id: clock
-                text: DateService.hours + ":" + DateService.minutes
+            Behavior on opacity {
+                NumberAnimation {
+                    duration: 200
+                    easing.type: Easing.OutQuad
+                }
+            }
+
+            Behavior on scale {
+                NumberAnimation {
+                    duration: 300
+                    easing.type: Easing.OutBack
+                }
             }
         }
 
-        CrossFade {
+        ThemedText {
+            id: timer
             anchors.centerIn: parent
-            shown: root.centreTimer
+            text: TimerService.display
+            opacity: root.centreTimer ? 1 : 0
+            scale: root.centreTimer ? 1 : 0.8
+            visible: opacity > 0
 
-            ThemedText {
-                id: timer
-                text: TimerService.display
+            Behavior on opacity {
+                NumberAnimation {
+                    duration: 200
+                    easing.type: Easing.OutQuad
+                }
+            }
+
+            Behavior on scale {
+                NumberAnimation {
+                    duration: 300
+                    easing.type: Easing.OutBack
+                }
             }
         }
 
-        CrossFade {
+        LyricsText {
+            id: lyrics
             anchors.centerIn: parent
-            shown: root.centreLyrics
+            opacity: root.centreLyrics ? 1 : 0
+            scale: root.centreLyrics ? 1 : 0.8
+            visible: opacity > 0
 
-            LyricsText {
-                id: lyrics
+            Behavior on opacity {
+                NumberAnimation {
+                    duration: 200
+                    easing.type: Easing.OutQuad
+                }
+            }
+
+            Behavior on scale {
+                NumberAnimation {
+                    duration: 300
+                    easing.type: Easing.OutBack
+                }
             }
         }
 
-        CrossFade {
+        TrackText {
+            id: track
             anchors.centerIn: parent
-            shown: root.centreTrack
+            opacity: root.centreTrack ? 1 : 0
+            scale: root.centreTrack ? 1 : 0.8
+            visible: opacity > 0
 
-            TrackText {
-                id: track
+            Behavior on opacity {
+                NumberAnimation {
+                    duration: 200
+                    easing.type: Easing.OutQuad
+                }
+            }
+
+            Behavior on scale {
+                NumberAnimation {
+                    duration: 300
+                    easing.type: Easing.OutBack
+                }
             }
         }
 
-        CrossFade {
+        Workspaces {
+            id: workspaces
             anchors.centerIn: parent
-            shown: root.centreWorkspaces
+            opacity: root.centreWorkspaces ? 1 : 0
+            scale: root.centreWorkspaces ? 1 : 0.8
+            visible: opacity > 0
 
-            Workspaces {
-                id: workspaces
+            Behavior on opacity {
+                NumberAnimation {
+                    duration: 200
+                    easing.type: Easing.OutQuad
+                }
+            }
+
+            Behavior on scale {
+                NumberAnimation {
+                    duration: 300
+                    easing.type: Easing.OutBack
+                }
             }
         }
     }
