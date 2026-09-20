@@ -14,8 +14,6 @@ View {
     implicitHeight: Config.island.height
     centreOffset: (root.rightExtent - root.leftExtent) / 2
 
-    // The gap between indicators inside a flank, and the wider one that sets
-    // the centre apart from the flanks either side of it.
     readonly property int spacing: 8
     readonly property int centreSpacing: 16
 
@@ -36,25 +34,10 @@ View {
     readonly property real leftExtent: root.leftWidth + root.leftPadding
     readonly property real rightExtent: root.rightWidth + root.rightPadding
 
-    // The dashboard's middle panel and the island's centre are one choice, made
-    // in DashboardService. Lyrics only make sense while something is actually
-    // playing, so a paused or absent player falls back to the clock, and the
-    // config switch keeps the clock even when one is.
     readonly property bool showLyrics: Config.island.displayLyrics && !root.showTimer && DashboardService.panel === 1 && MprisService.isPlaying === true
-
-    // A running countdown takes the centre over both of them: it is short
-    // lived, the user asked for it explicitly, and the clock it replaces is
-    // still a glance away.
     readonly property bool showTimer: TimerService.active
+    property bool showWorkspaces: false
 
-    // A workspace change flashes the workspace strip through the centre and
-    // then hands it back, so it outranks all three for the second it is up.
-    readonly property bool showWorkspaces: workspacesTimer.running
-
-    // The centre is a stack of four, one of which wins. Each flag is spelled out
-    // so the fade and the pop scale can both be driven off it: scale cannot be
-    // derived from opacity, because an element already at zero opacity would do
-    // its shrink after it has stopped being drawn.
     readonly property bool centreWorkspaces: root.showWorkspaces
     readonly property bool centreTimer: root.showTimer && !root.showWorkspaces
     readonly property bool centreLyrics: root.showLyrics && !root.showTimer && !root.showWorkspaces
@@ -65,6 +48,7 @@ View {
     Connections {
         target: Hyprland
         function onFocusedWorkspaceChanged() {
+            root.showWorkspaces = true;
             workspacesTimer.restart();
         }
     }
@@ -72,6 +56,7 @@ View {
     Timer {
         id: workspacesTimer
         interval: 1000
+        onTriggered: root.showWorkspaces = false
     }
 
     // Every indicator goes in through a PopIn instead of hiding itself, so the
@@ -99,8 +84,6 @@ View {
 
             CavaBars {
                 id: bars
-                // The wrapper owns the showing now; `active` is only the
-                // condition it is driven by.
                 visible: true
             }
         }
