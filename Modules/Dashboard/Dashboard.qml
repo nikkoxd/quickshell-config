@@ -17,6 +17,9 @@ View {
     implicitHeight: column.implicitHeight + Config.island.padding * 2
     focused: true
     dismissable: false
+    // A tray menu is a window of its own, so the island has to know one is
+    // open or it closes the moment the pointer leaves it.
+    popups: tray.popups
     displayInFullscreen: true
     closeOnUnhover: true
 
@@ -200,6 +203,29 @@ View {
                 sublabel: RecordingService.recording ? RecordingService.recordingElapsedText : RecordingService.replayRunning ? "Replay buffer" : "Off"
                 active: RecordingService.recording
                 onClicked: RecordingService.toggleRecording()
+            }
+        }
+
+        // The footer: session actions on the left, the tray filling the rest of
+        // the row to the right edge.
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.preferredHeight: root.buttonHeight
+            spacing: root.gap
+
+            PowerMenu {
+                size: root.buttonHeight
+                // Half the row, so expanded it ends where the left column of
+                // tiles above does and the tray picks up on the right one.
+                expandedWidth: (root.contentWidth - root.gap) / 2
+                onCloseRequested: root.closeRequested()
+            }
+
+            Tray {
+                id: tray
+                Layout.fillWidth: true
+                size: root.buttonHeight
+                onCloseRequested: root.closeRequested()
             }
         }
     }
