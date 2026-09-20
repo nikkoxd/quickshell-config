@@ -7,7 +7,9 @@ import qs.Modules.Launcher.Providers
 
 Rectangle {
     id: root
-    width: parent.width
+    // The view, not `parent`: the model reuses and reparents delegates now, so a
+    // recycled row briefly has no parent to measure.
+    width: root.ListView.view?.width ?? 0
     // Image entries get a taller row so the thumbnail is actually readable.
     height: root.isImage ? 76 : 40
     color: ListView.isCurrentItem ? Config.colorscheme.accent :

@@ -192,6 +192,12 @@ Singleton {
             property string commandPrefix: "%"
             property real usageWeight: 0.5
             property int usageHalfLifeDays: 14
+            // Process manager provider: sort field (cpu/memory/name/pid), whether
+            // rows are collapsed per command name, and whether other users'
+            // processes are listed. The last one is flipped from the list itself.
+            property string processSort: "cpu"
+            property bool groupProcesses: false
+            property bool showSystemProcesses: false
         }
     }
 

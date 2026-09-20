@@ -144,6 +144,20 @@ Singleton {
         return p ? p.entries(root.query) : [];
     }
 
+    // Stable identity for an entry inside one result list, used to keep the
+    // highlight on the same row when a self-refreshing provider (the process table)
+    // hands the model a whole new array. Distinct from LauncherUsageService.key,
+    // which is deliberately blank for entries that must not be ranked by frecency.
+    function entryKey(entry) {
+        if (!entry)
+            return "";
+        if (entry.id)
+            return "id:" + entry.id;
+        if (entry.pid !== undefined)
+            return "pid:" + entry.pid;
+        return "name:" + entry.name;
+    }
+
     function launch(entry) {
         if (!entry)
             return;

@@ -44,4 +44,31 @@ ColumnLayout {
         onEdited: value => Config.launcher.commandPrefix = value
         type: SettingsOption.Type.TextField
     }
+
+    SettingsOption {
+        title: "Process sort"
+        value: Config.launcher.processSort
+        options: [
+            { label: "CPU", value: "cpu" },
+            { label: "Memory", value: "memory" },
+            { label: "Name", value: "name" },
+            { label: "PID", value: "pid" }
+        ]
+        onEdited: value => Config.launcher.processSort = value
+        type: SettingsOption.Type.ComboBox
+    }
+
+    SettingsOption {
+        title: "Group processes by name"
+        value: Config.launcher.groupProcesses
+        onChecked: value => Config.launcher.groupProcesses = value
+        type: SettingsOption.Type.Switch
+    }
+
+    SettingsOption {
+        title: "Show system processes"
+        value: Config.launcher.showSystemProcesses
+        onChecked: value => Config.launcher.showSystemProcesses = value
+        type: SettingsOption.Type.Switch
+    }
 }

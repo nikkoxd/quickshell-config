@@ -21,4 +21,10 @@ QtObject {
     function entries(query) {
         return [];
     }
+
+    // Called when Escape is pressed. Providers with internal navigation pop one
+    // level and return true; returning false lets the launcher close as usual.
+    function goBack() {
+        return false;
+    }
 }

@@ -68,6 +68,16 @@ LauncherProvider {
             }
         },
         {
+            name: "Processes",
+            genericName: "process manager",
+            icon: "list-magnifying-glass",
+            iconType: LauncherProvider.IconType.Material,
+            preventClose: true,
+            execute: function() {
+                root.svc.provider = "processes";
+            }
+        },
+        {
             name: "Wipe clipboard",
             genericName: "wipe clipboard",
             icon: "trash-simple",
