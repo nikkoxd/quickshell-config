@@ -34,7 +34,7 @@ View {
     readonly property real leftExtent: root.leftWidth + root.leftPadding
     readonly property real rightExtent: root.rightWidth + root.rightPadding
 
-    readonly property bool showLyrics: Config.island.displayLyrics && !root.showTimer && DashboardService.panel === 1 && MprisService.isPlaying === true
+    readonly property bool showLyrics: !root.showTimer && DashboardService.panel === 1 && MprisService.isPlaying === true
     readonly property bool showTimer: TimerService.active
     property bool showWorkspaces: false
 

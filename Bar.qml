@@ -189,9 +189,9 @@ Item {
 
         // Swap what the idle view and the dashboard's middle column show.
         // Both read DashboardService.panel, so one call moves the two together.
+        // Config.island.displayLyrics only holds back the automatic takeover,
+        // so asking for lyrics by hand works even with it off.
         function toggleLyrics(): string {
-            if (!Config.island.displayLyrics)
-                return "disabled";
             DashboardService.togglePanel();
             return DashboardService.panel === 1 ? "lyrics" : "clock";
         }
