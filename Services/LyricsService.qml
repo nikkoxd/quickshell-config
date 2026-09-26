@@ -14,25 +14,95 @@ Singleton {
     property string plain: ""
     property string error: ""
     // Whether the lines carry per-word timings, so a fill can step word by word
-    // instead of sweeping the whole line at once. Rare: LRCLIB only has them for
-    // a handful of tracks, and only in its `lyricsfile` rendering.
+    // instead of sweeping the whole line at once. Kugou has them for nearly every
+    // track; LRCLIB only for a handful, and only in its `lyricsfile` rendering.
     property bool worded: false
 
     readonly property bool synced: root.state === "synced"
+
+    // lrclib matches on duration as much as on name, so the length is part of the
+    // identity of what to fetch: given the wrong one it answers with a different
+    // recording of the same song, whose stamps drift against the one playing. A
+    // track that is still loading reports no length yet - or the one it left the
+    // previous track with - so the length is in the key and a fetch made before it
+    // settled is redone once it lands.
+    readonly property int trackLength: Math.round(MprisService.length)
 
     readonly property string trackKey: {
         const player = MprisService.activePlayer;
         if (!player)
             return "";
         // Escaped, not a literal NUL - an embedded NUL byte makes git treat this file as binary.
-        return [player.trackTitle || "", player.trackArtist || "", player.trackAlbum || ""].join("\u0000");
+        return [player.trackTitle || "", player.trackArtist || "", player.trackAlbum || "", String(root.trackLength)].join("\u0000");
     }
+
+    // Set when the wait for a length has been given up on, for players that never
+    // report one at all. Cleared for every new track.
+    property bool lengthOptional: false
 
     // How far the lyrics timeline sits from playback, in seconds. Fetched stamps
     // are routinely a fraction of a second off the recording they were made for,
     // so everything that reads a playback position puts it on this timeline first
     // and everything that writes one back (seek) takes the shift off again.
     readonly property real offset: Config.island.lyricsOffset / 1000
+
+    // Every provider Helpers/lyrics.py knows, in its default order.
+    readonly property var knownProviders: ["kugou", "lrclib"]
+
+    /// `Config.island.lyricsProviders` cleaned up into `{ name, enabled }` for
+    /// every known provider exactly once: unknown and repeated names are dropped,
+    /// and a provider the config does not mention yet goes to the bottom, enabled.
+    readonly property var providers: {
+        const configured = Config.island.lyricsProviders || [];
+        const result = [];
+        const seen = new Set();
+        for (const entry of configured) {
+            const name = entry && entry.name;
+            if (!root.knownProviders.includes(name) || seen.has(name))
+                continue;
+            seen.add(name);
+            result.push({
+                name: name,
+                enabled: entry.enabled !== false
+            });
+        }
+        for (const name of root.knownProviders) {
+            if (!seen.has(name))
+                result.push({
+                    name: name,
+                    enabled: true
+                });
+        }
+        return result;
+    }
+
+    // What --providers is handed; a change refetches the current track.
+    readonly property string providerArg: root.providers.filter(p => p.enabled).map(p => p.name).join(",")
+
+    onProviderArgChanged: debounce.restart()
+
+    /// Swap the provider at `index` with the one `delta` places away.
+    function moveProvider(index, delta) {
+        const next = root.providers.slice();
+        const target = index + delta;
+        if (index < 0 || index >= next.length || target < 0 || target >= next.length)
+            return;
+        const moved = next[index];
+        next[index] = next[target];
+        next[target] = moved;
+        Config.island.lyricsProviders = next;
+    }
+
+    function setProviderEnabled(index, enabled) {
+        const next = root.providers.map(p => ({
+                    name: p.name,
+                    enabled: p.enabled
+                }));
+        if (index < 0 || index >= next.length)
+            return;
+        next[index].enabled = enabled;
+        Config.island.lyricsProviders = next;
+    }
 
     /// Where on the lyrics timeline a playback position of `position` falls.
     function timelineAt(position) {
@@ -213,20 +283,43 @@ Singleton {
         root.load(true);
     }
 
+    /// Drop whatever is held and settle into `nextState`.
+    function reset(nextState) {
+        root.pendingKey = "";
+        root.lines = [];
+        root.worded = false;
+        root.plain = "";
+        root.error = "";
+        root.state = nextState;
+    }
+
     function load(force) {
         const player = MprisService.activePlayer;
         const title = player && player.trackTitle ? player.trackTitle : "";
         const artist = player && player.trackArtist ? player.trackArtist : "";
 
         if (!title || !artist) {
-            root.pendingKey = "";
-            root.lines = [];
-            root.worded = false;
-            root.plain = "";
-            root.error = "";
-            root.state = "idle";
+            root.reset("idle");
             return;
         }
+
+        // Hold the fetch until the track reports its length, rather than matching on
+        // the length of whatever played before it and laying another recording's
+        // timings over this one.
+        // Nothing left to ask.
+        if (root.providerArg === "") {
+            lengthFallback.stop();
+            root.reset("none");
+            return;
+        }
+
+        if (root.trackLength <= 0 && !root.lengthOptional) {
+            root.reset("loading");
+            lengthFallback.restart();
+            return;
+        }
+
+        lengthFallback.stop();
 
         const command = [
             "python3",
@@ -235,13 +328,15 @@ Singleton {
             "--title",
             title,
             "--artist",
-            artist
+            artist,
+            "--providers",
+            root.providerArg
         ];
 
         if (player.trackAlbum)
             command.push("--album", player.trackAlbum);
-        if (MprisService.length > 0)
-            command.push("--duration", String(Math.round(MprisService.length)));
+        if (root.trackLength > 0)
+            command.push("--duration", String(root.trackLength));
         if (force)
             command.push("--refresh");
 
@@ -275,13 +370,29 @@ Singleton {
             root.state = "plain";
     }
 
-    onTrackKeyChanged: debounce.restart()
+    onTrackKeyChanged: {
+        // A new track waits for its own length, however the last one resolved.
+        root.lengthOptional = false;
+        debounce.restart();
+    }
 
     // MPRIS metadata fields arrive one at a time, so coalesce them into a single fetch.
     Timer {
         id: debounce
         interval: 250
         onTriggered: root.load(false)
+    }
+
+    // A length usually lands with the rest of the metadata, but a stream has none
+    // to report and a player stuck buffering may take a while - so the wait gives
+    // up and looks the track up on its name alone.
+    Timer {
+        id: lengthFallback
+        interval: 2000
+        onTriggered: {
+            root.lengthOptional = true;
+            root.load(false);
+        }
     }
 
     Process {

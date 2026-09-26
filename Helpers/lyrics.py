@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import base64
 import bisect
 import hashlib
 import json
@@ -10,6 +11,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+import zlib
 from pathlib import Path
 
 try:
@@ -19,17 +21,24 @@ except ModuleNotFoundError:
     yaml = None
 
 API_BASE = "https://lrclib.net/api"
+KUGOU_LYRICS = "https://lyrics.kugou.com"
+# Plain HTTP only - the host has no TLS.
+KUGOU_SONGS = "http://mobilecdn.kugou.com/api/v3/search/song"
+# Asked in this order; the first one with lyrics for the track wins.
+PROVIDERS = ("kugou", "lrclib")
 USER_AGENT = "quickshell-island (https://github.com/nikkoxd/island)"
 DEFAULT_TIMEOUT = 8.0
 
 CACHE_DIR = Path(
     os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")
 ) / "island/lyrics"
-# Hits are kept forever; misses expire so a track LRCLIB gains later is picked up.
+# Hits are kept forever; misses expire so a track a provider gains later is picked up.
 MISS_TTL = 24 * 60 * 60
 # Bumped whenever the payload shape changes, so hits cached by an older version
 # (which are kept forever) are refetched instead of read back missing fields.
-SCHEMA = 2
+# The provider order is configurable, so it is not baked in here: each record
+# keeps the providers that were asked for it instead (see cache_valid).
+SCHEMA = 4
 
 # [mm:ss], [mm:ss.xx] and [mm:ss.xxx]
 TIMESTAMP_RE = re.compile(r"\[(\d+):(\d{1,2})(?:[.:](\d{1,3}))?\]")
@@ -41,6 +50,20 @@ WORD_RE = re.compile(r"<(\d+):(\d{1,2})(?:[.:](\d{1,3}))?>")
 WORD_TAIL = 2.0
 # Duration match tolerance when falling back to the search endpoint
 DURATION_TOLERANCE = 5.0
+
+# KRC, Kugou's word-synced format, is zlib behind a fixed XOR key and a magic.
+KRC_MAGIC = b"krc1"
+KRC_KEY = bytes([0x40, 0x47, 0x61, 0x77, 0x5E, 0x32, 0x74, 0x47,
+                 0x51, 0x36, 0x31, 0x2D, 0xCE, 0xD2, 0x6E, 0x69])
+# [line start ms, line duration ms] and <word offset ms, word duration ms, 0>,
+# the word offset counting from the start of its line.
+KRC_LINE_RE = re.compile(r"^\[(\d+),(\d+)\](.*)$")
+KRC_WORD_RE = re.compile(r"<(\d+),(\d+),-?\d+>")
+# Kugou opens most tracks with a "Title - Artist" line and the credits
+# ("词：…", "Lyrics by：…"), timed like any other line.
+CREDIT_RE = re.compile(r"^[^：:]{0,40}(：|\bby\s*:)", re.IGNORECASE)
+# What Kugou serves in place of lyrics for an instrumental.
+INSTRUMENTAL_MARKERS = ("纯音乐", "此歌曲为没有填词的纯音乐")
 
 
 def normalize(text: str) -> str:
@@ -68,8 +91,27 @@ def cache_read(path: Path) -> dict | None:
     return data
 
 
-def cache_write(path: Path, payload: dict) -> None:
-    record = dict(payload, cached_at=time.time(), schema=SCHEMA)
+def cache_valid(record: dict, providers: list[str]) -> bool:
+    """Whether a cached record still answers for `providers`, in that order.
+
+    A hit stands only while its provider is still enabled and every provider now
+    ranked ahead of it was already asked and missed when it was cached; otherwise
+    a hit from a provider that has since been demoted would shadow the preferred
+    one forever. A miss stands only while every provider now enabled was asked.
+    Records from before the order was configurable were asked in the default one.
+    """
+    asked = record.get("asked") or list(PROVIDERS)
+    if not record.get("found"):
+        return set(providers) <= set(asked)
+    source = record.get("source")
+    if source not in providers or source not in asked:
+        return False
+    ahead = providers[:providers.index(source)]
+    return set(ahead) <= set(asked[:asked.index(source)])
+
+
+def cache_write(path: Path, payload: dict, asked: list[str]) -> None:
+    record = dict(payload, cached_at=time.time(), schema=SCHEMA, asked=asked)
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
         # Write via a pid-suffixed temp file so concurrent spawns can't tear the file.
@@ -366,7 +408,7 @@ def empty_payload(title: str, artist: str, album: str, duration: float | None) -
         "found": False,
         "synced": False,
         "instrumental": False,
-        "source": "lrclib",
+        "source": None,
         "title": title,
         "artist": artist,
         "album": album,
@@ -411,36 +453,270 @@ def build_payload(track: dict, offset: float) -> dict:
     }
 
 
+def lrclib_fetch(args) -> tuple[dict | None, str | None]:
+    track, error = lrclib_lookup(
+        args.title, args.artist, args.album, args.duration, args.timeout
+    )
+    if track is None:
+        return None, error
+    return build_payload(track, args.offset), None
+
+
+def kugou_get(base: str, params: dict, timeout: float):
+    url = f"{base}?{urllib.parse.urlencode(params)}"
+    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        return json.loads(resp.read().decode("utf-8"))
+
+
+def bare_title(text: str) -> str:
+    """`text` without the "(feat. …)" / "- Remastered 2011" decorations players add."""
+    text = re.sub(r"[(\[（【].*?[)\]）】]", "", text or "")
+    return re.split(r"\s+-\s+", text)[0].strip()
+
+
+def loose(text: str) -> str:
+    """`text` reduced to what survives any two sources spelling a title differently."""
+    return "".join(ch for ch in bare_title(text).casefold() if ch.isalnum())
+
+
+def same_title(a: str, b: str) -> bool:
+    a, b = loose(a), loose(b)
+    return bool(a and b) and (a in b or b in a)
+
+
+def kugou_match(entries: list, key: str, name: str, scale: float,
+                title: str, duration: float | None, by_title: bool) -> dict | None:
+    """The first of `entries` that is the track asked for.
+
+    Kugou searches by keyword and answers with whatever comes closest, so an entry
+    has to match on length where there is one - the wrong recording's lyrics would
+    drift against the one playing - and, where `by_title` is set or there is no
+    length to go on, on title too. `key` must be present, `name` holds the title
+    and `scale` turns the entry's `duration` into seconds.
+    """
+    for entry in entries:
+        if not isinstance(entry, dict) or not entry.get(key):
+            continue
+        if duration is not None:
+            length = entry.get("duration")
+            if not isinstance(length, (int, float)):
+                continue
+            if abs(length * scale - duration) > DURATION_TOLERANCE:
+                continue
+        if (by_title or duration is None) and not same_title(entry.get(name) or "", title):
+            continue
+        return entry
+    return None
+
+
+def kugou_candidate(args, title: str) -> dict | None:
+    """The lyrics candidate for the requested track, or None if Kugou has none.
+
+    The lyrics search on its own only knows a slice of the catalogue by keyword,
+    so the song is looked up in the song search first and its lyrics by its hash;
+    the keyword search is only the fallback for a song that isn't found there.
+    """
+    keyword = f"{args.artist} {title}" if args.artist else title
+    found = kugou_get(KUGOU_SONGS, {
+        "format": "json",
+        "keyword": keyword,
+        "page": 1,
+        "pagesize": 20,
+        "showtype": 1,
+    }, args.timeout)
+    songs = ((found.get("data") or {}).get("info") or []) if isinstance(found, dict) else []
+    # The song search ranks by popularity, so another song of about the same
+    # length can come first - it has to match by title as well.
+    song = kugou_match(songs, "hash", "songname", 1.0, title, args.duration, by_title=True)
+
+    params = {
+        "ver": 1,
+        "man": "yes",
+        "client": "pc",
+        "keyword": f"{args.artist} - {title}" if args.artist else title,
+        "hash": song["hash"] if song else "",
+    }
+    if args.duration is not None:
+        params["duration"] = int(args.duration * 1000)
+
+    found = kugou_get(f"{KUGOU_LYRICS}/search", params, args.timeout)
+    candidates = (found.get("candidates") or []) if isinstance(found, dict) else []
+    # Candidates found by hash belong to that song already; by keyword they don't.
+    return kugou_match(candidates, "id", "song", 0.001, title, args.duration,
+                       by_title=song is None)
+
+
+def decode_krc(content: str) -> str:
+    raw = base64.b64decode(content)
+    if not raw.startswith(KRC_MAGIC):
+        raise ValueError("not a krc file")
+    body = bytes(b ^ KRC_KEY[i % len(KRC_KEY)] for i, b in enumerate(raw[len(KRC_MAGIC):]))
+    return zlib.decompress(body).decode("utf-8-sig")
+
+
+def split_krc(start: float, body: str) -> tuple[str, list[dict] | None]:
+    """Split a KRC line body into its text and its words, like split_enhanced."""
+    stamps = list(KRC_WORD_RE.finditer(body))
+    if not stamps:
+        return body.strip(), None
+
+    text = body[:stamps[0].start()]
+    words: list[dict] = []
+
+    for i, stamp in enumerate(stamps):
+        end = stamps[i + 1].start() if i + 1 < len(stamps) else len(body)
+        segment = body[stamp.end():end]
+        offset, length = (int(g) / 1000.0 for g in stamp.groups())
+
+        if segment.strip():
+            lead = len(segment) - len(segment.lstrip())
+            words.append({"time": start + offset,
+                          "end": start + offset + length,
+                          "from": len(text) + lead})
+        text += segment
+
+    lead = len(text) - len(text.lstrip())
+    text = text.strip()
+    for word in words:
+        word["from"] = min(max(0, word["from"] - lead), len(text))
+
+    words = word_spans(text, words)
+    return text, words or None
+
+
+def is_preamble(text: str, title: str, artist: str) -> bool:
+    if CREDIT_RE.search(text):
+        return True
+    # The "Title - Artist" line that opens the lyrics, in either order.
+    head, _, tail = text.partition(" - ")
+    return bool(tail) and any(same_title(part, name)
+                              for part in (head, tail) for name in (title, artist))
+
+
+def parse_krc(krc: str, title: str, artist: str, offset: float = 0.0) -> list[dict]:
+    tag_offset = 0.0
+    tag_match = OFFSET_RE.search(krc)
+    if tag_match:
+        tag_offset = -int(tag_match.group(1)) / 1000.0
+    shift = tag_offset + offset
+
+    lines = []
+    for raw in krc.splitlines():
+        match = KRC_LINE_RE.match(raw.strip())
+        if not match:
+            continue
+        start, length = (int(g) / 1000.0 for g in match.groups()[:2])
+        text, words = split_krc(start, match.group(3))
+        if not text:
+            continue
+
+        # Only the lines ahead of the first real lyric - a colon further in is sung.
+        if not lines and is_preamble(text, title, artist):
+            continue
+
+        line = {"time": round(start + shift, 3),
+                "end": round(start + length + shift, 3),
+                "text": text}
+        if words:
+            line["words"] = [
+                {"time": round(w["time"] + shift, 3),
+                 "end": round(w["end"] + shift, 3),
+                 "from": w["from"],
+                 "to": w["to"]}
+                for w in words
+            ]
+        lines.append(line)
+
+    lines.sort(key=lambda line: line["time"])
+    return lines
+
+
+def kugou_fetch(args) -> tuple[dict | None, str | None]:
+    # Kugou's keyword search is literal enough that a "- Remastered" suffix misses.
+    title = bare_title(args.title) or args.title
+
+    try:
+        candidate = kugou_candidate(args, title)
+        if candidate is None:
+            return None, None
+
+        download = kugou_get(f"{KUGOU_LYRICS}/download", {
+            "ver": 1,
+            "client": "pc",
+            "id": candidate["id"],
+            "accesskey": candidate.get("accesskey") or "",
+            "fmt": "krc",
+            "charset": "utf8",
+        }, args.timeout)
+        content = download.get("content") if isinstance(download, dict) else None
+        if not content:
+            return None, None
+        krc = decode_krc(content)
+    except urllib.error.HTTPError as e:
+        return None, f"kugou returned HTTP {e.code}"
+    except urllib.error.URLError as e:
+        return None, f"network error: {e.reason}"
+    except (json.JSONDecodeError, TimeoutError, OSError, AttributeError) as e:
+        return None, f"kugou request failed: {e}"
+    except (ValueError, zlib.error) as e:
+        return None, f"could not decode kugou lyrics: {e}"
+
+    lines = parse_krc(krc, args.title, args.artist, args.offset)
+    if not lines:
+        return None, None
+
+    payload = empty_payload(args.title, args.artist, args.album, args.duration)
+    payload.update(found=True, source="kugou", title=candidate.get("song") or args.title,
+                   artist=candidate.get("singer") or args.artist)
+
+    if all(any(m in line["text"] for m in INSTRUMENTAL_MARKERS) for line in lines):
+        payload["instrumental"] = True
+        return payload, None
+
+    close_windows(lines)
+    payload.update(synced=True, lines=lines, words=worded(lines),
+                   plain="\n".join(line["text"] for line in lines))
+    return payload, None
+
+
+FETCHERS = {"kugou": kugou_fetch, "lrclib": lrclib_fetch}
+
+
 def get_lyrics(args) -> dict:
     """Resolve lyrics for the requested track, consulting the cache first."""
     path = cache_path(args.title, args.artist, args.album, args.duration)
 
     if not args.no_cache and not args.refresh:
         cached = cache_read(path)
-        if cached is not None:
+        if cached is not None and cache_valid(cached, args.providers):
             cached.pop("cached_at", None)
             cached.pop("schema", None)
+            cached.pop("asked", None)
             cached["source"] = "cache"
             return cached
 
-    track, error = lrclib_lookup(
-        args.title, args.artist, args.album, args.duration, args.timeout
-    )
+    errors = []
+    for index, name in enumerate(args.providers):
+        payload, error = FETCHERS[name](args)
+        if payload is not None:
+            if not args.no_cache:
+                cache_write(path, payload, args.providers[:index + 1])
+            return payload
+        if error is not None:
+            print(f"Warning: {name}: {error}", file=sys.stderr)
+            errors.append(error)
 
-    if error is not None:
-        payload = empty_payload(args.title, args.artist, args.album, args.duration)
-        payload["error"] = error
-        # Never cache a network failure - the track may well exist.
+    payload = empty_payload(args.title, args.artist, args.album, args.duration)
+    if len(errors) == len(args.providers):
+        # Every provider failed - the track may well exist, so never cache this.
+        payload["error"] = errors[0]
         return payload
 
-    if track is None:
-        payload = empty_payload(args.title, args.artist, args.album, args.duration)
-        payload["error"] = "no lyrics found"
-    else:
-        payload = build_payload(track, args.offset)
-
-    if not args.no_cache:
-        cache_write(path, payload)
+    payload["error"] = "no lyrics found"
+    # A miss is only trusted when every provider actually answered.
+    if not errors and not args.no_cache:
+        cache_write(path, payload, args.providers)
     return payload
 
 
@@ -522,10 +798,23 @@ def add_lookup_args(parser: argparse.ArgumentParser) -> None:
                         help="skip reading and writing the cache")
     parser.add_argument("--refresh", action="store_true",
                         help="ignore cached data but store the fresh result")
+    parser.add_argument("--providers", type=providers, default=list(PROVIDERS),
+                        help="comma-separated providers to ask, in order "
+                             f"(default {','.join(PROVIDERS)})")
+
+
+def providers(value: str) -> list[str]:
+    names = list(dict.fromkeys(name.strip().lower() for name in value.split(",") if name.strip()))
+    unknown = [name for name in names if name not in FETCHERS]
+    if unknown or not names:
+        raise argparse.ArgumentTypeError(
+            f"unknown provider(s): {', '.join(unknown) or value!r} "
+            f"(choose from {', '.join(FETCHERS)})")
+    return names
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Fetch synced lyrics from LRCLIB.")
+    parser = argparse.ArgumentParser(description="Fetch synced lyrics from Kugou and LRCLIB.")
     sub = parser.add_subparsers(dest="command", required=True)
 
     fetch = sub.add_parser("fetch", help="print the full timestamped lyrics")

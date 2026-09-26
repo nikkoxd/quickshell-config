@@ -180,6 +180,19 @@ Singleton {
             // of the recording; negative pulls them forward. Applies to both
             // the line the island shows and the desktop lyrics widget.
             property int lyricsOffset: 0
+            // Where lyrics are looked up, asked top to bottom until one has the
+            // track. Disabled entries keep their place so re-enabling one puts it
+            // back where it was. LyricsService fills in any provider missing here.
+            property var lyricsProviders: [
+                {
+                    name: "kugou",
+                    enabled: true
+                },
+                {
+                    name: "lrclib",
+                    enabled: true
+                }
+            ]
             property int hoverOpenDelay: 100
             property int hoverCloseDelay: 200
         }
