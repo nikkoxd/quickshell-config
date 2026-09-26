@@ -6,8 +6,8 @@ import qs.Core
 import qs.Services
 
 // The island's idle view: a single row of ambient indicators around a centre
-// that is the clock, the current lyric line, a running countdown, the
-// workspace strip or the track being announced.
+// that is the clock, the current lyric line, the workspace strip or the track
+// being announced.
 View {
     id: root
     implicitWidth: centre.implicitWidth + root.leftExtent + root.rightExtent
@@ -34,8 +34,7 @@ View {
     readonly property real leftExtent: root.leftWidth + root.leftPadding
     readonly property real rightExtent: root.rightWidth + root.rightPadding
 
-    readonly property bool showLyrics: !root.showTimer && DashboardService.panel === 1 && MprisService.isPlaying === true
-    readonly property bool showTimer: TimerService.active
+    readonly property bool showLyrics: DashboardService.panel === 1 && MprisService.isPlaying === true
     property bool showWorkspaces: false
 
     // The track announcement: "artist - track" in the centre and the artwork
@@ -45,9 +44,8 @@ View {
 
     readonly property bool centreWorkspaces: root.showWorkspaces
     readonly property bool centreTrack: root.showTrack && !root.showWorkspaces
-    readonly property bool centreTimer: root.showTimer && !root.showWorkspaces && !root.showTrack
-    readonly property bool centreLyrics: root.showLyrics && !root.showTimer && !root.showWorkspaces && !root.showTrack
-    readonly property bool centreClock: !root.showLyrics && !root.showTimer && !root.showWorkspaces && !root.showTrack
+    readonly property bool centreLyrics: root.showLyrics && !root.showWorkspaces && !root.showTrack
+    readonly property bool centreClock: !root.showLyrics && !root.showWorkspaces && !root.showTrack
 
     // The left slot holds one of the two: the artwork while a track is being
     // announced, the inline visualizer the rest of the time.
@@ -172,8 +170,8 @@ View {
         // it while the island around it stays screen-centred.
         anchors.horizontalCenterOffset: -root.centreOffset
         anchors.verticalCenter: parent.verticalCenter
-        implicitWidth: root.centreWorkspaces ? workspaces.implicitWidth : root.centreTrack ? track.implicitWidth : root.centreTimer ? timer.implicitWidth : root.centreLyrics ? lyrics.implicitWidth : clock.implicitWidth
-        implicitHeight: Math.max(clock.implicitHeight, Math.max(timer.implicitHeight, Math.max(track.implicitHeight, Math.max(lyrics.implicitHeight, workspaces.implicitHeight))))
+        implicitWidth: root.centreWorkspaces ? workspaces.implicitWidth : root.centreTrack ? track.implicitWidth : root.centreLyrics ? lyrics.implicitWidth : clock.implicitWidth
+        implicitHeight: Math.max(clock.implicitHeight, Math.max(track.implicitHeight, Math.max(lyrics.implicitHeight, workspaces.implicitHeight)))
 
         // Same curve as the island's slide and resize, so the two halves of
         // the trick stay cancelled out for the whole animation instead of only
@@ -191,29 +189,6 @@ View {
             text: DateService.hours + ":" + DateService.minutes
             opacity: root.centreClock ? 1 : 0
             scale: root.centreClock ? 1 : 0.8
-            visible: opacity > 0
-
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: 200
-                    easing.type: Easing.OutQuad
-                }
-            }
-
-            Behavior on scale {
-                NumberAnimation {
-                    duration: 300
-                    easing.type: Easing.OutBack
-                }
-            }
-        }
-
-        ThemedText {
-            id: timer
-            anchors.centerIn: parent
-            text: TimerService.display
-            opacity: root.centreTimer ? 1 : 0
-            scale: root.centreTimer ? 1 : 0.8
             visible: opacity > 0
 
             Behavior on opacity {
@@ -325,10 +300,10 @@ View {
 
         PopIn {
             anchors.verticalCenter: parent.verticalCenter
-            shown: timerBadge.active
+            shown: timer.active
 
             TimerIndicator {
-                id: timerBadge
+                id: timer
             }
         }
 
