@@ -167,6 +167,11 @@ Singleton {
             // the desktop lyrics widget is carrying them instead - but the ipc
             // call and the dashboard toggle still reach them by hand.
             property bool displayLyrics: true
+            // Shifts the lyrics timeline against playback, in milliseconds.
+            // Positive holds each line back, for lyrics whose stamps run ahead
+            // of the recording; negative pulls them forward. Applies to both
+            // the line the island shows and the desktop lyrics widget.
+            property int lyricsOffset: 0
             property int hoverOpenDelay: 100
             property int hoverCloseDelay: 200
         }

@@ -3,6 +3,7 @@ pragma Singleton
 import Quickshell
 import Quickshell.Io
 import QtQuick
+import qs.Core
 
 Singleton {
     id: root
@@ -12,6 +13,10 @@ Singleton {
     property var lines: []
     property string plain: ""
     property string error: ""
+    // Whether the lines carry per-word timings, so a fill can step word by word
+    // instead of sweeping the whole line at once. Rare: LRCLIB only has them for
+    // a handful of tracks, and only in its `lyricsfile` rendering.
+    property bool worded: false
 
     readonly property bool synced: root.state === "synced"
 
@@ -23,16 +28,38 @@ Singleton {
         return [player.trackTitle || "", player.trackArtist || "", player.trackAlbum || ""].join("\u0000");
     }
 
-    property int currentIndex: root.indexAt(root.lines, MprisService.position)
+    // How far the lyrics timeline sits from playback, in seconds. Fetched stamps
+    // are routinely a fraction of a second off the recording they were made for,
+    // so everything that reads a playback position puts it on this timeline first
+    // and everything that writes one back (seek) takes the shift off again.
+    readonly property real offset: Config.island.lyricsOffset / 1000
+
+    /// Where on the lyrics timeline a playback position of `position` falls.
+    function timelineAt(position) {
+        return position - root.offset;
+    }
+
+    property int currentIndex: root.indexAt(root.lines, root.timelineAt(MprisService.position))
     readonly property string currentText: currentIndex >= 0 && currentIndex < lines.length ? lines[currentIndex].text : ""
 
     readonly property real currentLineStart: currentIndex >= 0 && currentIndex < lines.length ? lines[currentIndex].time : 0
-    // The last line has no successor to bound it, so give it a nominal window.
-    readonly property real currentLineEnd: currentIndex < 0 || currentIndex >= lines.length ? 0 : currentIndex + 1 < lines.length ? lines[currentIndex + 1].time : root.currentLineStart + 4
+    // Lines carry their own end where the source gave one, which is what lets a fill
+    // finish on the last word and hold instead of creeping through a pause. The last
+    // line has no successor to fall back on, so it gets a nominal window.
+    readonly property real currentLineEnd: {
+        if (root.currentIndex < 0 || root.currentIndex >= root.lines.length)
+            return 0;
+        const line = root.lines[root.currentIndex];
+        if (line.end !== undefined && line.end !== null)
+            return line.end;
+        if (root.currentIndex + 1 < root.lines.length)
+            return root.lines[root.currentIndex + 1].time;
+        return root.currentLineStart + 4;
+    }
 
     /// How far playback has advanced through the current line at `position`, 0..1.
-    /// Callers that run the fill on the frame clock pass their own extrapolated
-    /// position; `currentProgress` is the same thing at the last published one.
+    /// `position` is already on the lyrics timeline - sweepAt is what shifts the
+    /// playback position callers hand it.
     function progressAt(position) {
         if (currentIndex < 0 || currentIndex >= lines.length)
             return 0;
@@ -42,8 +69,79 @@ Singleton {
         return Math.max(0, Math.min(1, (position - root.currentLineStart) / span));
     }
 
-    /// How far playback has advanced through the current line, 0..1.
-    readonly property real currentProgress: root.progressAt(MprisService.position)
+    /// Last word whose stamp has already passed, or -1 before the first one.
+    function wordAt(words, position) {
+        if (!words || words.length === 0)
+            return -1;
+
+        let lo = 0;
+        let hi = words.length;
+        while (lo < hi) {
+            const mid = (lo + hi) >> 1;
+            if (words[mid].time <= position)
+                lo = mid + 1;
+            else
+                hi = mid;
+        }
+        return lo - 1;
+    }
+
+    // Each word starts fast and settles into its end, which is what makes a
+    // word-by-word fill read as syllables rather than as one even sweep.
+    function easeOutCubic(t) {
+        const rest = 1 - t;
+        return 1 - rest * rest * rest;
+    }
+
+    /// The karaoke sweep over the current line at `position`: the span of characters
+    /// being filled right now, as `{ from, to, progress }`, where everything before
+    /// `from` is already sung. With word timings the span is the word being sung and
+    /// it lands exactly on each word boundary; without them it is the whole line,
+    /// swept linearly as before. Callers turn the span into pixels themselves -
+    /// only they know the font the line was drawn in. Callers run the fill on the
+    /// frame clock, so they pass their own extrapolated playback position rather
+    /// than the last published one; the lyrics offset is applied here.
+    function sweepAt(playbackPosition) {
+        const position = root.timelineAt(playbackPosition);
+        const line = root.currentIndex >= 0 && root.currentIndex < root.lines.length ? root.lines[root.currentIndex] : null;
+        if (!line)
+            return {
+                from: 0,
+                to: 0,
+                progress: 0
+            };
+
+        const text = line.text || "";
+        const words = line.words;
+        if (!words || words.length === 0)
+            return {
+                from: 0,
+                to: text.length,
+                progress: root.progressAt(position)
+            };
+
+        const index = root.wordAt(words, position);
+        // Before the first word the line is sung by nobody yet.
+        if (index < 0)
+            return {
+                from: 0,
+                to: 0,
+                progress: 0
+            };
+
+        const word = words[index];
+        // Word ends are already capped at the next word's start, so a span never
+        // runs past the boundary the next one picks up from.
+        const end = word.end === undefined || word.end === null ? root.currentLineEnd : word.end;
+        const span = end - word.time;
+        const advance = span <= 0 ? 1 : Math.max(0, Math.min(1, (position - word.time) / span));
+
+        return {
+            from: word.from,
+            to: word.to,
+            progress: root.easeOutCubic(advance)
+        };
+    }
 
     /// Placeholder to show in place of lyrics; empty when there are lyrics to show.
     readonly property string statusText: {
@@ -91,7 +189,9 @@ Singleton {
             return;
         if (index < 0 || index >= root.lines.length)
             return;
-        player.position = root.lines[index].time;
+        // Back off the lyrics timeline onto playback, so the line clicked is the
+        // line that starts playing.
+        player.position = root.lines[index].time + root.offset;
     }
 
     function refresh() {
@@ -106,6 +206,7 @@ Singleton {
         if (!title || !artist) {
             root.pendingKey = "";
             root.lines = [];
+            root.worded = false;
             root.plain = "";
             root.error = "";
             root.state = "idle";
@@ -131,6 +232,7 @@ Singleton {
 
         root.pendingKey = root.trackKey;
         root.lines = [];
+        root.worded = false;
         root.plain = "";
         root.error = "";
         root.state = "loading";
@@ -142,6 +244,7 @@ Singleton {
 
     function apply(payload) {
         root.lines = payload.synced && payload.lines ? payload.lines : [];
+        root.worded = !!payload.words && root.lines.length > 0;
         root.plain = payload.plain || "";
         root.error = payload.error || "";
 
@@ -182,6 +285,7 @@ Singleton {
                 } catch (e) {
                     console.log("[lyrics] failed to parse lyrics.py output:", e);
                     root.lines = [];
+                    root.worded = false;
                     root.plain = "";
                     root.error = "could not read lyrics";
                     root.state = "error";

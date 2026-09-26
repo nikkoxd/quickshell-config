@@ -35,6 +35,9 @@ Item {
     // resizing the text would re-wrap and reflow the list under the scroll position.
     property real activeScale: 1
 
+    // LRC marks instrumental breaks with empty lines. This stands in for one.
+    readonly property string placeholderText: "♪♪♪"
+
     readonly property bool synced: LyricsService.state === "synced"
     readonly property bool hasPlain: LyricsService.state === "plain" && LyricsService.plain.length > 0
 
@@ -47,49 +50,21 @@ Item {
     // Auto-follow parks while the user scrolls by hand, and resumes a few seconds later.
     property bool following: true
 
-    // MprisService publishes a position five times a second, so a fill bound straight
-    // to it steps rather than sweeps, and smoothing those steps with an animation only
-    // trades the stepping for a fifth of a second of lag. Run the fill on the frame
-    // clock instead, anchored to the last published position.
-    property real livePosition: 0
-    // Playback position at `anchorWall`, the wall clock the prediction runs from.
-    property real anchorPosition: 0
-    property real anchorWall: 0
-
-    readonly property real syncedPosition: MprisService.position
-
-    /// Where playback should have reached by wall-clock time `now`, in seconds.
-    function predict(now) {
-        return root.anchorPosition + (now - root.anchorWall) / 1000;
+    // The fill moves with the music rather than with the 5Hz position ticks.
+    PlaybackClock {
+        id: clock
+        active: root.visible && root.synced
     }
 
-    // Players re-report positions they have already passed: the same stale reads
-    // MprisService settles when they land in one turn, except these arrive a tick
-    // apart and up to a tenth of a second behind, several times a second. Snapping
-    // the clock onto each of them is what makes the fill stutter, so only a jump big
-    // enough to be a seek, a track change or a resume moves it outright - anything
-    // smaller is steered out a fraction per tick, and never rewinds the fill by more
-    // than a frame's worth.
-    readonly property real snapThreshold: 0.5
-    readonly property real correctionGain: 0.2
-    readonly property real maxRewind: 0.01
-
-    onSyncedPositionChanged: {
-        const now = Date.now();
-        const predicted = root.predict(now);
-        const error = root.syncedPosition - predicted;
-
-        root.anchorPosition = Math.abs(error) > root.snapThreshold ? root.syncedPosition : predicted + Math.max(-root.maxRewind, error * root.correctionGain);
-        root.anchorWall = now;
-        root.livePosition = root.predict(now);
-    }
-
-    readonly property real lineProgress: LyricsService.progressAt(root.livePosition)
-
-    FrameAnimation {
-        running: root.synced && MprisService.isPlaying === true && root.visible
-        onTriggered: root.livePosition = root.predict(Date.now())
-    }
+    // The stretch of the current line being filled right now, as character offsets
+    // into its text plus how far through that stretch playback is. With word timings
+    // the stretch is the word being sung, so the fill steps word by word; without
+    // them it is the whole line. `from`/`to` only change at a word boundary, so the
+    // widths measured off them are measured then and not every frame.
+    readonly property var sweep: LyricsService.sweepAt(clock.position)
+    readonly property int sweepFrom: root.sweep.from
+    readonly property int sweepTo: root.sweep.to
+    readonly property real sweepProgress: root.sweep.progress
 
     onFollowIndexChanged: root.follow(true)
 
@@ -256,13 +231,14 @@ Item {
             readonly property int distance: root.activeIndex < 0 ? 1 : Math.abs(index - root.activeIndex)
             readonly property bool current: root.synced && distance === 0
 
-            // How much of this line is filled. Freezes at its last value when the line stops
-            // being current, so the fill can fade out where it got to instead of snapping back.
-            property real fillProgress: 0
+            // How much of this line is filled, in pixels along it as if its wrapped rows
+            // were laid end to end. Freezes at its last value when the line stops being
+            // current, so the fill can fade out where it got to instead of snapping back.
+            property real fillWidth: 0
 
-            Binding on fillProgress {
+            Binding on fillWidth {
                 when: line.current
-                value: root.lineProgress
+                value: base.sweepWidth
                 restoreMode: Binding.RestoreNone
             }
 
@@ -288,9 +264,10 @@ Item {
                 horizontalAlignment: root.horizontalAlignment
                 // model is either [{time, text}] or plain strings, and can lag `synced` by a frame.
                 readonly property string lineText: line.modelData && line.modelData.text !== undefined ? line.modelData.text : line.modelData || ""
-                // LRC marks instrumental breaks with empty lines. Three notes, the
-                // same placeholder the default view uses.
-                text: root.synced && lineText.length === 0 ? "♪♪♪" : lineText
+                // An instrumental line has no text of its own, so three notes stand
+                // in for it - the same placeholder the default view uses.
+                readonly property bool placeholder: root.synced && base.lineText.length === 0
+                text: base.placeholder ? root.placeholderText : base.lineText
                 font.pixelSize: Config.theme.fontSize * root.fontScale
                 color: root.textColor
                 // The current line sits dim too - the fill overlay is what brightens it.
@@ -303,6 +280,31 @@ Item {
                         easing.type: Easing.InOutQuad
                     }
                 }
+
+                FontMetrics {
+                    id: metrics
+                    font: base.font
+                }
+
+                // Where the swept stretch starts and ends along the line, unwrapped.
+                // Only a line with a fill on screen measures: the stretch means
+                // nothing on any other, and this is the one binding a word boundary
+                // re-runs. The gate is the fill rather than `line.current` because
+                // `current` going false is also what freezes `fillWidth`, and spans
+                // that collapsed to zero in that same pass would be what the freeze
+                // caught - the outgoing fill snapping shut instead of fading out
+                // where the line finished. The fill outlives `current` by its fade.
+                //
+                // An empty line has no characters for the sweep to land on, so the
+                // placeholder standing in for it fills as a whole, on the line
+                // progress the sweep already reports for a line without words.
+                readonly property real spanStart: fill.visible && !base.placeholder ? metrics.advanceWidth(base.text.substring(0, root.sweepFrom)) : 0
+                readonly property real spanEnd: !fill.visible ? 0 : base.placeholder ? base.metricWidth : metrics.advanceWidth(base.text.substring(0, root.sweepTo))
+                readonly property real metricWidth: metrics.advanceWidth(base.text) || 1
+                // Those widths are the font's; the rows' are what was actually laid out,
+                // a wrap having dropped the space it broke on. So the reach crosses over
+                // as a fraction of the line rather than as pixels.
+                readonly property real sweepWidth: base.totalWidth * Math.max(0, Math.min(1, (base.spanStart + (base.spanEnd - base.spanStart) * root.sweepProgress) / base.metricWidth))
 
                 // Geometry of each wrapped row, so the fill can run through them in reading order
                 // instead of sweeping every row at once. Only recomputed on relayout.
@@ -374,7 +376,7 @@ Item {
                         y: modelData.y
                         height: modelData.h
                         clip: true
-                        width: Math.max(0, Math.min(modelData.w, base.totalWidth * line.fillProgress - offset))
+                        width: Math.max(0, Math.min(modelData.w, line.fillWidth - offset))
 
                         ThemedText {
                             x: -fillRow.rowX

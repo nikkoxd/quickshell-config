@@ -49,6 +49,14 @@ ColumnLayout {
     }
 
     SettingsOption {
+        title: "Lyrics delay"
+        units: "ms"
+        value: Config.island.lyricsOffset
+        onEdited: value => Config.island.lyricsOffset = parseInt(value) || 0
+        type: SettingsOption.Type.TextField
+    }
+
+    SettingsOption {
         title: "Hover open delay"
         units: "ms"
         value: Config.island.hoverOpenDelay

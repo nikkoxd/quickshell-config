@@ -12,6 +12,12 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+try:
+    import yaml
+except ModuleNotFoundError:
+    # Only LRCLIB's word-synced `lyricsfile` is YAML; everything else works without it.
+    yaml = None
+
 API_BASE = "https://lrclib.net/api"
 USER_AGENT = "quickshell-island (https://github.com/nikkoxd/island)"
 DEFAULT_TIMEOUT = 8.0
@@ -21,10 +27,18 @@ CACHE_DIR = Path(
 ) / "island/lyrics"
 # Hits are kept forever; misses expire so a track LRCLIB gains later is picked up.
 MISS_TTL = 24 * 60 * 60
+# Bumped whenever the payload shape changes, so hits cached by an older version
+# (which are kept forever) are refetched instead of read back missing fields.
+SCHEMA = 2
 
 # [mm:ss], [mm:ss.xx] and [mm:ss.xxx]
 TIMESTAMP_RE = re.compile(r"\[(\d+):(\d{1,2})(?:[.:](\d{1,3}))?\]")
 OFFSET_RE = re.compile(r"\[offset:\s*([+-]?\d+)\s*\]", re.IGNORECASE)
+# Enhanced LRC ("A2") word stamps: <mm:ss.xx> in front of each word of a line.
+WORD_RE = re.compile(r"<(\d+):(\d{1,2})(?:[.:](\d{1,3}))?>")
+# Longest window an unstamped last word is swept over, so it doesn't crawl
+# through the instrumental gap its line happens to end in.
+WORD_TAIL = 2.0
 # Duration match tolerance when falling back to the search endpoint
 DURATION_TOLERANCE = 5.0
 
@@ -47,13 +61,15 @@ def cache_read(path: Path) -> dict | None:
         return None
     if not isinstance(data, dict):
         return None
+    if data.get("schema") != SCHEMA:
+        return None
     if not data.get("found") and time.time() - data.get("cached_at", 0) > MISS_TTL:
         return None
     return data
 
 
 def cache_write(path: Path, payload: dict) -> None:
-    record = dict(payload, cached_at=time.time())
+    record = dict(payload, cached_at=time.time(), schema=SCHEMA)
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
         # Write via a pid-suffixed temp file so concurrent spawns can't tear the file.
@@ -129,8 +145,107 @@ def lrclib_lookup(
     return pick_candidate(results, duration), None
 
 
+def stamp_seconds(minutes: str, seconds: str, fraction: str | None) -> float:
+    t = int(minutes) * 60 + int(seconds)
+    if fraction:
+        t += int(fraction) / (10 ** len(fraction))
+    return t
+
+
+def word_spans(text: str, words: list[dict]) -> list[dict]:
+    """Close the character ranges of `words`, which carry only their own start.
+
+    A word runs up to where the next one begins, so the space between two words
+    is swept as part of the first instead of being jumped over.
+    """
+    for i, word in enumerate(words):
+        word["to"] = words[i + 1]["from"] if i + 1 < len(words) else len(text)
+    return [word for word in words if 0 <= word["from"] < word["to"]]
+
+
+def split_enhanced(body: str) -> tuple[str, list[dict] | None]:
+    """Split an enhanced-LRC line body into its text and its word stamps.
+
+    Words carry character offsets into the returned text rather than a copy of
+    it, so the shell can measure the line it already drew instead of matching
+    strings back onto it. Returns (text, None) for a line without word stamps.
+    """
+    stamps = list(WORD_RE.finditer(body))
+    if not stamps:
+        return body.strip(), None
+
+    # Anything before the first stamp is a lead-in nobody timed.
+    text = body[:stamps[0].start()]
+    words: list[dict] = []
+
+    for i, stamp in enumerate(stamps):
+        end = stamps[i + 1].start() if i + 1 < len(stamps) else len(body)
+        segment = body[stamp.end():end]
+        time = stamp_seconds(*stamp.groups())
+
+        if segment.strip():
+            # Start the word at its first glyph, not at the space before it.
+            lead = len(segment) - len(segment.lstrip())
+            words.append({"time": time, "from": len(text) + lead})
+        elif words:
+            # A stamp with nothing after it closes the last word off.
+            words[-1]["end"] = time
+
+        text += segment
+
+    # Trimming the line shifts every offset in it along.
+    lead = len(text) - len(text.lstrip())
+    text = text.strip()
+    for word in words:
+        word["from"] = min(max(0, word["from"] - lead), len(text))
+
+    words = word_spans(text, words)
+    return text, words or None
+
+
+def shifted(words: list[dict], shift: float) -> list[dict]:
+    """Copy `words` onto a timeline `shift` seconds later."""
+    out = []
+    for word in words:
+        moved = {"time": round(word["time"] + shift, 3),
+                 "from": word["from"],
+                 "to": word["to"]}
+        if "end" in word:
+            moved["end"] = round(word["end"] + shift, 3)
+        out.append(moved)
+    return out
+
+
+def close_windows(lines: list[dict]) -> None:
+    """Give every line and word the end time a karaoke fill needs to stop at.
+
+    A word ends at its own stamp where it has one, but never later than the next
+    word starts: the fill lands exactly on the boundary that way instead of being
+    dragged across it, and a pause after a word still holds the fill still.
+    """
+    for i, line in enumerate(lines):
+        if line.get("end") is None:
+            line["end"] = lines[i + 1]["time"] if i + 1 < len(lines) else None
+
+        words = line.get("words")
+        if not words:
+            continue
+
+        for j, word in enumerate(words):
+            last = j + 1 == len(words)
+            nxt = line["end"] if last else words[j + 1]["time"]
+            if word.get("end") is None:
+                tail = word["time"] + WORD_TAIL
+                word["end"] = tail if nxt is None else min(nxt, tail) if last else nxt
+            elif nxt is not None:
+                word["end"] = min(word["end"], nxt)
+
+
 def parse_lrc(lrc: str, offset: float = 0.0) -> list[dict]:
-    """Parse LRC text into a time-sorted list of {"time", "text"} entries."""
+    """Parse LRC text into a time-sorted list of {"time", "text"} entries.
+
+    Enhanced LRC also yields a "words" list of {"time", "from", "to"} per line.
+    """
     if not lrc:
         return []
 
@@ -146,13 +261,101 @@ def parse_lrc(lrc: str, offset: float = 0.0) -> list[dict]:
         if not stamps:
             continue
 
-        text = raw[stamps[-1].end():].strip()
-        for stamp in stamps:
-            minutes, seconds, fraction = stamp.groups()
-            t = int(minutes) * 60 + int(seconds)
-            if fraction:
-                t += int(fraction) / (10 ** len(fraction))
-            lines.append({"time": round(t + tag_offset + offset, 3), "text": text})
+        text, words = split_enhanced(raw[stamps[-1].end():])
+        times = [stamp_seconds(*stamp.groups()) for stamp in stamps]
+
+        for t in times:
+            line = {"time": round(t + tag_offset + offset, 3), "text": text}
+            if words:
+                # One body can be stamped several times; its words move with each copy.
+                line["words"] = shifted(words, t - times[0] + tag_offset + offset)
+            lines.append(line)
+
+    lines.sort(key=lambda line: line["time"])
+    return lines
+
+
+def as_text(value) -> str:
+    return value.strip() if isinstance(value, str) else ""
+
+
+def as_seconds(value) -> float | None:
+    """Seconds from a lyricsfile timestamp, which is text under the plain loader."""
+    try:
+        return float(value) / 1000.0
+    except (TypeError, ValueError):
+        return None
+
+
+def align_words(text: str, words, offset: float) -> list[dict] | None:
+    """Map word-synced entries onto character ranges in `text`.
+
+    Bails out entirely if a word isn't where it should be - half an alignment
+    would run the fill over the wrong glyphs.
+    """
+    if not isinstance(words, list) or not words:
+        return None
+
+    spans = []
+    cursor = 0
+    for word in words:
+        if not isinstance(word, dict):
+            return None
+        piece = as_text(word.get("text"))
+        start = as_seconds(word.get("start_ms"))
+        if not piece or start is None:
+            return None
+
+        at = text.find(piece, cursor)
+        if at < 0:
+            return None
+
+        span = {"time": round(start + offset, 3), "from": at}
+        end = as_seconds(word.get("end_ms"))
+        if end is not None:
+            span["end"] = round(end + offset, 3)
+        spans.append(span)
+        cursor = at + len(piece)
+
+    return word_spans(text, spans) or None
+
+
+def parse_lyricsfile(raw: str, offset: float = 0.0) -> list[dict]:
+    """Parse LRCLIB's `lyricsfile`, the YAML document its word timings live in."""
+    if not raw or yaml is None:
+        return []
+
+    try:
+        # Every scalar comes back as text: a word sung as "Yes" or "No" is a YAML
+        # boolean to the usual loader, and one sung as a year is an int.
+        data = yaml.load(raw, Loader=yaml.BaseLoader)
+    except yaml.YAMLError as e:
+        print(f"Warning: could not parse lyricsfile: {e}", file=sys.stderr)
+        return []
+
+    if not isinstance(data, dict):
+        return []
+
+    lines = []
+    for entry in data.get("lines") or []:
+        if not isinstance(entry, dict):
+            continue
+        start = as_seconds(entry.get("start_ms"))
+        if start is None:
+            continue
+
+        text = as_text(entry.get("text"))
+        line = {"time": round(start + offset, 3), "text": text}
+
+        end = as_seconds(entry.get("end_ms"))
+        if end is not None:
+            line["end"] = round(end + offset, 3)
+
+        words = align_words(text, entry.get("words"), offset)
+        if words:
+            line["words"] = words
+
+        lines.append(line)
 
     lines.sort(key=lambda line: line["time"])
     return lines
@@ -170,23 +373,40 @@ def empty_payload(title: str, artist: str, album: str, duration: float | None) -
         "duration": duration,
         "lines": [],
         "plain": "",
+        "words": False,
         "error": None,
     }
 
 
+def worded(lines: list[dict]) -> bool:
+    return any(line.get("words") for line in lines)
+
+
 def build_payload(track: dict, offset: float) -> dict:
-    synced = track.get("syncedLyrics") or ""
+    lines = parse_lrc(track.get("syncedLyrics") or "", offset)
+
+    # LRCLIB keeps word timings in the lyricsfile, and the LRC for the same track
+    # is usually line-synced only - so take the lyricsfile when it has words the
+    # LRC doesn't, both being renderings of the same lyrics.
+    if not worded(lines):
+        detailed = parse_lyricsfile(track.get("lyricsfile") or "", offset)
+        if worded(detailed) or not lines:
+            lines = detailed or lines
+
+    close_windows(lines)
+
     return {
         "found": True,
-        "synced": bool(synced),
+        "synced": bool(lines),
         "instrumental": bool(track.get("instrumental")),
         "source": "lrclib",
         "title": track.get("trackName") or "",
         "artist": track.get("artistName") or "",
         "album": track.get("albumName") or "",
         "duration": track.get("duration"),
-        "lines": parse_lrc(synced, offset),
+        "lines": lines,
         "plain": track.get("plainLyrics") or "",
+        "words": worded(lines),
         "error": None,
     }
 
@@ -199,6 +419,7 @@ def get_lyrics(args) -> dict:
         cached = cache_read(path)
         if cached is not None:
             cached.pop("cached_at", None)
+            cached.pop("schema", None)
             cached["source"] = "cache"
             return cached
 
