@@ -2,3 +2,4 @@ Config/
 .qmlls.ini
 Themes/Matugen.json
 Themes/Iris.json
+__pycache__/
