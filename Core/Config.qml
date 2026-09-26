@@ -75,6 +75,12 @@ Singleton {
                 output: "~/.config/qt6ct/colors/island.conf",
                 postHook: ""
             },
+            kde: {
+                enabled: true,
+                template: "kdeglobals",
+                output: "~/.local/share/color-schemes/Island.colors",
+                postHook: "~/.config/quickshell/island/Helpers/kde-theme.py --scheme ~/.local/share/color-schemes/Island.colors"
+            },
             quickshell: {
                 enabled: true,
                 template: "quickshell.json",
