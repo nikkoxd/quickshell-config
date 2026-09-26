@@ -95,14 +95,14 @@ Row {
                 model: root.actions
 
                 IconButton {
-                    id: button
+                    id: option
                     required property var modelData
 
                     implicitWidth: root.size
                     implicitHeight: root.size
-                    icon: button.modelData.icon
+                    icon: option.modelData.icon
                     onClicked: {
-                        Quickshell.execDetached(button.modelData.command);
+                        Quickshell.execDetached(option.modelData.command);
                         root.closeRequested();
                     }
                 }
