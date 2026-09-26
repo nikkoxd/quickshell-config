@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import qs.Core
+import qs.Services
 
 // The calendar, as a scrollable run of days centred on today rather than a
 // month grid: the island is wide and short, so a strip fits the shape and
@@ -66,34 +67,49 @@ Item {
         return i < 0 ? root.span : i;
     }
 
-    Row {
+    Item {
         id: header
-        spacing: 6
+        anchors.left: parent.left
+        anchors.right: parent.right
+        implicitHeight: monthRow.implicitHeight
 
-        ThemedText {
-            text: Qt.formatDate(root.dateAt(root.centreIndex), "MMMM yyyy")
-            opacity: 0.8
+        Row {
+            id: monthRow
+            anchors.left: parent.left
+            spacing: 6
+
+            ThemedText {
+                text: Qt.formatDate(root.dateAt(root.centreIndex), "MMMM yyyy")
+                opacity: 0.8
+            }
+
+            // Scrolling away from today leaves no way back, so the month
+            // doubles as the way home.
+            ThemedText {
+                anchors.verticalCenter: parent.verticalCenter
+                text: "arrow-u-up-left"
+                icon: true
+                font.pixelSize: 12
+                opacity: jumpHover.hovered ? 1 : 0.5
+                visible: root.centreIndex !== root.span
+
+                HoverHandler {
+                    id: jumpHover
+                    cursorShape: Qt.PointingHandCursor
+                }
+
+                TapHandler {
+                    gesturePolicy: TapHandler.WithinBounds
+                    onTapped: root.centreOnToday()
+                }
+            }
         }
 
-        // Scrolling away from today leaves no way back, so the month doubles as
-        // the way home.
         ThemedText {
-            anchors.verticalCenter: parent.verticalCenter
-            text: "arrow-u-up-left"
-            icon: true
-            font.pixelSize: 12
-            opacity: jumpHover.hovered ? 1 : 0.5
-            visible: root.centreIndex !== root.span
-
-            HoverHandler {
-                id: jumpHover
-                cursorShape: Qt.PointingHandCursor
-            }
-
-            TapHandler {
-                gesturePolicy: TapHandler.WithinBounds
-                onTapped: root.centreOnToday()
-            }
+            anchors.right: parent.right
+            anchors.verticalCenter: monthRow.verticalCenter
+            text: DateService.hours + ":" + DateService.minutes
+            opacity: 0.8
         }
     }
 
