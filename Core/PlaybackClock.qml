@@ -40,6 +40,33 @@ QtObject {
     readonly property real correctionGain: 0.2
     readonly property real maxRewind: 0.01
 
+    /// Put the prediction back on the position published right now.
+    function sync() {
+        root.anchorPosition = root.syncedPosition;
+        root.anchorWall = Date.now();
+        root.position = root.anchorPosition;
+    }
+
+    // Until the first publish lands the anchor is zero seconds at wall-clock zero,
+    // which predicts forward from 1970. A clock built while the position is standing
+    // still - a track still buffering publishes 0 and then nothing - would never get
+    // that publish, so take the position as it stands instead of waiting for it.
+    Component.onCompleted: root.sync()
+
+    onActiveChanged: {
+        if (root.active)
+            root.sync();
+    }
+
+    readonly property bool stalled: MprisService.stalled
+
+    // Coming out of a stall the position picks up where it stood, which the steering
+    // would walk towards a fifth at a time. Anchor straight onto it instead.
+    onStalledChanged: {
+        if (!root.stalled)
+            root.sync();
+    }
+
     onSyncedPositionChanged: {
         const now = Date.now();
         const predicted = root.predict(now);
@@ -51,7 +78,10 @@ QtObject {
     }
 
     readonly property FrameAnimation ticker: FrameAnimation {
-        running: root.active && MprisService.isPlaying === true
+        // A buffering player reports itself playing while its position stands still,
+        // and a prediction run through that is what carries the fill away from the
+        // audio before a note has been heard. Nothing is moving, so neither is this.
+        running: root.active && MprisService.isPlaying === true && !MprisService.stalled
         onTriggered: root.position = root.predict(Date.now())
     }
 }
