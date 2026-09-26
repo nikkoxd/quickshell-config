@@ -12,10 +12,16 @@ Item {
     // LRC marks instrumental breaks with empty lines. This stands in for one.
     readonly property string placeholderText: "♪♪♪"
 
-    readonly property bool onLine: LyricsService.synced && LyricsService.currentIndex >= 0
+    // How long the outgoing line takes to fade before the next one is put in.
+    readonly property int swapOutDuration: 150
+
+    // The line is picked off the same clock that fills it, and swapped early by the
+    // fade-out, so the new text is on screen by the time its first word is sung.
+    readonly property int lineIndex: LyricsService.synced ? LyricsService.lineIndexAt(clock.position, root.swapOutDuration / 1000) : -1
+    readonly property bool onLine: root.lineIndex >= 0
     readonly property string displayText: {
         if (root.onLine)
-            return LyricsService.currentText || root.placeholderText;
+            return LyricsService.lines[root.lineIndex]?.text || root.placeholderText;
         // "synced" before the first timestamp and "plain" both have lyrics but no line to show
         // right now, and statusText is empty for them - the island would otherwise go blank.
         return LyricsService.statusText || root.placeholderText;
@@ -35,7 +41,7 @@ Item {
         id: clock
         // The default view fades this out rather than hiding it, so opacity is
         // what says whether anything is on screen to sweep.
-        active: root.visible && root.opacity > 0 && root.karaoke
+        active: root.visible && root.opacity > 0 && LyricsService.synced
     }
 
     // The stretch of the line being filled right now, as character offsets into it
@@ -43,7 +49,7 @@ Item {
     // is the word being sung, so the fill steps word by word; without them it is the
     // whole line. `from`/`to` only change at a word boundary, so the widths measured
     // off them are measured then and not every frame.
-    readonly property var sweep: LyricsService.sweepAt(clock.position)
+    readonly property var sweep: LyricsService.sweepAt(clock.position, root.lineIndex)
     readonly property int sweepFrom: root.sweep.from
     readonly property int sweepTo: root.sweep.to
     readonly property real sweepProgress: root.sweep.progress
@@ -131,14 +137,14 @@ Item {
                 target: content
                 property: "opacity"
                 to: 0
-                duration: 150
+                duration: root.swapOutDuration
                 easing.type: Easing.InQuad
             }
             NumberAnimation {
                 target: content
                 property: "scale"
                 to: 0.95
-                duration: 150
+                duration: root.swapOutDuration
                 easing.type: Easing.InQuad
             }
         }

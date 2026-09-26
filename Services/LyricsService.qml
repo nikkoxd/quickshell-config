@@ -42,31 +42,43 @@ Singleton {
     property int currentIndex: root.indexAt(root.lines, root.timelineAt(MprisService.position))
     readonly property string currentText: currentIndex >= 0 && currentIndex < lines.length ? lines[currentIndex].text : ""
 
-    readonly property real currentLineStart: currentIndex >= 0 && currentIndex < lines.length ? lines[currentIndex].time : 0
+    /// The line on screen at playback position `playbackPosition`, or -1 before the first.
+    /// `currentIndex` follows the published position, which only ticks five times a
+    /// second - a view filling lines on the frame clock picks its line off that same
+    /// clock instead, or it swaps each line in up to a tick after it has started, and
+    /// the fill holds the outgoing one full in the meantime. Word-synced sources stamp
+    /// a line on its first syllable, so that tick is the first word already sung.
+    /// `lead` (seconds) brings the swap forward, for a view that needs a moment to
+    /// get the new line on screen; the fill still waits for the first word.
+    function lineIndexAt(playbackPosition, lead) {
+        return root.indexAt(root.lines, root.timelineAt(playbackPosition) + (lead || 0));
+    }
+
     // Lines carry their own end where the source gave one, which is what lets a fill
     // finish on the last word and hold instead of creeping through a pause. The last
     // line has no successor to fall back on, so it gets a nominal window.
-    readonly property real currentLineEnd: {
-        if (root.currentIndex < 0 || root.currentIndex >= root.lines.length)
+    function lineEnd(index) {
+        if (index < 0 || index >= root.lines.length)
             return 0;
-        const line = root.lines[root.currentIndex];
+        const line = root.lines[index];
         if (line.end !== undefined && line.end !== null)
             return line.end;
-        if (root.currentIndex + 1 < root.lines.length)
-            return root.lines[root.currentIndex + 1].time;
-        return root.currentLineStart + 4;
+        if (index + 1 < root.lines.length)
+            return root.lines[index + 1].time;
+        return line.time + 4;
     }
 
-    /// How far playback has advanced through the current line at `position`, 0..1.
+    /// How far playback has advanced through line `index` at `position`, 0..1.
     /// `position` is already on the lyrics timeline - sweepAt is what shifts the
     /// playback position callers hand it.
-    function progressAt(position) {
-        if (currentIndex < 0 || currentIndex >= lines.length)
+    function progressAt(index, position) {
+        if (index < 0 || index >= root.lines.length)
             return 0;
-        const span = root.currentLineEnd - root.currentLineStart;
+        const start = root.lines[index].time;
+        const span = root.lineEnd(index) - start;
         if (span <= 0)
             return 1;
-        return Math.max(0, Math.min(1, (position - root.currentLineStart) / span));
+        return Math.max(0, Math.min(1, (position - start) / span));
     }
 
     /// Last word whose stamp has already passed, or -1 before the first one.
@@ -100,10 +112,13 @@ Singleton {
     /// swept linearly as before. Callers turn the span into pixels themselves -
     /// only they know the font the line was drawn in. Callers run the fill on the
     /// frame clock, so they pass their own extrapolated playback position rather
-    /// than the last published one; the lyrics offset is applied here.
-    function sweepAt(playbackPosition) {
+    /// than the last published one; the lyrics offset is applied here. `lineIndex` is the
+    /// line they are showing, from lineIndexAt on that same position; it defaults to
+    /// `currentIndex`.
+    function sweepAt(playbackPosition, lineIndex) {
         const position = root.timelineAt(playbackPosition);
-        const line = root.currentIndex >= 0 && root.currentIndex < root.lines.length ? root.lines[root.currentIndex] : null;
+        const at = lineIndex === undefined ? root.currentIndex : lineIndex;
+        const line = at >= 0 && at < root.lines.length ? root.lines[at] : null;
         if (!line)
             return {
                 from: 0,
@@ -117,7 +132,7 @@ Singleton {
             return {
                 from: 0,
                 to: text.length,
-                progress: root.progressAt(position)
+                progress: root.progressAt(at, position)
             };
 
         const index = root.wordAt(words, position);
@@ -132,7 +147,7 @@ Singleton {
         const word = words[index];
         // Word ends are already capped at the next word's start, so a span never
         // runs past the boundary the next one picks up from.
-        const end = word.end === undefined || word.end === null ? root.currentLineEnd : word.end;
+        const end = word.end === undefined || word.end === null ? root.lineEnd(at) : word.end;
         const span = end - word.time;
         const advance = span <= 0 ? 1 : Math.max(0, Math.min(1, (position - word.time) / span));
 

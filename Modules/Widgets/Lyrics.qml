@@ -42,8 +42,9 @@ Item {
     readonly property bool hasPlain: LyricsService.state === "plain" && LyricsService.plain.length > 0
 
     // Which line is emphasised. Deliberately not ListView.currentIndex: the view moves itself
-    // when that changes, which would fight scrolling by hand.
-    readonly property int activeIndex: root.synced ? LyricsService.currentIndex : -1
+    // when that changes, which would fight scrolling by hand. Picked off the clock that
+    // fills it, so the emphasis lands on the first word rather than up to a tick after.
+    readonly property int activeIndex: root.synced ? LyricsService.lineIndexAt(clock.position) : -1
     // Before the first timestamp there is no active line, but line 0 should still be centred.
     readonly property int followIndex: Math.max(0, root.activeIndex)
 
@@ -61,7 +62,7 @@ Item {
     // the stretch is the word being sung, so the fill steps word by word; without
     // them it is the whole line. `from`/`to` only change at a word boundary, so the
     // widths measured off them are measured then and not every frame.
-    readonly property var sweep: LyricsService.sweepAt(clock.position)
+    readonly property var sweep: LyricsService.sweepAt(clock.position, root.activeIndex)
     readonly property int sweepFrom: root.sweep.from
     readonly property int sweepTo: root.sweep.to
     readonly property real sweepProgress: root.sweep.progress
