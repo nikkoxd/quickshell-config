@@ -71,4 +71,11 @@ ColumnLayout {
         onChecked: value => Config.launcher.showSystemProcesses = value
         type: SettingsOption.Type.Switch
     }
+
+    SettingsOption {
+        title: "KeePassXC vault path"
+        value: Config.launcher.keepassVault
+        onEdited: value => Config.launcher.keepassVault = value
+        type: SettingsOption.Type.TextField
+    }
 }

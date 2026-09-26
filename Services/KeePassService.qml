@@ -28,13 +28,13 @@ Singleton {
     }
 
     function copy(path) {
-        clipProc.command = ["keepassxc-cli", "clip", Config.island.keepassVault, path];
+        clipProc.command = ["keepassxc-cli", "clip", Config.launcher.keepassVault, path];
         clipProc.running = true;
     }
 
     Process {
         id: listProc
-        command: ["keepassxc-cli", "ls", Config.island.keepassVault]
+        command: ["keepassxc-cli", "ls", Config.launcher.keepassVault]
         stdinEnabled: true
         onStarted: write(root._master + "\n")
         stdout: StdioCollector {

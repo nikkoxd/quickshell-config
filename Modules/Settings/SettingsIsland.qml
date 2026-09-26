@@ -71,11 +71,4 @@ ColumnLayout {
         onEdited: value => Config.island.hoverCloseDelay = parseInt(value)
         type: SettingsOption.Type.TextField
     }
-
-    SettingsOption {
-        title: "KeePassXC vault path"
-        value: Config.island.keepassVault
-        onEdited: value => Config.island.keepassVault = value
-        type: SettingsOption.Type.TextField
-    }
 }
