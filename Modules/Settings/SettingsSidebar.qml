@@ -46,6 +46,13 @@ Column {
         }
 
         SettingsTab {
+            text: "Notifications"
+            icon: "bell"
+            selected: root.currentTab === Settings.Tab.Notifications
+            onTapped: root.currentTab = Settings.Tab.Notifications
+        }
+
+        SettingsTab {
             text: "Recordings"
             icon: "aperture"
             selected: root.currentTab === Settings.Tab.Recording

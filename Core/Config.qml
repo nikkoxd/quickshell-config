@@ -529,6 +529,15 @@ Singleton {
             // Do not disturb: notification popups are suppressed while it is
             // on. Lives here so it survives a reload of the shell.
             property bool doNotDisturb: false
+            // Play a sound when a notification arrives. The file is a name
+            // inside Sounds/, so the config stays portable across machines.
+            property bool sound: false
+            property string soundFile: ""
+            // Percentage, so the settings page can edit it as a plain number.
+            property int soundVolume: 100
+            // Apps that chime for themselves. Matched against the app name or
+            // the desktop-entry hint; see NotificationService.playsItsOwnSound.
+            property list<string> silentApps: []
         }
     }
 

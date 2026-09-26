@@ -18,6 +18,7 @@ FloatingWindow {
         Dns,
         Dock,
         Launcher,
+        Notifications,
         Recording,
         Visualizer,
         Theme,
@@ -88,6 +89,18 @@ FloatingWindow {
             minContentWidth: 360
 
             SettingsLauncher {}
+        }
+
+        ScrollArea {
+            visible: root.currentTab === Settings.Tab.Notifications
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            // A row is a 200px title, its spacing and the widest control
+            // minimum (the Dropdown's 150px). Below that the page scrolls
+            // sideways instead of squeezing its controls away.
+            minContentWidth: 360
+
+            SettingsNotifications {}
         }
 
         ScrollArea {
