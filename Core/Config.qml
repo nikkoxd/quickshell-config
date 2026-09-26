@@ -87,11 +87,14 @@ Singleton {
                 output: "~/.config/quickshell/island/Themes/{generator}.json",
                 postHook: ""
             },
+            // A .tdesktop-theme is a zip, not a rendered file, so the
+            // template is only the palette and the hook bundles it with the
+            // wallpaper. Pass --solid to drop the wallpaper for a flat fill.
             telegram: {
                 enabled: true,
-                template: "telegram.tdesktop-theme",
-                output: "~/.config/telegram/island.tdesktop-theme",
-                postHook: ""
+                template: "telegram.tdesktop-palette",
+                output: "~/.config/telegram/island.tdesktop-palette",
+                postHook: "~/.config/quickshell/island/Helpers/telegram-theme.py --palette ~/.config/telegram/island.tdesktop-palette --output ~/.config/telegram/island.tdesktop-theme"
             }
         })
 
