@@ -16,6 +16,7 @@ import qs.Modules.Bluetooth as BluetoothModule
 import qs.Modules.Mixer as MixerModule
 import qs.Modules.Dns as DnsModule
 import qs.Modules.Timer as TimerModule
+import qs.Modules.Polkit as PolkitModule
 import qs.Modules.Settings as SettingsModule
 import qs.Services
 
@@ -44,6 +45,7 @@ Item {
     property Component mixer: MixerModule.Mixer {}
     property Component dns: DnsModule.Dns {}
     property Component timer: TimerModule.Timer {}
+    property Component polkit: PolkitModule.Polkit {}
 
     PropertyAnimation {
         id: blurTransitionAnimation
@@ -315,6 +317,16 @@ Item {
             root.openView("notification", {
                 notification: notification
             });
+        }
+    }
+
+    // Not gated on `dismissable` like the ambient triggers above: whatever
+    // asked for authorization is blocked until the prompt is answered, so it
+    // takes over even an interactive view.
+    Connections {
+        target: PolkitService
+        function onRequested() {
+            root.openView("polkit");
         }
     }
 
