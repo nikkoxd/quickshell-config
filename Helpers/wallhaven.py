@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Wallhaven.cc bridge for the wallpaper browser.
 
-Two subcommands, both printing a single JSON object on stdout:
+Three subcommands, each printing a single JSON object on stdout:
 
     search    query the search API and return the result page
+    info      look up one wallpaper's tags, which search results leave out
     download  fetch one wallpaper into a folder and return its path
 
 Errors are reported as {"ok": false, "error": "..."} with exit code 1, so the
@@ -19,6 +20,7 @@ import urllib.request
 from pathlib import Path
 
 API_URL = "https://wallhaven.cc/api/v1/search"
+INFO_URL = "https://wallhaven.cc/api/v1/w/"
 USER_AGENT = "quickshell-island (https://github.com/nikkoxd/island)"
 DEFAULT_TIMEOUT = 15.0
 
@@ -85,6 +87,9 @@ def search(args: argparse.Namespace) -> None:
             "id": item.get("id", ""),
             "url": item.get("path", ""),
             "thumb": thumbs.get("small") or thumbs.get("large") or "",
+            # Bigger, uncropped stand-in the preview shows while the full
+            # image is still coming in.
+            "preview": thumbs.get("original") or thumbs.get("large") or "",
             "resolution": item.get("resolution", ""),
             "category": item.get("category", ""),
             "purity": item.get("purity", ""),
@@ -100,6 +105,28 @@ def search(args: argparse.Namespace) -> None:
         # Carried back so paging through a random listing does not reshuffle.
         "seed": meta.get("seed", ""),
     }, sys.stdout)
+    print()
+
+
+def info(args: argparse.Namespace) -> None:
+    url = INFO_URL + urllib.parse.quote(args.id)
+    if args.api_key:
+        url += "?" + urllib.parse.urlencode({"apikey": args.api_key})
+
+    try:
+        payload = json.loads(request(url, args.timeout))
+    except (urllib.error.URLError, json.JSONDecodeError, OSError) as error:
+        fail(describe(error))
+
+    data = payload.get("data") or {}
+    tags = [{
+        "id": tag.get("id", 0),
+        "name": tag.get("name", ""),
+        "category": tag.get("category", ""),
+        "purity": tag.get("purity", ""),
+    } for tag in data.get("tags") or [] if tag.get("name")]
+
+    json.dump({"ok": True, "id": args.id, "tags": tags}, sys.stdout)
     print()
 
 
@@ -156,6 +183,12 @@ def main() -> None:
     search_parser.add_argument("--api-key", default="")
     search_parser.add_argument("--timeout", type=float, default=DEFAULT_TIMEOUT)
     search_parser.set_defaults(func=search)
+
+    info_parser = sub.add_parser("info")
+    info_parser.add_argument("--id", required=True)
+    info_parser.add_argument("--api-key", default="")
+    info_parser.add_argument("--timeout", type=float, default=DEFAULT_TIMEOUT)
+    info_parser.set_defaults(func=info)
 
     download_parser = sub.add_parser("download")
     download_parser.add_argument("--url", required=True)

@@ -367,6 +367,14 @@ Singleton {
     FileView {
         id: recorderLoader
         path: Qt.resolvedUrl("../Config/recorder.json")
+            // Leave results that are already in the local folder out of the
+            // grid.
+            property bool hideDownloaded: false
+            // Thumbnails per row in the browser grid.
+            property int columns: 5
+            // Open a zoomable preview on click instead of downloading right
+            // away. A right click previews either way.
+            property bool previewBeforeDownload: false
         watchChanges: true
         onFileChanged: reload()
         onAdapterUpdated: writeAdapter()

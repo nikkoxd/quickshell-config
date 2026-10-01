@@ -40,10 +40,42 @@ View {
     // search actually runs, so a keystroke does not rewrite wallhaven.json.
     property string query: ""
 
+    // The result open in the preview, or null. A copy of the row rather than
+    // the delegate, which the filter can take away while the preview is open.
+    property var previewing: null
+
     function search() {
         root.status = "";
         Config.wallhaven.query = root.query;
         WallhavenService.search(root.query);
+    }
+
+    function download(wallpaper) {
+        WallhavenService.download(wallpaper.wallpaperId, wallpaper.url);
+    }
+
+    function openPreview(wallpaper) {
+        root.previewing = {
+            wallpaperId: wallpaper.wallpaperId,
+            url: wallpaper.url,
+            preview: wallpaper.preview,
+            resolution: wallpaper.resolution,
+            fileSize: wallpaper.fileSize
+        };
+        WallhavenService.fetchTags(wallpaper.wallpaperId);
+    }
+
+    function closePreview() {
+        root.previewing = null;
+        searchInput.forceActiveFocus();
+    }
+
+    // Pages are pulled in as the end of the grid scrolls into view, which never
+    // happens when there is nothing to scroll: a filter that hides most of a
+    // page leaves it short. Keep loading until it overflows or runs out.
+    function fillGrid() {
+        if (grid.atYEnd && !WallhavenService.loading && !WallhavenService.error)
+            WallhavenService.loadMore();
     }
 
     Component.onCompleted: {
@@ -77,6 +109,12 @@ View {
         function onDownloaded(path, existed) {
             WallpaperService.setWallpaper(path, WallpaperService.Type.Image);
             root.status = existed ? "Already downloaded — applied" : "Downloaded and applied";
+            if (root.previewing)
+                root.closePreview();
+        }
+
+        function onLoadingChanged() {
+            Qt.callLater(root.fillGrid);
         }
 
         function onDownloadFailed(message) {
@@ -104,6 +142,13 @@ View {
             // not covered by the thumbnails.
             z: 2
             text: "Download wallpapers"
+
+            IconButton {
+                icon: "eye"
+                activeIcon: "eye-slash"
+                active: Config.wallhaven.hideDownloaded
+                onClicked: Config.wallhaven.hideDownloaded = !Config.wallhaven.hideDownloaded
+            }
 
             Dropdown {
                 id: ratioSelector
@@ -253,8 +298,10 @@ View {
             width: parent.width
             height: 460
             clip: true
-            cellWidth: (width - 14) / 5
-            cellHeight: root.contentWidth / 5 * 0.62
+            readonly property int columns: Math.max(1, Config.wallhaven.columns)
+
+            cellWidth: (width - 14) / columns
+            cellHeight: root.contentWidth / columns * 0.62
             boundsBehavior: Flickable.StopAtBounds
             model: WallhavenService.results
 
@@ -282,10 +329,17 @@ View {
                     WallhavenService.loadMore();
             }
 
+            // Fewer, bigger columns can leave a loaded page short of a
+            // scrollable grid just the same as the filter can.
+            onCountChanged: Qt.callLater(root.fillGrid)
+            onColumnsChanged: Qt.callLater(root.fillGrid)
+
             delegate: WallpaperBrowserDelegate {
                 id: delegateItem
                 required property string wallpaperId
                 required property string url
+                required property string preview
+                required property real fileSize
 
                 width: grid.cellWidth
                 height: grid.cellHeight
@@ -294,13 +348,25 @@ View {
                 // The download keeps Wallhaven's own file name, so the wallpaper
                 // on screen can be matched back to the result it came from.
                 current: (Config.wallpaper.current || "").includes("wallhaven-" + delegateItem.wallpaperId + ".")
-                onClicked: WallhavenService.download(delegateItem.wallpaperId, delegateItem.url)
+                onClicked: {
+                    if (Config.wallhaven.previewBeforeDownload)
+                        root.openPreview(delegateItem);
+                    else
+                        root.download(delegateItem);
+                }
+                onPreviewRequested: root.openPreview(delegateItem)
             }
 
             ThemedText {
                 anchors.centerIn: parent
                 visible: WallhavenService.results.count === 0
-                text: WallhavenService.loading ? "Searching…" : WallhavenService.error || "No wallpapers found"
+                text: {
+                    if (WallhavenService.loading)
+                        return "Searching…";
+                    if (WallhavenService.error)
+                        return WallhavenService.error;
+                    return WallhavenService.hiddenCount > 0 ? "Everything here is already downloaded" : "No wallpapers found";
+                }
                 color: Qt.alpha(Config.colorscheme.fg, 0.6)
             }
         }
@@ -319,12 +385,49 @@ View {
                         return root.status;
                     if (WallhavenService.loading)
                         return "Searching…";
-                    if (WallhavenService.total > 0)
-                        return WallhavenService.results.count + " of " + WallhavenService.total;
+                    if (WallhavenService.total > 0) {
+                        const shown = WallhavenService.results.count + " of " + WallhavenService.total;
+                        return WallhavenService.hiddenCount > 0 ? shown + " · " + WallhavenService.hiddenCount + " downloaded hidden" : shown;
+                    }
                     return "";
                 }
                 color: Qt.alpha(Config.colorscheme.fg, 0.6)
                 font.pixelSize: Config.theme.fontSize * 0.9
+            }
+        }
+    }
+
+    // Laid over the whole browser rather than growing the island, so opening
+    // and closing it does not resize anything underneath.
+    Loader {
+        x: mainLayout.x
+        y: mainLayout.y
+        width: mainLayout.width
+        height: mainLayout.height
+        active: root.previewing !== null
+        focus: active
+
+        // Handed over once rather than bound, so clearing `previewing` to close
+        // does not leave the preview reading off null on its way out.
+        onLoaded: item.wallpaper = root.previewing
+
+        sourceComponent: WallpaperPreview {
+            downloading: WallhavenService.downloadingId === wallpaper.wallpaperId
+            downloaded: WallhavenService.downloadedIds[wallpaper.wallpaperId] === true
+            readonly property bool ownTags: WallhavenService.tagsId === wallpaper.wallpaperId
+            tags: ownTags ? WallhavenService.tags : []
+            tagsLoading: ownTags && WallhavenService.tagsLoading
+            tagsError: ownTags ? WallhavenService.tagsError : ""
+            onDownloadRequested: root.download(wallpaper)
+            onCloseRequested: root.closePreview()
+            // Straight into the search field, so the query that ran is the one
+            // on screen and can be edited from there.
+            onTagClicked: name => {
+                root.closePreview();
+                root.query = name;
+                searchInput.text = name;
+                queryDebounce.stop();
+                root.search();
             }
         }
     }

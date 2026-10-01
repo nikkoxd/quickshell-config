@@ -111,8 +111,8 @@ ColumnLayout {
         text: "Wallhaven"
     }
 
-    // Downloads land in the image folder above. Only the key lives here: the
-    // rest of the search filters are set in the browser itself.
+    // Downloads land in the image folder above. The search filters themselves
+    // are set in the browser.
     SettingsOption {
         title: "API key"
         value: Config.wallhaven.apiKey
@@ -126,5 +126,29 @@ ColumnLayout {
         options: ["1d", "3d", "1w", "1M", "3M", "6M", "1y"]
         onEdited: value => Config.wallhaven.topRange = value
         type: SettingsOption.Type.ComboBox
+    }
+
+    SettingsOption {
+        title: "Grid columns"
+        // The dropdown matches its current value by ===, and options are
+        // strings.
+        value: String(Config.wallhaven.columns)
+        options: ["3", "4", "5", "6", "7", "8"]
+        onEdited: value => Config.wallhaven.columns = parseInt(value)
+        type: SettingsOption.Type.ComboBox
+    }
+
+    SettingsOption {
+        title: "Hide downloaded"
+        value: Config.wallhaven.hideDownloaded
+        onChecked: value => Config.wallhaven.hideDownloaded = value
+        type: SettingsOption.Type.Switch
+    }
+
+    SettingsOption {
+        title: "Preview before download"
+        value: Config.wallhaven.previewBeforeDownload
+        onChecked: value => Config.wallhaven.previewBeforeDownload = value
+        type: SettingsOption.Type.Switch
     }
 }

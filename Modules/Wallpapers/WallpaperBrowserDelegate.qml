@@ -4,7 +4,8 @@ import QtQuick
 import qs.Core
 
 // One search result: its thumbnail, with the resolution pinned in a corner and
-// a spinner over it while that wallpaper is being fetched.
+// a spinner over it while that wallpaper is being fetched. A right click asks
+// for the preview instead of the download.
 Item {
     id: root
 
@@ -17,6 +18,7 @@ Item {
     property bool current: false
 
     signal clicked
+    signal previewRequested
 
     ClippingRectangle {
         id: card
@@ -43,7 +45,8 @@ Item {
 
         TapHandler {
             gesturePolicy: TapHandler.WithinBounds
-            onTapped: root.clicked()
+            acceptedButtons: Qt.LeftButton | Qt.RightButton
+            onTapped: (eventPoint, button) => button === Qt.RightButton ? root.previewRequested() : root.clicked()
         }
 
         Image {
