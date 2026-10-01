@@ -361,12 +361,6 @@ Singleton {
             property string query: ""
             // Needed for NSFW results, and for a logged-in user's own filters.
             property string apiKey: ""
-        }
-    }
-
-    FileView {
-        id: recorderLoader
-        path: Qt.resolvedUrl("../Config/recorder.json")
             // Leave results that are already in the local folder out of the
             // grid.
             property bool hideDownloaded: false
@@ -375,6 +369,12 @@ Singleton {
             // Open a zoomable preview on click instead of downloading right
             // away. A right click previews either way.
             property bool previewBeforeDownload: false
+        }
+    }
+
+    FileView {
+        id: recorderLoader
+        path: Qt.resolvedUrl("../Config/recorder.json")
         watchChanges: true
         onFileChanged: reload()
         onAdapterUpdated: writeAdapter()
