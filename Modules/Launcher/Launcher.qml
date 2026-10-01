@@ -24,6 +24,7 @@ View {
     EmojiProvider { id: emojiProvider }
     ClipboardProvider { id: clipboardProvider }
     ProcessProvider { id: processProvider }
+    SystemdProvider { id: systemdProvider }
 
     function launchSelected() {
         if (list.currentItem && list.currentItem.modelData)
@@ -38,7 +39,8 @@ View {
             passwordsProvider,
             emojiProvider,
             clipboardProvider,
-            processProvider
+            processProvider,
+            systemdProvider
         ];
         LauncherService.reset(root.initialProvider);
         searchInput.forceActiveFocus();

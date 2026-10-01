@@ -78,6 +78,16 @@ LauncherProvider {
             }
         },
         {
+            name: "Services",
+            genericName: "systemd units",
+            icon: "gear-six",
+            iconType: LauncherProvider.IconType.Material,
+            preventClose: true,
+            execute: function() {
+                root.svc.provider = "systemd";
+            }
+        },
+        {
             name: "Wipe clipboard",
             genericName: "wipe clipboard",
             icon: "trash-simple",

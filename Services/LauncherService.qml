@@ -153,6 +153,8 @@ Singleton {
             return "";
         if (entry.id)
             return "id:" + entry.id;
+        if (entry.key)
+            return "key:" + entry.key;
         if (entry.pid !== undefined)
             return "pid:" + entry.pid;
         return "name:" + entry.name;

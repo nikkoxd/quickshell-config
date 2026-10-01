@@ -225,6 +225,12 @@ Singleton {
             property string processSort: "cpu"
             property bool groupProcesses: false
             property bool showSystemProcesses: false
+            // Service manager provider: which managers are listed (both/user/system),
+            // whether only .service units are, and the sort (state/name). The first
+            // two are flipped from the list itself.
+            property string systemdScope: "both"
+            property bool systemdServicesOnly: true
+            property string systemdSort: "state"
             // KeePassXC database the passwords provider unlocks and lists.
             property string keepassVault: ""
         }

@@ -73,6 +73,36 @@ ColumnLayout {
     }
 
     SettingsOption {
+        title: "Service sort"
+        value: Config.launcher.systemdSort
+        options: [
+            { label: "State", value: "state" },
+            { label: "Name", value: "name" }
+        ]
+        onEdited: value => Config.launcher.systemdSort = value
+        type: SettingsOption.Type.ComboBox
+    }
+
+    SettingsOption {
+        title: "Services from"
+        value: Config.launcher.systemdScope
+        options: [
+            { label: "User and system", value: "both" },
+            { label: "User", value: "user" },
+            { label: "System", value: "system" }
+        ]
+        onEdited: value => Config.launcher.systemdScope = value
+        type: SettingsOption.Type.ComboBox
+    }
+
+    SettingsOption {
+        title: "Show only .service units"
+        value: Config.launcher.systemdServicesOnly
+        onChecked: value => Config.launcher.systemdServicesOnly = value
+        type: SettingsOption.Type.Switch
+    }
+
+    SettingsOption {
         title: "KeePassXC vault path"
         value: Config.launcher.keepassVault
         onEdited: value => Config.launcher.keepassVault = value
