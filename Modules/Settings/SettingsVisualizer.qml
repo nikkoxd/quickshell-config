@@ -9,25 +9,25 @@ ColumnLayout {
     Layout.fillHeight: true
     Layout.alignment: Qt.AlignTop
 
-    readonly property bool bars: Config.visualizer.mode === "bars"
+    readonly property bool bars: SettingsDraft.get("visualizer", "mode") === "bars"
 
     SettingsOption {
         title: "Display visualizer"
-        value: Config.visualizer.displayVisualizer
-        onChecked: value => Config.visualizer.displayVisualizer = value
+        value: SettingsDraft.get("visualizer", "displayVisualizer")
+        onChecked: value => SettingsDraft.set("visualizer", "displayVisualizer", value)
         type: SettingsOption.Type.Switch
     }
 
     SettingsOption {
         title: "Display artwork"
-        value: Config.visualizer.displayArtwork
-        onChecked: value => Config.visualizer.displayArtwork = value
+        value: SettingsDraft.get("visualizer", "displayArtwork")
+        onChecked: value => SettingsDraft.set("visualizer", "displayArtwork", value)
         type: SettingsOption.Type.Switch
     }
 
     SettingsOption {
         title: "Mode"
-        value: Config.visualizer.mode
+        value: SettingsDraft.get("visualizer", "mode")
         options: [
             {
                 label: "Background",
@@ -38,13 +38,13 @@ ColumnLayout {
                 value: "bars"
             }
         ]
-        onEdited: value => Config.visualizer.mode = value
+        onEdited: value => SettingsDraft.set("visualizer", "mode", value)
         type: SettingsOption.Type.ComboBox
     }
 
     SettingsOption {
         title: "Audio source"
-        value: Config.visualizer.source
+        value: SettingsDraft.get("visualizer", "source")
         options: [
             {
                 label: "All audio",
@@ -55,7 +55,7 @@ ColumnLayout {
                 value: "player"
             }
         ]
-        onEdited: value => Config.visualizer.source = value
+        onEdited: value => SettingsDraft.set("visualizer", "source", value)
         type: SettingsOption.Type.ComboBox
     }
 
@@ -63,34 +63,36 @@ ColumnLayout {
         title: "Visualizer height"
         units: "px"
         visible: !root.bars
-        value: Config.visualizer.visualizerHeight
-        onEdited: value => Config.visualizer.visualizerHeight = parseInt(value)
+        value: SettingsDraft.get("visualizer", "visualizerHeight")
+        onEdited: value => SettingsDraft.set("visualizer", "visualizerHeight", parseInt(value))
         type: SettingsOption.Type.TextField
     }
 
     SettingsOption {
         title: "Top opacity"
+        maximum: 100
         units: "%"
         visible: !root.bars
-        value: Config.visualizer.topOpacity * 100
-        onEdited: value => Config.visualizer.topOpacity = parseInt(value) / 100
+        value: SettingsDraft.get("visualizer", "topOpacity") * 100
+        onEdited: value => SettingsDraft.set("visualizer", "topOpacity", parseInt(value) / 100)
         type: SettingsOption.Type.TextField
     }
 
     SettingsOption {
         title: "Bottom opacity"
+        maximum: 100
         units: "%"
         visible: !root.bars
-        value: Config.visualizer.bottomOpacity * 100
-        onEdited: value => Config.visualizer.bottomOpacity = parseInt(value) / 100
+        value: SettingsDraft.get("visualizer", "bottomOpacity") * 100
+        onEdited: value => SettingsDraft.set("visualizer", "bottomOpacity", parseInt(value) / 100)
         type: SettingsOption.Type.TextField
     }
 
     SettingsOption {
         title: "Bar count"
         visible: root.bars
-        value: Config.visualizer.barCount
-        onEdited: value => Config.visualizer.barCount = parseInt(value)
+        value: SettingsDraft.get("visualizer", "barCount")
+        onEdited: value => SettingsDraft.set("visualizer", "barCount", parseInt(value))
         type: SettingsOption.Type.TextField
     }
 
@@ -98,8 +100,8 @@ ColumnLayout {
         title: "Bar width"
         units: "px"
         visible: root.bars
-        value: Config.visualizer.barWidth
-        onEdited: value => Config.visualizer.barWidth = parseInt(value)
+        value: SettingsDraft.get("visualizer", "barWidth")
+        onEdited: value => SettingsDraft.set("visualizer", "barWidth", parseInt(value))
         type: SettingsOption.Type.TextField
     }
 
@@ -107,8 +109,8 @@ ColumnLayout {
         title: "Bar height"
         units: "px"
         visible: root.bars
-        value: Config.visualizer.barMaxHeight
-        onEdited: value => Config.visualizer.barMaxHeight = parseInt(value)
+        value: SettingsDraft.get("visualizer", "barMaxHeight")
+        onEdited: value => SettingsDraft.set("visualizer", "barMaxHeight", parseInt(value))
         type: SettingsOption.Type.TextField
     }
 }

@@ -16,7 +16,7 @@ ColumnLayout {
     Layout.alignment: Qt.AlignTop
 
     function _servers() {
-        return JSON.parse(JSON.stringify(Config.dns || []));
+        return JSON.parse(JSON.stringify(SettingsDraft.get("dns") || []));
     }
 
     function _parseList(text) {
@@ -28,13 +28,13 @@ ColumnLayout {
         if (!servers[index])
             return;
         servers[index][key] = value;
-        Config.saveDns(servers);
+        SettingsDraft.set("dns", "", servers);
     }
 
     function remove(index) {
         const servers = root._servers();
         servers.splice(index, 1);
-        Config.saveDns(servers);
+        SettingsDraft.set("dns", "", servers);
     }
 
     function add() {
@@ -44,7 +44,7 @@ ColumnLayout {
             ipv4: [],
             ipv6: []
         });
-        Config.saveDns(servers);
+        SettingsDraft.set("dns", "", servers);
     }
 
     ColumnLayout {
@@ -85,7 +85,7 @@ ColumnLayout {
         }
 
         Repeater {
-            model: Config.dns
+            model: SettingsDraft.get("dns")
 
             RowLayout {
                 id: server

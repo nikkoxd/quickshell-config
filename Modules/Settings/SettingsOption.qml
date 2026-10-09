@@ -11,6 +11,13 @@ RowLayout {
     property var options
     property string units: ""
     property int type: SettingsOption.Type.TextField
+    // A text field with a unit holding a number steps through it on the mouse
+    // wheel, `step` a notch (ten with Shift held), clamped to the range below.
+    // Nearly every such value is a size or a duration, hence the floor of 0.
+    property real step: 1
+    property real minimum: 0
+    property real maximum: Infinity
+    readonly property bool scrollable: root.type === SettingsOption.Type.TextField && root.units !== "" && typeof root.value === "number"
     signal edited(string value)
     signal checked(bool checked)
 
@@ -18,6 +25,37 @@ RowLayout {
         TextField,
         Switch,
         ComboBox
+    }
+
+    // Wheel travel not yet worth a whole step; touchpads deliver a notch in
+    // many small pieces.
+    property real _wheel: 0
+
+    function _display() {
+        return root.value !== undefined ? root.value : "";
+    }
+
+    function _scroll(event) {
+        const delta = event.angleDelta.y !== 0 ? event.angleDelta.y : event.angleDelta.x;
+        root._wheel += delta;
+        const notches = Math.trunc(root._wheel / 120);
+        if (notches === 0)
+            return;
+        root._wheel -= notches * 120;
+
+        // Start from what is in the field, so a number typed but not yet
+        // confirmed is stepped from rather than thrown away.
+        const typed = parseFloat(field.text);
+        const current = isNaN(typed) ? root.value : typed;
+        const step = root.step * (event.modifiers & Qt.ShiftModifier ? 10 : 1);
+        const next = Math.min(root.maximum, Math.max(root.minimum, current + notches * step));
+        // Rounded to the step's own precision, so 0.1 steps don't drift into
+        // 0.30000000000000004.
+        const decimals = (String(root.step).split(".")[1] || "").length;
+        root.edited(next.toFixed(decimals));
+        // The binding only re-runs when the value changes, and stepping back to
+        // the saved value from a typed one would not change it.
+        field.text = Qt.binding(root._display);
     }
 
     Layout.fillWidth: true
@@ -52,8 +90,9 @@ RowLayout {
         }
 
         TextField {
+            id: field
             visible: root.type === SettingsOption.Type.TextField
-            text: root.value !== undefined ? root.value : ""
+            text: root._display()
             onEditingFinished: root.edited(text)
             suffix: root.units
             font.pixelSize: 16
@@ -63,6 +102,17 @@ RowLayout {
             // cap the text scrolls inside the field instead.
             Layout.minimumWidth: 120
             Layout.maximumWidth: 400
+
+            // A MouseArea rather than a WheelHandler: the page's ScrollArea is a
+            // Flickable, which takes the wheel before a handler in here sees it.
+            // Clicks still go through to the field.
+            MouseArea {
+                anchors.fill: parent
+                enabled: root.scrollable
+                acceptedButtons: Qt.NoButton
+                cursorShape: Qt.IBeamCursor
+                onWheel: event => root._scroll(event)
+            }
         }
 
         Toggle {

@@ -13,6 +13,17 @@ FloatingWindow {
 
     property int currentTab: sidebar.currentTab
 
+    // Edits are only staged in SettingsDraft until this runs. A text field
+    // hands its text over when it loses focus, so take focus away first or a
+    // value still being typed would miss the save.
+    function save() {
+        saveButton.forceActiveFocus();
+        SettingsDraft.save();
+    }
+
+    // Closing the window throws away whatever was not saved.
+    Component.onDestruction: SettingsDraft.discard()
+
     enum Tab {
         Island,
         Dns,
@@ -32,14 +43,96 @@ FloatingWindow {
         anchors.fill: parent
         anchors.margins: Config.island.padding
 
-        // The tab list outgrows a short window before the pages do, so it gets
-        // the same treatment.
-        ScrollArea {
-            Layout.fillHeight: true
-            Layout.preferredWidth: sidebar.implicitWidth + gutter
+        // Inside the content rather than on the window: a Shortcut finds its
+        // window through the item it sits in.
+        Shortcut {
+            sequence: "Ctrl+S"
+            onActivated: root.save()
+        }
 
-            SettingsSidebar {
-                id: sidebar
+        ColumnLayout {
+            spacing: 10
+            Layout.fillHeight: true
+            // The save button fills its row, which would otherwise make this
+            // whole column claim a share of the window's width.
+            Layout.fillWidth: false
+            Layout.preferredWidth: sidebar.implicitWidth + tabs.gutter
+
+            // The tab list outgrows a short window before the pages do, so it
+            // gets the same treatment.
+            ScrollArea {
+                id: tabs
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+
+                SettingsSidebar {
+                    id: sidebar
+                }
+            }
+
+            // Kept out of the scrolling list, so it stays in reach however
+            // short the window is.
+            RowLayout {
+                spacing: 10
+                Layout.fillWidth: false
+                Layout.preferredWidth: sidebar.implicitWidth
+
+                Rectangle {
+                    id: saveButton
+                    color: SettingsDraft.dirty ? (saveHover.hovered ? Config.colorscheme.accentAlt : Config.colorscheme.accent) : Config.colorscheme.surface
+                    opacity: SettingsDraft.dirty ? 1 : 0.5
+                    radius: 10
+                    implicitHeight: 40
+                    Layout.fillWidth: true
+
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: 100
+                            easing.type: Easing.InOutQuad
+                        }
+                    }
+
+                    HoverHandler {
+                        id: saveHover
+                        cursorShape: SettingsDraft.dirty ? Qt.PointingHandCursor : Qt.ArrowCursor
+                    }
+
+                    TapHandler {
+                        enabled: SettingsDraft.dirty
+                        onTapped: root.save()
+                    }
+
+                    Row {
+                        spacing: 10
+                        anchors.centerIn: parent
+
+                        ThemedText {
+                            icon: true
+                            text: "floppy-disk"
+                            color: SettingsDraft.dirty ? Config.colorscheme.bg : Config.colorscheme.fg
+                            font.pixelSize: 18
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+
+                        ThemedText {
+                            text: SettingsDraft.dirty ? "Save (" + SettingsDraft.count + ")" : "Saved"
+                            color: SettingsDraft.dirty ? Config.colorscheme.bg : Config.colorscheme.fg
+                            font.pixelSize: 16
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                    }
+                }
+
+                IconButton {
+                    icon: "arrow-counter-clockwise"
+                    opacity: SettingsDraft.dirty ? 1 : 0.3
+                    implicitWidth: 40
+                    implicitHeight: 40
+                    onClicked: {
+                        if (SettingsDraft.dirty)
+                            SettingsDraft.discard();
+                    }
+                }
             }
         }
 

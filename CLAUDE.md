@@ -55,7 +55,7 @@ Colorschemes are separate: `Config/theme.json` names a scheme (e.g. `"Moonfly"`)
 
 Never hardcode a color, font or radius in a view — read it off `Config` through the shared components below.
 
-`Modules/Settings/` is the GUI over those JSON files. **To add a settings page:** create `Modules/Settings/Settings<Name>.qml` as a `ColumnLayout` of `SettingsOption`s (grouped under `SettingsSection`s), add a value to the `Settings.Tab` enum plus the instance in `Settings.qml`, and a `SettingsTab` in `SettingsSidebar.qml`.
+`Modules/Settings/` is the GUI over those JSON files. Nothing on a page writes to `Config` directly: edits are staged in the `SettingsDraft` singleton and only applied when the sidebar's Save button (or Ctrl+S) is pressed, and closing the window discards them. Read values with `SettingsDraft.get("<group>", "<key>")` and write with `SettingsDraft.set(...)`; the hand-parsed `templates`/`dns` groups are staged whole with no key and saved through `Config.save*`. A `SettingsOption` text field with `units` over a numeric value steps on the mouse wheel by `step` (×10 with Shift), clamped to `minimum` (default 0) and `maximum`. **To add a settings page:** create `Modules/Settings/Settings<Name>.qml` as a `ColumnLayout` of `SettingsOption`s (grouped under `SettingsSection`s), add a value to the `Settings.Tab` enum plus the instance in `Settings.qml`, and a `SettingsTab` in `SettingsSidebar.qml`.
 
 ## Core components
 

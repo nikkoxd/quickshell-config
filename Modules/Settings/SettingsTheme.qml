@@ -15,31 +15,31 @@ ColumnLayout {
 
     SettingsOption {
         title: "Colorscheme"
-        value: Config.theme.colorscheme
+        value: SettingsDraft.get("theme", "colorscheme")
         options: ThemeService.names
-        onEdited: value => Config.theme.colorscheme = value
+        onEdited: value => SettingsDraft.set("theme", "colorscheme", value)
         type: SettingsOption.Type.ComboBox
     }
 
     SettingsOption {
         title: "Font family"
-        value: Config.theme.fontFamily
-        onEdited: value => Config.theme.fontFamily = value
+        value: SettingsDraft.get("theme", "fontFamily")
+        onEdited: value => SettingsDraft.set("theme", "fontFamily", value)
         type: SettingsOption.Type.TextField
     }
 
     SettingsOption {
         title: "Font weight"
-        value: Config.theme.fontWeight
-        onEdited: value => Config.theme.fontWeight = value
+        value: SettingsDraft.get("theme", "fontWeight")
+        onEdited: value => SettingsDraft.set("theme", "fontWeight", value)
         type: SettingsOption.Type.TextField
     }
 
     SettingsOption {
         title: "Font size"
         units: "px"
-        value: Config.theme.fontSize
-        onEdited: value => Config.theme.fontSize = parseInt(value)
+        value: SettingsDraft.get("theme", "fontSize")
+        onEdited: value => SettingsDraft.set("theme", "fontSize", parseInt(value))
         type: SettingsOption.Type.TextField
     }
 
@@ -49,23 +49,23 @@ ColumnLayout {
 
     SettingsOption {
         title: "Auto light/dark mode"
-        value: Config.iris.autoMode
-        onChecked: value => Config.iris.autoMode = value
+        value: SettingsDraft.get("iris", "autoMode")
+        onChecked: value => SettingsDraft.set("iris", "autoMode", value)
         type: SettingsOption.Type.Switch
     }
 
     SettingsOption {
         title: "Dark mode"
-        value: Config.iris.dark
-        onChecked: value => Config.iris.dark = value
+        value: SettingsDraft.get("iris", "dark")
+        onChecked: value => SettingsDraft.set("iris", "dark", value)
         type: SettingsOption.Type.Switch
     }
 
     SettingsListOption {
         title: "Commands to run after"
         placeholder: "emacsclient -e \"(load-theme 'iris t)\""
-        values: Config.iris.after
-        onUpdated: values => Config.iris.after = values
+        values: SettingsDraft.get("iris", "after")
+        onUpdated: values => SettingsDraft.set("iris", "after", values)
     }
 
     SettingsSection {
@@ -74,44 +74,44 @@ ColumnLayout {
 
     SettingsOption {
         title: "Auto light/dark mode"
-        value: Config.matugen.autoMode
-        onChecked: value => Config.matugen.autoMode = value
+        value: SettingsDraft.get("matugen", "autoMode")
+        onChecked: value => SettingsDraft.set("matugen", "autoMode", value)
         type: SettingsOption.Type.Switch
     }
 
     SettingsOption {
         title: "Dark mode"
-        value: Config.matugen.dark
-        onChecked: value => Config.matugen.dark = value
+        value: SettingsDraft.get("matugen", "dark")
+        onChecked: value => SettingsDraft.set("matugen", "dark", value)
         type: SettingsOption.Type.Switch
     }
 
     SettingsOption {
         title: "Scheme type"
-        value: Config.matugen.scheme
-        onEdited: value => Config.matugen.scheme = value
+        value: SettingsDraft.get("matugen", "scheme")
+        onEdited: value => SettingsDraft.set("matugen", "scheme", value)
         type: SettingsOption.Type.TextField
     }
 
     SettingsOption {
         title: "Source color preference"
-        value: Config.matugen.prefer
-        onEdited: value => Config.matugen.prefer = value
+        value: SettingsDraft.get("matugen", "prefer")
+        onEdited: value => SettingsDraft.set("matugen", "prefer", value)
         type: SettingsOption.Type.TextField
     }
 
     SettingsOption {
         title: "Contrast"
-        value: Config.matugen.contrast
-        onEdited: value => Config.matugen.contrast = parseFloat(value) || 0
+        value: SettingsDraft.get("matugen", "contrast")
+        onEdited: value => SettingsDraft.set("matugen", "contrast", parseFloat(value) || 0)
         type: SettingsOption.Type.TextField
     }
 
     SettingsListOption {
         title: "Commands to run after"
         placeholder: "makoctl reload"
-        values: Config.matugen.after
-        onUpdated: values => Config.matugen.after = values
+        values: SettingsDraft.get("matugen", "after")
+        onUpdated: values => SettingsDraft.set("matugen", "after", values)
     }
 
 }

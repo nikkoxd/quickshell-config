@@ -11,101 +11,101 @@ ColumnLayout {
 
     SettingsOption {
         title: "Show results with empty query"
-        value: Config.launcher.showResultsWithEmptyQuery
-        onChecked: value => Config.launcher.showResultsWithEmptyQuery = value
+        value: SettingsDraft.get("launcher", "showResultsWithEmptyQuery")
+        onChecked: value => SettingsDraft.set("launcher", "showResultsWithEmptyQuery", value)
         type: SettingsOption.Type.Switch
     }
 
     SettingsOption {
         title: "Sort results by usage"
-        value: Config.launcher.sortByUsage
-        onChecked: value => Config.launcher.sortByUsage = value
+        value: SettingsDraft.get("launcher", "sortByUsage")
+        onChecked: value => SettingsDraft.set("launcher", "sortByUsage", value)
         type: SettingsOption.Type.Switch
     }
 
     SettingsOption {
         title: "Custom entries behind prefix"
-        value: Config.launcher.useCustomEntriesPrefix
-        onChecked: value => Config.launcher.useCustomEntriesPrefix = value
+        value: SettingsDraft.get("launcher", "useCustomEntriesPrefix")
+        onChecked: value => SettingsDraft.set("launcher", "useCustomEntriesPrefix", value)
         type: SettingsOption.Type.Switch
     }
 
     SettingsOption {
         title: "Custom entries prefix"
-        visible: Config.launcher.useCustomEntriesPrefix
-        value: Config.launcher.customEntriesPrefix
-        onEdited: value => Config.launcher.customEntriesPrefix = value
+        visible: SettingsDraft.get("launcher", "useCustomEntriesPrefix")
+        value: SettingsDraft.get("launcher", "customEntriesPrefix")
+        onEdited: value => SettingsDraft.set("launcher", "customEntriesPrefix", value)
         type: SettingsOption.Type.TextField
     }
 
     SettingsOption {
         title: "Run command prefix"
-        value: Config.launcher.commandPrefix
-        onEdited: value => Config.launcher.commandPrefix = value
+        value: SettingsDraft.get("launcher", "commandPrefix")
+        onEdited: value => SettingsDraft.set("launcher", "commandPrefix", value)
         type: SettingsOption.Type.TextField
     }
 
     SettingsOption {
         title: "Process sort"
-        value: Config.launcher.processSort
+        value: SettingsDraft.get("launcher", "processSort")
         options: [
             { label: "CPU", value: "cpu" },
             { label: "Memory", value: "memory" },
             { label: "Name", value: "name" },
             { label: "PID", value: "pid" }
         ]
-        onEdited: value => Config.launcher.processSort = value
+        onEdited: value => SettingsDraft.set("launcher", "processSort", value)
         type: SettingsOption.Type.ComboBox
     }
 
     SettingsOption {
         title: "Group processes by name"
-        value: Config.launcher.groupProcesses
-        onChecked: value => Config.launcher.groupProcesses = value
+        value: SettingsDraft.get("launcher", "groupProcesses")
+        onChecked: value => SettingsDraft.set("launcher", "groupProcesses", value)
         type: SettingsOption.Type.Switch
     }
 
     SettingsOption {
         title: "Show system processes"
-        value: Config.launcher.showSystemProcesses
-        onChecked: value => Config.launcher.showSystemProcesses = value
+        value: SettingsDraft.get("launcher", "showSystemProcesses")
+        onChecked: value => SettingsDraft.set("launcher", "showSystemProcesses", value)
         type: SettingsOption.Type.Switch
     }
 
     SettingsOption {
         title: "Service sort"
-        value: Config.launcher.systemdSort
+        value: SettingsDraft.get("launcher", "systemdSort")
         options: [
             { label: "State", value: "state" },
             { label: "Name", value: "name" }
         ]
-        onEdited: value => Config.launcher.systemdSort = value
+        onEdited: value => SettingsDraft.set("launcher", "systemdSort", value)
         type: SettingsOption.Type.ComboBox
     }
 
     SettingsOption {
         title: "Services from"
-        value: Config.launcher.systemdScope
+        value: SettingsDraft.get("launcher", "systemdScope")
         options: [
             { label: "User and system", value: "both" },
             { label: "User", value: "user" },
             { label: "System", value: "system" }
         ]
-        onEdited: value => Config.launcher.systemdScope = value
+        onEdited: value => SettingsDraft.set("launcher", "systemdScope", value)
         type: SettingsOption.Type.ComboBox
     }
 
     SettingsOption {
         title: "Show only .service units"
-        value: Config.launcher.systemdServicesOnly
-        onChecked: value => Config.launcher.systemdServicesOnly = value
+        value: SettingsDraft.get("launcher", "systemdServicesOnly")
+        onChecked: value => SettingsDraft.set("launcher", "systemdServicesOnly", value)
         type: SettingsOption.Type.Switch
     }
 
     SettingsOption {
         title: "KeePassXC vault path"
-        value: Config.launcher.keepassVault
-        onEdited: value => Config.launcher.keepassVault = value
+        value: SettingsDraft.get("launcher", "keepassVault")
+        onEdited: value => SettingsDraft.set("launcher", "keepassVault", value)
         type: SettingsOption.Type.TextField
     }
 }

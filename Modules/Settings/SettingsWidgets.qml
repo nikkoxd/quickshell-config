@@ -17,61 +17,63 @@ ColumnLayout {
 
         SettingsOption {
             title: "Display lyrics on desktop"
-            value: Config.widgets.lyricsEnabled
-            onChecked: value => Config.widgets.lyricsEnabled = value
+            value: SettingsDraft.get("widgets", "lyricsEnabled")
+            onChecked: value => SettingsDraft.set("widgets", "lyricsEnabled", value)
             type: SettingsOption.Type.Switch
         }
 
         SettingsOption {
             title: "Only while playing"
-            value: Config.widgets.lyricsOnlyWhilePlaying
-            onChecked: value => Config.widgets.lyricsOnlyWhilePlaying = value
+            value: SettingsDraft.get("widgets", "lyricsOnlyWhilePlaying")
+            onChecked: value => SettingsDraft.set("widgets", "lyricsOnlyWhilePlaying", value)
             type: SettingsOption.Type.Switch
         }
 
         SettingsOption {
             title: "Center lines"
-            value: Config.widgets.lyricsCentered
-            onChecked: value => Config.widgets.lyricsCentered = value
+            value: SettingsDraft.get("widgets", "lyricsCentered")
+            onChecked: value => SettingsDraft.set("widgets", "lyricsCentered", value)
             type: SettingsOption.Type.Switch
         }
 
         SettingsOption {
             title: "Visible rows"
-            value: Config.widgets.lyricsRows
-            onEdited: value => Config.widgets.lyricsRows = parseInt(value)
+            value: SettingsDraft.get("widgets", "lyricsRows")
+            onEdited: value => SettingsDraft.set("widgets", "lyricsRows", parseInt(value))
             type: SettingsOption.Type.TextField
         }
 
         SettingsOption {
             title: "Width"
             units: "px"
-            value: Config.widgets.lyricsWidth
-            onEdited: value => Config.widgets.lyricsWidth = parseInt(value)
+            value: SettingsDraft.get("widgets", "lyricsWidth")
+            onEdited: value => SettingsDraft.set("widgets", "lyricsWidth", parseInt(value))
             type: SettingsOption.Type.TextField
         }
 
         SettingsOption {
             title: "Distance from bottom"
             units: "px"
-            value: Config.widgets.lyricsBottomMargin
-            onEdited: value => Config.widgets.lyricsBottomMargin = parseInt(value)
+            value: SettingsDraft.get("widgets", "lyricsBottomMargin")
+            onEdited: value => SettingsDraft.set("widgets", "lyricsBottomMargin", parseInt(value))
             type: SettingsOption.Type.TextField
         }
 
         SettingsOption {
             title: "Font size"
+            step: 0.1
             units: "x"
-            value: Config.widgets.lyricsFontScale
-            onEdited: value => Config.widgets.lyricsFontScale = parseFloat(value)
+            value: SettingsDraft.get("widgets", "lyricsFontScale")
+            onEdited: value => SettingsDraft.set("widgets", "lyricsFontScale", parseFloat(value))
             type: SettingsOption.Type.TextField
         }
 
         SettingsOption {
             title: "Current line size"
+            step: 0.05
             units: "x"
-            value: Config.widgets.lyricsActiveScale
-            onEdited: value => Config.widgets.lyricsActiveScale = parseFloat(value)
+            value: SettingsDraft.get("widgets", "lyricsActiveScale")
+            onEdited: value => SettingsDraft.set("widgets", "lyricsActiveScale", parseFloat(value))
             type: SettingsOption.Type.TextField
         }
     }

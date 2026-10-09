@@ -18,13 +18,13 @@ ColumnLayout {
     Layout.alignment: Qt.AlignTop
 
     function setEnabled(name, enabled) {
-        const entries = JSON.parse(JSON.stringify(Config.templates));
+        const entries = JSON.parse(JSON.stringify(SettingsDraft.get("templates")));
         entries[name] = Object.assign({
             output: "",
             postHook: ""
         }, entries[name] || {});
         entries[name].enabled = enabled;
-        Config.saveTemplates(entries);
+        SettingsDraft.set("templates", "", entries);
     }
 
     RowLayout {
@@ -79,7 +79,7 @@ ColumnLayout {
             required property string modelData
 
             title: option.modelData
-            value: TemplateService.entry(option.modelData).enabled
+            value: ((SettingsDraft.get("templates") || {})[option.modelData] || {}).enabled !== false
             onChecked: enabled => root.setEnabled(option.modelData, enabled)
             type: SettingsOption.Type.Switch
         }

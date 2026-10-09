@@ -12,37 +12,37 @@ ColumnLayout {
 
     SettingsOption {
         title: "Output"
-        value: Config.wallpaper.output
-        onEdited: value => Config.wallpaper.output = value
+        value: SettingsDraft.get("wallpaper", "output")
+        onEdited: value => SettingsDraft.set("wallpaper", "output", value)
         type: SettingsOption.Type.TextField
     }
 
     SettingsOption {
         title: "Current wallpaper"
-        value: Config.wallpaper.current
-        onEdited: value => Config.wallpaper.current = value
+        value: SettingsDraft.get("wallpaper", "current")
+        onEdited: value => SettingsDraft.set("wallpaper", "current", value)
         type: SettingsOption.Type.TextField
     }
 
     SettingsOption {
         title: "Image folder"
-        value: Config.wallpaper.staticWallpaperFolder
-        onEdited: value => Config.wallpaper.staticWallpaperFolder = value
+        value: SettingsDraft.get("wallpaper", "staticWallpaperFolder")
+        onEdited: value => SettingsDraft.set("wallpaper", "staticWallpaperFolder", value)
         type: SettingsOption.Type.TextField
     }
 
     SettingsOption {
         title: "Transition"
-        value: Config.wallpaper.transition
+        value: SettingsDraft.get("wallpaper", "transition")
         options: WallpaperService.transitions
-        onEdited: value => Config.wallpaper.transition = value
+        onEdited: value => SettingsDraft.set("wallpaper", "transition", value)
         type: SettingsOption.Type.ComboBox
     }
 
     SettingsOption {
         title: "Random transition"
-        value: Config.wallpaper.randomTransition
-        onChecked: value => Config.wallpaper.randomTransition = value
+        value: SettingsDraft.get("wallpaper", "randomTransition")
+        onChecked: value => SettingsDraft.set("wallpaper", "randomTransition", value)
         type: SettingsOption.Type.Switch
     }
 
@@ -52,16 +52,16 @@ ColumnLayout {
 
     SettingsOption {
         title: "Enabled"
-        value: Config.wallpaper.parallax
-        onChecked: value => Config.wallpaper.parallax = value
+        value: SettingsDraft.get("wallpaper", "parallax")
+        onChecked: value => SettingsDraft.set("wallpaper", "parallax", value)
         type: SettingsOption.Type.Switch
     }
 
     SettingsOption {
         title: "Driven by"
-        value: Config.wallpaper.parallaxSource
+        value: SettingsDraft.get("wallpaper", "parallaxSource")
         options: ["workspace", "cursor", "both"]
-        onEdited: value => Config.wallpaper.parallaxSource = value
+        onEdited: value => SettingsDraft.set("wallpaper", "parallaxSource", value)
         type: SettingsOption.Type.ComboBox
     }
 
@@ -69,41 +69,45 @@ ColumnLayout {
     // the overscan, so each amount is both the travel and the strength.
     SettingsOption {
         title: "Workspace amount"
+        maximum: 100
         units: "%"
-        value: Math.round(Config.wallpaper.parallaxAmount * 100)
-        onEdited: value => Config.wallpaper.parallaxAmount = parseFloat(value) / 100
+        value: Math.round(SettingsDraft.get("wallpaper", "parallaxAmount") * 100)
+        onEdited: value => SettingsDraft.set("wallpaper", "parallaxAmount", parseFloat(value) / 100)
         type: SettingsOption.Type.TextField
     }
 
     // 0 spreads the pan over whatever workspaces exist at the time.
     SettingsOption {
         title: "Workspaces spanned"
-        value: Config.wallpaper.parallaxWorkspaces
-        onEdited: value => Config.wallpaper.parallaxWorkspaces = parseInt(value)
+        value: SettingsDraft.get("wallpaper", "parallaxWorkspaces")
+        onEdited: value => SettingsDraft.set("wallpaper", "parallaxWorkspaces", parseInt(value))
         type: SettingsOption.Type.TextField
     }
 
     SettingsOption {
         title: "Workspace duration"
+        step: 10
         units: "ms"
-        value: Config.wallpaper.parallaxDuration
-        onEdited: value => Config.wallpaper.parallaxDuration = parseInt(value)
+        value: SettingsDraft.get("wallpaper", "parallaxDuration")
+        onEdited: value => SettingsDraft.set("wallpaper", "parallaxDuration", parseInt(value))
         type: SettingsOption.Type.TextField
     }
 
     SettingsOption {
         title: "Cursor amount"
+        maximum: 100
         units: "%"
-        value: Math.round(Config.wallpaper.parallaxMouseAmount * 100)
-        onEdited: value => Config.wallpaper.parallaxMouseAmount = parseFloat(value) / 100
+        value: Math.round(SettingsDraft.get("wallpaper", "parallaxMouseAmount") * 100)
+        onEdited: value => SettingsDraft.set("wallpaper", "parallaxMouseAmount", parseFloat(value) / 100)
         type: SettingsOption.Type.TextField
     }
 
     SettingsOption {
         title: "Cursor duration"
+        step: 10
         units: "ms"
-        value: Config.wallpaper.parallaxMouseDuration
-        onEdited: value => Config.wallpaper.parallaxMouseDuration = parseInt(value)
+        value: SettingsDraft.get("wallpaper", "parallaxMouseDuration")
+        onEdited: value => SettingsDraft.set("wallpaper", "parallaxMouseDuration", parseInt(value))
         type: SettingsOption.Type.TextField
     }
 
@@ -115,16 +119,16 @@ ColumnLayout {
     // are set in the browser.
     SettingsOption {
         title: "API key"
-        value: Config.wallhaven.apiKey
-        onEdited: value => Config.wallhaven.apiKey = value
+        value: SettingsDraft.get("wallhaven", "apiKey")
+        onEdited: value => SettingsDraft.set("wallhaven", "apiKey", value)
         type: SettingsOption.Type.TextField
     }
 
     SettingsOption {
         title: "Toplist range"
-        value: Config.wallhaven.topRange
+        value: SettingsDraft.get("wallhaven", "topRange")
         options: ["1d", "3d", "1w", "1M", "3M", "6M", "1y"]
-        onEdited: value => Config.wallhaven.topRange = value
+        onEdited: value => SettingsDraft.set("wallhaven", "topRange", value)
         type: SettingsOption.Type.ComboBox
     }
 
@@ -132,23 +136,23 @@ ColumnLayout {
         title: "Grid columns"
         // The dropdown matches its current value by ===, and options are
         // strings.
-        value: String(Config.wallhaven.columns)
+        value: String(SettingsDraft.get("wallhaven", "columns"))
         options: ["3", "4", "5", "6", "7", "8"]
-        onEdited: value => Config.wallhaven.columns = parseInt(value)
+        onEdited: value => SettingsDraft.set("wallhaven", "columns", parseInt(value))
         type: SettingsOption.Type.ComboBox
     }
 
     SettingsOption {
         title: "Hide downloaded"
-        value: Config.wallhaven.hideDownloaded
-        onChecked: value => Config.wallhaven.hideDownloaded = value
+        value: SettingsDraft.get("wallhaven", "hideDownloaded")
+        onChecked: value => SettingsDraft.set("wallhaven", "hideDownloaded", value)
         type: SettingsOption.Type.Switch
     }
 
     SettingsOption {
         title: "Preview before download"
-        value: Config.wallhaven.previewBeforeDownload
-        onChecked: value => Config.wallhaven.previewBeforeDownload = value
+        value: SettingsDraft.get("wallhaven", "previewBeforeDownload")
+        onChecked: value => SettingsDraft.set("wallhaven", "previewBeforeDownload", value)
         type: SettingsOption.Type.Switch
     }
 }

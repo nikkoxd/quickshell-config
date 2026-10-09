@@ -49,14 +49,14 @@ Singleton {
     // Every provider Helpers/lyrics.py knows, in its default order.
     readonly property var knownProviders: ["kugou", "lrclib"]
 
-    /// `Config.island.lyricsProviders` cleaned up into `{ name, enabled }` for
-    /// every known provider exactly once: unknown and repeated names are dropped,
-    /// and a provider the config does not mention yet goes to the bottom, enabled.
-    readonly property var providers: {
-        const configured = Config.island.lyricsProviders || [];
+    /// `configured` (a `lyricsProviders` list) cleaned up into `{ name, enabled }`
+    /// for every known provider exactly once: unknown and repeated names are
+    /// dropped, and a provider the list does not mention yet goes to the bottom,
+    /// enabled.
+    function normalizeProviders(configured) {
         const result = [];
         const seen = new Set();
-        for (const entry of configured) {
+        for (const entry of configured || []) {
             const name = entry && entry.name;
             if (!root.knownProviders.includes(name) || seen.has(name))
                 continue;
@@ -76,33 +76,12 @@ Singleton {
         return result;
     }
 
+    readonly property var providers: root.normalizeProviders(Config.island.lyricsProviders)
+
     // What --providers is handed; a change refetches the current track.
     readonly property string providerArg: root.providers.filter(p => p.enabled).map(p => p.name).join(",")
 
     onProviderArgChanged: debounce.restart()
-
-    /// Swap the provider at `index` with the one `delta` places away.
-    function moveProvider(index, delta) {
-        const next = root.providers.slice();
-        const target = index + delta;
-        if (index < 0 || index >= next.length || target < 0 || target >= next.length)
-            return;
-        const moved = next[index];
-        next[index] = next[target];
-        next[target] = moved;
-        Config.island.lyricsProviders = next;
-    }
-
-    function setProviderEnabled(index, enabled) {
-        const next = root.providers.map(p => ({
-                    name: p.name,
-                    enabled: p.enabled
-                }));
-        if (index < 0 || index >= next.length)
-            return;
-        next[index].enabled = enabled;
-        Config.island.lyricsProviders = next;
-    }
 
     /// Where on the lyrics timeline a playback position of `position` falls.
     function timelineAt(position) {

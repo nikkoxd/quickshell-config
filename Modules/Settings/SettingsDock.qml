@@ -4,7 +4,6 @@ import Quickshell.Widgets
 import QtQuick
 import QtQuick.Layouts
 import qs.Core
-import qs.Services
 
 ColumnLayout {
     spacing: 30
@@ -21,30 +20,30 @@ ColumnLayout {
 
         SettingsOption {
             title: "Display dock"
-            value: Config.dock.enabled
-            onChecked: value => Config.dock.enabled = value
+            value: SettingsDraft.get("dock", "enabled")
+            onChecked: value => SettingsDraft.set("dock", "enabled", value)
             type: SettingsOption.Type.Switch
         }
 
         SettingsOption {
             title: "Show on hover only"
-            value: Config.dock.onlyOnHover
-            onChecked: value => Config.dock.onlyOnHover = value
+            value: SettingsDraft.get("dock", "onlyOnHover")
+            onChecked: value => SettingsDraft.set("dock", "onlyOnHover", value)
             type: SettingsOption.Type.Switch
         }
 
         SettingsOption {
             title: "Show when workspace is clear"
-            value: Config.dock.showWhenWorkspaceClear
-            onChecked: value => Config.dock.showWhenWorkspaceClear = value
+            value: SettingsDraft.get("dock", "showWhenWorkspaceClear")
+            onChecked: value => SettingsDraft.set("dock", "showWhenWorkspaceClear", value)
             type: SettingsOption.Type.Switch
         }
 
         SettingsOption {
             title: "Hover hotzone height"
             units: "px"
-            value: Config.dock.hotzoneHeight
-            onEdited: value => Config.dock.hotzoneHeight = parseInt(value)
+            value: SettingsDraft.get("dock", "hotzoneHeight")
+            onEdited: value => SettingsDraft.set("dock", "hotzoneHeight", parseInt(value))
             type: SettingsOption.Type.TextField
         }
     }
@@ -58,24 +57,24 @@ ColumnLayout {
 
         SettingsOption {
             title: "Tint icons with theme"
-            value: Config.dock.coloredIcons
-            onChecked: value => Config.dock.coloredIcons = value
+            value: SettingsDraft.get("dock", "coloredIcons")
+            onChecked: value => SettingsDraft.set("dock", "coloredIcons", value)
             type: SettingsOption.Type.Switch
         }
 
         SettingsOption {
             title: "Icon size"
             units: "px"
-            value: Config.dock.iconSize
-            onEdited: value => Config.dock.iconSize = parseInt(value)
+            value: SettingsDraft.get("dock", "iconSize")
+            onEdited: value => SettingsDraft.set("dock", "iconSize", parseInt(value))
             type: SettingsOption.Type.TextField
         }
 
         SettingsOption {
             title: "Icon spacing"
             units: "px"
-            value: Config.dock.spacing
-            onEdited: value => Config.dock.spacing = parseInt(value)
+            value: SettingsDraft.get("dock", "spacing")
+            onEdited: value => SettingsDraft.set("dock", "spacing", parseInt(value))
             type: SettingsOption.Type.TextField
         }
     }
@@ -93,7 +92,7 @@ ColumnLayout {
         }
 
         Repeater {
-            model: DockService.pinned
+            model: SettingsDraft.get("dock", "pinned")
 
             RowLayout {
                 id: pin
@@ -132,7 +131,7 @@ ColumnLayout {
                     }
 
                     TapHandler {
-                        onTapped: DockService.setPinned(pin.modelData, false)
+                        onTapped: SettingsDraft.set("dock", "pinned", Array.from(SettingsDraft.get("dock", "pinned")).filter(appId => appId !== pin.modelData))
                     }
                 }
             }

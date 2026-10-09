@@ -15,8 +15,8 @@ ColumnLayout {
 
     SettingsOption {
         title: "Do not disturb"
-        value: Config.notifications.doNotDisturb
-        onChecked: value => Config.notifications.doNotDisturb = value
+        value: SettingsDraft.get("notifications", "doNotDisturb")
+        onChecked: value => SettingsDraft.set("notifications", "doNotDisturb", value)
         type: SettingsOption.Type.Switch
     }
 
@@ -26,20 +26,20 @@ ColumnLayout {
 
     SettingsOption {
         title: "Play a sound"
-        value: Config.notifications.sound
-        onChecked: value => Config.notifications.sound = value
+        value: SettingsDraft.get("notifications", "sound")
+        onChecked: value => SettingsDraft.set("notifications", "sound", value)
         type: SettingsOption.Type.Switch
     }
 
     SettingsOption {
         title: "Sound"
-        value: SoundService.resolve(Config.notifications.soundFile)
+        value: SoundService.resolve(SettingsDraft.get("notifications", "soundFile"))
         options: SoundService.names
         // Picking is the only way to hear the difference, so play it back as
         // it is chosen instead of hiding a preview button beside the list.
         onEdited: value => {
-            Config.notifications.soundFile = value;
-            SoundService.play(value, Config.notifications.soundVolume);
+            SettingsDraft.set("notifications", "soundFile", value);
+            SoundService.play(value, SettingsDraft.get("notifications", "soundVolume"));
         }
         type: SettingsOption.Type.ComboBox
     }
@@ -47,18 +47,19 @@ ColumnLayout {
     SettingsListOption {
         title: "Apps that chime themselves"
         placeholder: "Discord"
-        values: Config.notifications.silentApps
-        onUpdated: values => Config.notifications.silentApps = values
+        values: SettingsDraft.get("notifications", "silentApps")
+        onUpdated: values => SettingsDraft.set("notifications", "silentApps", values)
     }
 
     SettingsOption {
         title: "Volume"
+        maximum: 100
         units: "%"
-        value: Config.notifications.soundVolume
+        value: SettingsDraft.get("notifications", "soundVolume")
         onEdited: value => {
             const volume = Math.max(0, Math.min(100, parseInt(value) || 0));
-            Config.notifications.soundVolume = volume;
-            SoundService.play(Config.notifications.soundFile, volume);
+            SettingsDraft.set("notifications", "soundVolume", volume);
+            SoundService.play(SettingsDraft.get("notifications", "soundFile"), volume);
         }
         type: SettingsOption.Type.TextField
     }
