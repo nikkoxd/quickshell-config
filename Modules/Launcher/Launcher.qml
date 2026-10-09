@@ -218,6 +218,74 @@ View {
             height: Math.min(contentHeight, 300)
             spacing: 5
             delegate: LauncherEntry {}
+
+            // Rows pop in the way the default view's indicators do: a fade with a
+            // slight overshoot on the scale, staggered down the batch so a new
+            // query reads as the list filling in rather than appearing at once.
+            // The stagger counts from the first row of the batch and is capped, so
+            // a lone row arriving deep in a refreshed table isn't held back.
+            add: Transition {
+                id: addTransition
+                SequentialAnimation {
+                    PauseAnimation {
+                        duration: Math.min(addTransition.ViewTransition.index - (addTransition.ViewTransition.targetIndexes[0] ?? 0), 8) * 20
+                    }
+                    ParallelAnimation {
+                        NumberAnimation {
+                            property: "opacity"
+                            from: 0
+                            to: 1
+                            duration: 200
+                            easing.type: Easing.OutQuad
+                        }
+                        NumberAnimation {
+                            property: "scale"
+                            from: 0.8
+                            to: 1
+                            duration: 320
+                            easing.type: Easing.OutBack
+                        }
+                    }
+                }
+            }
+
+            // ScriptModel diffs rather than resets, so the first fill arrives as
+            // inserts too; populate only covers a model that is already full.
+            populate: list.add
+
+            remove: Transition {
+                ParallelAnimation {
+                    NumberAnimation {
+                        property: "opacity"
+                        to: 0
+                        duration: 150
+                        easing.type: Easing.OutQuad
+                    }
+                    NumberAnimation {
+                        property: "scale"
+                        to: 0.8
+                        duration: 150
+                        easing.type: Easing.OutQuad
+                    }
+                }
+            }
+
+            // Also settles opacity and scale: a row displaced while its add is
+            // still running has that animation cut off, and would otherwise be
+            // left half-faded where it stopped.
+            displaced: Transition {
+                NumberAnimation {
+                    property: "y"
+                    duration: 200
+                    easing.type: Easing.OutCubic
+                }
+                NumberAnimation {
+                    properties: "opacity,scale"
+                    to: 1
+                    duration: 200
+                }
+            }
+            move: list.displaced
         }
     }
 }
