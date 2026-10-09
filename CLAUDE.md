@@ -75,7 +75,7 @@ Controls (all emit a signal rather than mutating their own state, so the caller 
 - `Chip` — labelled toggle pill. Independent of its neighbours, so a row of them reads as a multi-select filter (the wallpaper browser's categories/purity); emits `clicked()`.
 - `SegmentPill` — segmented control over `options` (a list of `{ label, value }`) with a highlight that slides onto `current`; emits `selected(value)`. `icons: true` renders the labels as glyphs.
 - `Dropdown` — single-select dropdown over the same option shape (plain strings also work); emits `selected(value)`. The list floats and the root stays trigger-height, so opening one never reflows the layout — but a clipping container has to grow by `listHeight` to reveal it, and `collapse()` closes it.
-- `PopupMenu` — `PopupWindow` context menu built from a `menu` list of `{ text, triggered, isSeparator }`; `showMenu()` opens it, `closeRequested` fires on activation.
+- `PopupMenu` — `PopupWindow` context menu built from a `menu` list of `{ text, triggered, isSeparator, icon?, enabled? }` (tray `QsMenuEntry`s fit as-is), drawn like the dock menu with separators as rules; `showMenu()` opens it, `closeRequested` fires on activation.
 
 Chrome and helpers:
 
