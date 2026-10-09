@@ -1,5 +1,7 @@
 pragma ComponentBehavior: Bound
 
+import Quickshell
+import Quickshell.Widgets
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Effects
@@ -10,7 +12,8 @@ import qs.Core
 Item {
     id: root
 
-    // [{ text: string, icon: Phosphor glyph name, triggered: function }]
+    // [{ text: string, icon: Phosphor glyph name, appIcon: themed icon name,
+    //    triggered: function } | { isSeparator: true }]
     property var entries: []
 
     // Point the menu points at: the centre of the top edge of the dock icon.
@@ -67,21 +70,42 @@ Item {
                 id: item
 
                 required property var modelData
+                readonly property bool separator: modelData.isSeparator ?? false
 
                 Layout.fillWidth: true
-                implicitWidth: row.implicitWidth + 16
-                implicitHeight: row.implicitHeight + 8
+                implicitWidth: separator ? 0 : row.implicitWidth + 16
+                implicitHeight: separator ? 9 : row.implicitHeight + 8
                 radius: 4
                 color: itemHover.hovered ? Config.colorscheme.accent : "transparent"
 
                 readonly property color contentColor: itemHover.hovered ? Config.colorscheme.bg : Config.colorscheme.fg
 
+                Rectangle {
+                    visible: item.separator
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.margins: 4
+                    height: 1
+                    color: Config.colorscheme.fg
+                    opacity: 0.15
+                }
+
                 Row {
                     id: row
+                    visible: !item.separator
                     anchors.left: parent.left
                     anchors.leftMargin: 8
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: 8
+
+                    IconImage {
+                        // iconPath(name, true) is empty for a name the theme lacks
+                        visible: source != ""
+                        implicitSize: Config.theme.fontSize * 1.2
+                        source: item.modelData.appIcon ? Quickshell.iconPath(item.modelData.appIcon, true) : ""
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
 
                     ThemedText {
                         icon: true
@@ -92,7 +116,7 @@ Item {
                     }
 
                     ThemedText {
-                        text: item.modelData.text
+                        text: item.modelData.text ?? ""
                         color: item.contentColor
                         anchors.verticalCenter: parent.verticalCenter
                     }
@@ -100,11 +124,13 @@ Item {
 
                 HoverHandler {
                     id: itemHover
+                    enabled: !item.separator
                     cursorShape: Qt.PointingHandCursor
                 }
 
                 TapHandler {
                     acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
+                    enabled: !item.separator
                     onTapped: (eventPoint, button) => {
                         if (button === Qt.LeftButton)
                             item.modelData.triggered();

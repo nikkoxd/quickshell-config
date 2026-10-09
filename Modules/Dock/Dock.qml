@@ -224,15 +224,36 @@ LazyLoader {
             // item object, which is rebuilt whenever a window opens or closes.
             const appId = item.appId;
             const pinned = DockService.isPinned(appId);
-            const entries = [
-                      {
+            const entries = [];
+
+            // The .desktop file's own actions (New window, Private window, …).
+            // Looked up again by id when run, for the same reason as above.
+            const actions = item.entry?.actions ?? [];
+            for (const action of actions) {
+                const actionId = action.id;
+                entries.push({
+                                 text: action.name,
+                                 appIcon: action.icon,
+                                 triggered: () => {
+                                     const entry = DockService.itemFor(appId)?.entry;
+                                     const current = (entry?.actions ?? []).find(a => a.id === actionId);
+                                     if (current)
+                                         current.execute();
+                                 }
+                             });
+            }
+            if (actions.length > 0)
+                entries.push({
+                                 isSeparator: true
+                             });
+
+            entries.push({
                           text: pinned ? "Unpin" : "Pin",
                           icon: pinned ? "push-pin-slash" : "push-pin",
                           triggered: () => {
                               DockService.togglePin(appId);
                           }
-                      }
-                  ];
+                      });
 
             if (item.toplevels.length > 0)
                 entries.push({
